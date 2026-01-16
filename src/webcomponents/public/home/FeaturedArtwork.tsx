@@ -1,3 +1,4 @@
+'use client';
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -8,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { ProductProps } from "@/interface/product";
 import { products } from "@/lib/data";
+import { Product } from "@/webcomponents/reusable";
 import { Filter } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -53,7 +55,7 @@ export const FeaturedArtwork = () => {
         <div className="flex flex-col md:flex-row gap-2.5">
           <div className="flex flex-col gap-2 flex-1">
             <Label htmlFor="email">Categories</Label>
-            <Select defaultValue="all">
+            <Select defaultValue="all" onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
@@ -72,7 +74,7 @@ export const FeaturedArtwork = () => {
           </div>
           <div className="flex flex-col gap-2 flex-1">
             <Label htmlFor="email">Availability</Label>
-            <Select defaultValue="all">
+            <Select defaultValue="all" onValueChange={setSelectedAvailability}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
@@ -90,6 +92,15 @@ export const FeaturedArtwork = () => {
             </Select>
           </div>
         </div>
+      </div>
+      <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {filteredProducts.map((product) => (
+          <Product
+            key={product.productId}
+            product={product}
+            buttonText={["Make a Bid"]}
+          />
+        ))}
       </div>
     </div>
   );

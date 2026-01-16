@@ -13,8 +13,9 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
 
   // Calculate remaining time
   const getRemainingTime = () => {
+    if (!product.remainingTime) return "Auction ended";
+
     const now = new Date();
-    if (!product.remainingTime) return "No remaining time";
     const remaining = product.remainingTime.getTime() - now.getTime();
 
     if (remaining <= 0) return "Auction ended";
@@ -31,9 +32,21 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
   };
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+    <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow relative">
+      {/* Sold Out Overlay */}
+      {product.isSoldOut && (
+        <div className="absolute inset-0 bg-black/45 backdrop-blur-xs z-10 flex items-center justify-center">
+          <div
+            className="bg-red-600 text-white font-bold text-2xl px-8 py-3 rounded-md shadow-lg"
+            style={{ transform: "rotate(-12deg)" }}
+          >
+            SOLD OUT
+          </div>
+        </div>
+      )}
+
       {/* Image Section - Full Width */}
-      <div className="relative w-full h-64">
+      <div className="relative w-full aspect-4/3">
         <Image
           src={product.prouductPhoto}
           alt={product.productTitle}
@@ -55,57 +68,73 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
         {/* Divider */}
         <div className="border-b border-gray-300"></div>
 
-        {/* Price Information */}
-        <div className="space-y-2">
-          {/* Buy It Now */}
+        {/* Price Information - Full details when NOT sold out */}
+        {!product.isSoldOut && (
+          <div className="space-y-2">
+            {/* Buy It Now */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Buy It Now</span>
+              <span className="text-[#008236] font-semibold">
+                ${product.productPrice}
+              </span>
+            </div>
+
+            {/* Current Bid */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Current Bid</span>
+              <span className="text-[#1447E6] font-semibold">
+                ${product.auctionPrice}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Show only Buy It Now price for sold out items */}
+        {product.isSoldOut && (
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">Buy It Now</span>
-            <span className="text-gray-900 font-semibold">
+            <span className="text-gray-700">Price</span>
+            <span className="text-[#008236] font-semibold">
               ${product.productPrice}
             </span>
           </div>
+        )}
 
-          {/* Current Bid */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Current Bid</span>
-            <span className="text-gray-900 font-semibold">
-              ${product.auctionPrice}
-            </span>
+        {/* Remaining Time - Hide for sold out */}
+        {!product.isSoldOut && (
+          <div className="flex items-center gap-2 text-[#F54900]">
+            <Clock size={18} />
+            <span className="font-medium">{getRemainingTime()}</span>
           </div>
-        </div>
+        )}
 
-        {/* Remaining Time */}
-        <div className="flex items-center gap-2 text-[#F54900]">
-          <Clock size={18} />
-          <span className="font-medium">{getRemainingTime()}</span>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          {isAuthenticated ? (
-            <>
+        {/* Action Buttons - Hide for sold out */}
+        {!product.isSoldOut && (
+          <div className="flex gap-2 pt-2">
+            {isAuthenticated ? (
+              <>
+                <button
+                  className="flex-1 py-2.5 px-4 rounded-md font-semibold text-white transition-colors"
+                  style={{ backgroundColor: "#155DFC" }}
+                >
+                  {buttonText[0] || "Make a Bid"}
+                </button>
+                <button
+                  className="flex-1 py-2.5 px-4 rounded-md font-semibold text-white transition-colors"
+                  style={{ backgroundColor: "#00A63E" }}
+                >
+                  {buttonText[1] || "Buy Now"}
+                </button>
+              </>
+            ) : (
               <button
-                className="flex-1 py-2.5 px-4 rounded-md font-semibold text-white transition-colors"
-                style={{ backgroundColor: "#155DFC" }}
+                className="w-full py-2.5 px-4 rounded-md font-semibold text-gray-700 transition-colors"
+                style={{ backgroundColor: "#D4D4D4" }}
               >
-                {buttonText[0] || "Make a Bid"}
+                {buttonText[0] || "Login to Bid"}
               </button>
-              <button
-                className="flex-1 py-2.5 px-4 rounded-md font-semibold text-white transition-colors"
-                style={{ backgroundColor: "#00A63E" }}
-              >
-                {buttonText[1] || "Buy Now"}
-              </button>
-            </>
-          ) : (
-            <button
-              className="w-full py-2.5 px-4 rounded-md font-semibold text-gray-700 transition-colors"
-              style={{ backgroundColor: "#D4D4D4" }}
-            >
-              {buttonText[0] || "Login to Bid"}
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

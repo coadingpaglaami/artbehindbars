@@ -25,7 +25,7 @@ export const products: ProductProps[] = [
   },
   {
     productId: "3",
-    prouductPhoto: "/artwork/artwork3.jpg",
+    prouductPhoto: "/artwork/artwork3.png",
     productArtist: "DeShawn Jackson",
     productTitle: "Urban Dreams",
     productCategory: "Non Religious",
@@ -36,7 +36,7 @@ export const products: ProductProps[] = [
   },
   {
     productId: "4",
-    prouductPhoto: "/artwork/artwork4.jpg",
+    prouductPhoto: "/artwork/artwork4.png",
     productArtist: "Carlos Rodriguez",
     productTitle: "Redemption Path",
     productCategory: "Religious",
@@ -47,7 +47,7 @@ export const products: ProductProps[] = [
   },
   {
     productId: "5",
-    prouductPhoto: "/artwork/artwork5.jpg",
+    prouductPhoto: "/artwork/artwork5.png",
     productArtist: "Andre Thompson",
     productTitle: "Freedom in Color",
     productCategory: "Non Religious",
@@ -69,7 +69,7 @@ export const products: ProductProps[] = [
   },
   {
     productId: "7",
-    prouductPhoto: "/artwork/artwork7.jpg",
+    prouductPhoto: "/artwork/artwork7.png",
     productArtist: "Robert Lee",
     productTitle: "Metamorphosis",
     productCategory: "Non Religious",
@@ -80,7 +80,7 @@ export const products: ProductProps[] = [
   },
   {
     productId: "8",
-    prouductPhoto: "/artwork/artwork4.jpg",
+    prouductPhoto: "/artwork/artwork4.png",
     productArtist: "Steven Baker",
     productTitle: "Grace and Mercy",
     productCategory: "Religious",
