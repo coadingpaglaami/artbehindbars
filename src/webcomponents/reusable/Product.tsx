@@ -2,6 +2,8 @@ import { ProductProps } from "@/interface/product";
 import { getClientAuthStatus } from "@/lib/auth";
 import Image from "next/image";
 import { Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 
 export interface ProductCardProps {
   product: ProductProps;
@@ -10,6 +12,7 @@ export interface ProductCardProps {
 
 export const Product = ({ product, buttonText }: ProductCardProps) => {
   const isAuthenticated = getClientAuthStatus();
+  const router = useRouter();
 
   // Calculate remaining time
   const getRemainingTime = () => {
@@ -115,6 +118,7 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
                 <button
                   className="flex-1 py-2.5 px-4 rounded-md font-semibold text-white transition-colors"
                   style={{ backgroundColor: "#155DFC" }}
+                  onClick={() => router.push(`/product/${product.productId}`)}
                 >
                   {buttonText[0] || "Make a Bid"}
                 </button>

@@ -3,14 +3,19 @@ import { ProductProps } from "@/interface/product";
 export const products: ProductProps[] = [
   {
     productId: "1",
-    prouductPhoto: "/artwork/artwork1.jpg", // Example photo path
+    prouductPhoto: "/artwork/artwork1.jpg",
     productArtist: "Marius Williams",
     productTitle: "Hope Beyond Bars",
     productCategory: "Non Religious",
     productPrice: 850,
-    auctionPrice: 420,
+    auctionPrice: 509,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: false,
+    bitHistory: [
+      { name: "John Doe", value: 600, timeStamp: new Date("2026-01-10T12:00:00Z") },
+      { name: "Jane Smith", value: 509, timeStamp: new Date("2026-01-11T15:00:00Z") },
+      { name: "Paul Green", value: 509, timeStamp: new Date("2026-01-12T17:00:00Z") },
+    ],
   },
   {
     productId: "2",
@@ -19,9 +24,14 @@ export const products: ProductProps[] = [
     productTitle: "Divine Light",
     productCategory: "Religious",
     productPrice: 1200,
-    auctionPrice: 875,
+    auctionPrice: 719,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: false,
+    bitHistory: [
+      { name: "Alice Johnson", value: 800, timeStamp: new Date("2026-01-10T14:30:00Z") },
+      { name: "David Lee", value: 719, timeStamp: new Date("2026-01-11T16:45:00Z") },
+      { name: "Sarah Adams", value: 719, timeStamp: new Date("2026-01-12T18:00:00Z") },
+    ],
   },
   {
     productId: "3",
@@ -30,9 +40,14 @@ export const products: ProductProps[] = [
     productTitle: "Urban Dreams",
     productCategory: "Non Religious",
     productPrice: 650,
-    auctionPrice: 575,
+    auctionPrice: 389,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: true,
+    bitHistory: [
+      { name: "Mark Brown", value: 450, timeStamp: new Date("2026-01-09T13:00:00Z") },
+      { name: "Emma Wilson", value: 389, timeStamp: new Date("2026-01-10T10:00:00Z") },
+      { name: "Michael Clark", value: 389, timeStamp: new Date("2026-01-11T11:30:00Z") },
+    ],
   },
   {
     productId: "4",
@@ -41,9 +56,14 @@ export const products: ProductProps[] = [
     productTitle: "Redemption Path",
     productCategory: "Religious",
     productPrice: 650,
-    auctionPrice: 850,
+    auctionPrice: 389,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: false,
+    bitHistory: [
+      { name: "Rachel Green", value: 500, timeStamp: new Date("2026-01-10T11:00:00Z") },
+      { name: "Daniel Foster", value: 389, timeStamp: new Date("2026-01-11T13:45:00Z") },
+      { name: "Sophia Lee", value: 389, timeStamp: new Date("2026-01-12T14:00:00Z") },
+    ],
   },
   {
     productId: "5",
@@ -52,9 +72,14 @@ export const products: ProductProps[] = [
     productTitle: "Freedom in Color",
     productCategory: "Non Religious",
     productPrice: 720,
-    auctionPrice: 500,
+    auctionPrice: 431,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: false,
+    bitHistory: [
+      { name: "James White", value: 500, timeStamp: new Date("2026-01-08T09:30:00Z") },
+      { name: "Ella Moore", value: 431, timeStamp: new Date("2026-01-09T14:00:00Z") },
+      { name: "Michael Harris", value: 431, timeStamp: new Date("2026-01-10T17:00:00Z") },
+    ],
   },
   {
     productId: "6",
@@ -63,9 +88,14 @@ export const products: ProductProps[] = [
     productTitle: "Sacred Sanctuary",
     productCategory: "Religious",
     productPrice: 1100,
-    auctionPrice: 820,
+    auctionPrice: 659,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: false,
+    bitHistory: [
+      { name: "Olivia Harris", value: 700, timeStamp: new Date("2026-01-09T11:30:00Z") },
+      { name: "Daniel Roberts", value: 659, timeStamp: new Date("2026-01-10T15:00:00Z") },
+      { name: "Amelia Clark", value: 659, timeStamp: new Date("2026-01-11T12:00:00Z") },
+    ],
   },
   {
     productId: "7",
@@ -74,9 +104,14 @@ export const products: ProductProps[] = [
     productTitle: "Metamorphosis",
     productCategory: "Non Religious",
     productPrice: 880,
-    auctionPrice: 640,
+    auctionPrice: 527,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: false,
+    bitHistory: [
+      { name: "Lucas Brown", value: 600, timeStamp: new Date("2026-01-08T10:00:00Z") },
+      { name: "Sophia Green", value: 527, timeStamp: new Date("2026-01-09T14:30:00Z") },
+      { name: "Ethan King", value: 527, timeStamp: new Date("2026-01-10T16:30:00Z") },
+    ],
   },
   {
     productId: "8",
@@ -85,9 +120,14 @@ export const products: ProductProps[] = [
     productTitle: "Grace and Mercy",
     productCategory: "Religious",
     productPrice: 1350,
-    auctionPrice: 950,
+    auctionPrice: 809,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: false,
+    bitHistory: [
+      { name: "Benjamin Thomas", value: 900, timeStamp: new Date("2026-01-08T13:00:00Z") },
+      { name: "Mia Taylor", value: 809, timeStamp: new Date("2026-01-09T16:30:00Z") },
+      { name: "Charlotte White", value: 809, timeStamp: new Date("2026-01-10T17:00:00Z") },
+    ],
   },
   {
     productId: "9",
@@ -96,8 +136,14 @@ export const products: ProductProps[] = [
     productTitle: "Behind the Wall",
     productCategory: "Non Religious",
     productPrice: 775,
-    auctionPrice: 950,
+    auctionPrice: 464,
     remainingTime: new Date("2026-01-18T12:00:00Z"),
     isSoldOut: true,
+    bitHistory: [
+      { name: "Jack Wilson", value: 600, timeStamp: new Date("2026-01-09T12:30:00Z") },
+      { name: "Emily Johnson", value: 464, timeStamp: new Date("2026-01-10T14:00:00Z") },
+      { name: "Noah Lee", value: 464, timeStamp: new Date("2026-01-11T11:00:00Z") },
+    ],
   },
 ];
+

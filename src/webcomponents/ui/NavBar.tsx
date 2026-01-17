@@ -18,10 +18,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export const NavBar = () => {
   const activeLink = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const isAuthenticated = getClientAuthStatus();
   console.log(isAuthenticated);
@@ -34,7 +35,7 @@ export const NavBar = () => {
     { label: "Connect", link: "/community" },
     { label: "Our Story", link: "/our_story" },
     { label: "FAQ", link: "/faq" },
-    { label: "Contact Us", link: "/contact-us" },
+    { label: "Contact Us", link: "/contact_us" },
   ];
 
   const navItems = [
@@ -61,7 +62,7 @@ export const NavBar = () => {
     {
       name: "Logout",
       icon: LogOut,
-      link: "/logout",
+      link: "/login",
     },
   ];
 
@@ -127,7 +128,10 @@ export const NavBar = () => {
               </PopoverContent>
             </Popover>
           ) : (
-            <button className="bg-white p-1.5 rounded-md flex items-center text-primary gap-2.5 cursor-pointer">
+            <button
+              className="bg-white p-1.5 rounded-md flex items-center text-primary gap-2.5 cursor-pointer"
+              onClick={() => router.push("/login")}
+            >
               <span>Login</span>
               <User size={20} />
             </button>
