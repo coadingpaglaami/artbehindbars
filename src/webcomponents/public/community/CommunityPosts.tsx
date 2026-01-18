@@ -1,8 +1,15 @@
 import { CommunityPost } from "@/interface/community";
 import { Heart, MessageCircle } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
-export const CommunityPosts = ({ community }: { community: CommunityPost }) => {
+export const CommunityPosts = ({
+  community,
+  index,
+}: {
+  community: CommunityPost;
+  index: number;
+}) => {
   // Calculate time ago from posted date
   const getTimeAgo = (dateString: string) => {
     const now = new Date();
@@ -29,6 +36,8 @@ export const CommunityPosts = ({ community }: { community: CommunityPost }) => {
     if (!community.postImage || community.postImage.length === 0) return null;
 
     const imageCount = community.postImage.length;
+
+    console.log(typeof String(index+1))
 
     // Single image - full width
     if (imageCount === 1) {
@@ -103,7 +112,9 @@ export const CommunityPosts = ({ community }: { community: CommunityPost }) => {
 
       {/* Author and Posted Time */}
       <div className="flex items-center gap-2 text-sm text-gray-600">
-        <span className="font-medium">{community.authorName}</span>
+        <Link href={`/profile/${String(index+1)}`} className="font-medium">
+          {community.authorName}
+        </Link>
         <span>•</span>
         <span>{getTimeAgo(community.postedOn)}</span>
       </div>

@@ -31,7 +31,7 @@ export const NavBar = () => {
     { label: "Home", link: "/" },
 
     { label: "Shop Art", link: "/shop_art" },
-    { label: "Search Artists", link: "/search_artists" },
+    { label: "Search Artists", link: "/artists" },
     { label: "Connect", link: "/community" },
     { label: "Our Story", link: "/our_story" },
     { label: "FAQ", link: "/faq" },
@@ -47,7 +47,7 @@ export const NavBar = () => {
     {
       name: "My Connections",
       icon: Users,
-      link: "/my-connections",
+      link: "/my-connection",
     },
     {
       name: "Messages",
@@ -57,7 +57,7 @@ export const NavBar = () => {
     {
       name: "Settings",
       icon: Settings,
-      link: "/settings",
+      link: "/edit_profile",
     },
     {
       name: "Logout",

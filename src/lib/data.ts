@@ -9,7 +9,7 @@ export const products: ProductProps[] = [
     productCategory: "Non Religious",
     productPrice: 850,
     auctionPrice: 509,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: false,
     bitHistory: [
       { name: "John Doe", value: 600, timeStamp: new Date("2026-01-10T12:00:00Z") },
@@ -25,7 +25,7 @@ export const products: ProductProps[] = [
     productCategory: "Religious",
     productPrice: 1200,
     auctionPrice: 719,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: false,
     bitHistory: [
       { name: "Alice Johnson", value: 800, timeStamp: new Date("2026-01-10T14:30:00Z") },
@@ -41,7 +41,7 @@ export const products: ProductProps[] = [
     productCategory: "Non Religious",
     productPrice: 650,
     auctionPrice: 389,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: true,
     bitHistory: [
       { name: "Mark Brown", value: 450, timeStamp: new Date("2026-01-09T13:00:00Z") },
@@ -57,7 +57,7 @@ export const products: ProductProps[] = [
     productCategory: "Religious",
     productPrice: 650,
     auctionPrice: 389,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: false,
     bitHistory: [
       { name: "Rachel Green", value: 500, timeStamp: new Date("2026-01-10T11:00:00Z") },
@@ -73,7 +73,7 @@ export const products: ProductProps[] = [
     productCategory: "Non Religious",
     productPrice: 720,
     auctionPrice: 431,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: false,
     bitHistory: [
       { name: "James White", value: 500, timeStamp: new Date("2026-01-08T09:30:00Z") },
@@ -89,7 +89,7 @@ export const products: ProductProps[] = [
     productCategory: "Religious",
     productPrice: 1100,
     auctionPrice: 659,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: false,
     bitHistory: [
       { name: "Olivia Harris", value: 700, timeStamp: new Date("2026-01-09T11:30:00Z") },
@@ -105,7 +105,7 @@ export const products: ProductProps[] = [
     productCategory: "Non Religious",
     productPrice: 880,
     auctionPrice: 527,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: false,
     bitHistory: [
       { name: "Lucas Brown", value: 600, timeStamp: new Date("2026-01-08T10:00:00Z") },
@@ -121,7 +121,7 @@ export const products: ProductProps[] = [
     productCategory: "Religious",
     productPrice: 1350,
     auctionPrice: 809,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: false,
     bitHistory: [
       { name: "Benjamin Thomas", value: 900, timeStamp: new Date("2026-01-08T13:00:00Z") },
@@ -137,7 +137,7 @@ export const products: ProductProps[] = [
     productCategory: "Non Religious",
     productPrice: 775,
     auctionPrice: 464,
-    remainingTime: new Date("2026-01-18T12:00:00Z"),
+    remainingTime: new Date("2026-01-25T12:00:00Z"),
     isSoldOut: true,
     bitHistory: [
       { name: "Jack Wilson", value: 600, timeStamp: new Date("2026-01-09T12:30:00Z") },
@@ -146,4 +146,3 @@ export const products: ProductProps[] = [
     ],
   },
 ];
-

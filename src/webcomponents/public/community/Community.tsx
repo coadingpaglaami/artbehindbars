@@ -84,7 +84,7 @@ export const Community = () => {
           post.postTitle.toLowerCase().includes(searchLower) ||
           post.content.toLowerCase().includes(searchLower) ||
           post.topics.toLowerCase().includes(searchLower) ||
-          post.authorName.toLowerCase().includes(searchLower)
+          post.authorName.toLowerCase().includes(searchLower),
       );
     }
 
@@ -171,8 +171,12 @@ export const Community = () => {
         <div className="lg:w-[70%] flex-col ">
           <span>Showing {filteredPosts.length} posts</span>
           <div className="flex flex-col gap-4">
-            {filteredPosts.map((post) => (
-              <CommunityPosts key={post.postId} community={post} />
+            {filteredPosts.map((post, index) => (
+              <CommunityPosts
+                key={post.postId}
+                community={post}
+                index={index}
+              />
             ))}
           </div>
         </div>

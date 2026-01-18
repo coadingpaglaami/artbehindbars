@@ -1,3 +1,4 @@
+'use client';
 import { ProductProps } from "@/interface/product";
 import { getClientAuthStatus } from "@/lib/auth";
 import Image from "next/image";

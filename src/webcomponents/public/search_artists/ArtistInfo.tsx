@@ -1,8 +1,10 @@
 import { ArtistInfo } from "@/interface/artist";
 import { Calendar, FileImage, MapPin } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export const ArtistInformation = ({ artist }: { artist: ArtistInfo }) => {
+  const {push} = useRouter();
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow flex flex-col h-full">
       {/* Image Section - Full Width, No Padding */}
@@ -53,7 +55,7 @@ export const ArtistInformation = ({ artist }: { artist: ArtistInfo }) => {
         </div>
 
         {/* Primary Button - Always at bottom */}
-        <button className="w-full py-2.5 px-4 rounded-md font-semibold text-white transition-colors bg-primary mt-auto">
+        <button className="w-full py-2.5 px-4 rounded-md font-semibold text-white transition-colors bg-primary mt-auto" onClick={() => push(`/artists/${artist.artistId}`)}>
           View Profile
         </button>
       </div>
