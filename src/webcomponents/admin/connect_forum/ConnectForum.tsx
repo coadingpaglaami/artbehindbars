@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { generatePostData } from "@/data/admin/forumPostData";
 import { ForumPost } from "@/interface/admin/forum";
 import { AdminHeading } from "@/webcomponents/reusable";
@@ -9,30 +9,17 @@ import { Pagination } from "@/webcomponents/reusable";
 
 export const ConnectForum = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inappropriate">("all");
   const itemsPerPage = 10;
 
   const forumData: ForumPost[] = generatePostData(50);
 
   // Filter posts based on status
-  const filteredPosts = useMemo(() => {
-    switch (statusFilter) {
-      case "all":
-        return forumData;
-      case "active":
-        return forumData.filter((post) => post.status === "Active");
-      case "inappropriate":
-        return forumData.filter((post) => post.status === "Inappropriate");
-      default:
-        return forumData;
-    }
-  }, [statusFilter, forumData]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredPosts.length / itemsPerPage);
+  const totalPages = Math.ceil(forumData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentPosts = filteredPosts.slice(startIndex, endIndex);
+  const currentPosts = forumData.slice(startIndex, endIndex);
 
   const handleDelete = (postId: string) => {
     console.log("Delete post:", postId);
@@ -54,51 +41,6 @@ export const ConnectForum = () => {
         heading="CONNECT Forum Moderation"
         subheading="Review community discussions and handle reported content."
       />
-
-      {/* Filter Tabs */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => {
-              setStatusFilter("all");
-              setCurrentPage(1);
-            }}
-            className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-              statusFilter === "all"
-                ? "text-blue-600 bg-blue-50 border-b-2 border-blue-600"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            All Posts
-          </button>
-          <button
-            onClick={() => {
-              setStatusFilter("active");
-              setCurrentPage(1);
-            }}
-            className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-              statusFilter === "active"
-                ? "text-blue-600 bg-blue-50 border-b-2 border-blue-600"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => {
-              setStatusFilter("inappropriate");
-              setCurrentPage(1);
-            }}
-            className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-              statusFilter === "inappropriate"
-                ? "text-blue-600 bg-blue-50 border-b-2 border-blue-600"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Flagged
-          </button>
-        </div>
-      </div>
 
       {/* Forum Posts */}
       <ForumData
@@ -122,9 +64,7 @@ export const ConnectForum = () => {
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             No Posts Found
           </h3>
-          <p className="text-gray-600">
-            There are no posts in this category.
-          </p>
+          <p className="text-gray-600">There are no posts in this category.</p>
         </div>
       )}
     </div>

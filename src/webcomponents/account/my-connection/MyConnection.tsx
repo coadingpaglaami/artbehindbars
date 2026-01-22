@@ -5,9 +5,11 @@ import { HeadingTwo, SearchBar } from "@/webcomponents/reusable";
 import { useState, useMemo } from "react";
 import { Connection } from "./Connection";
 import { UserCheck, UserX } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export const MyConnection = () => {
   const [search, setSearch] = useState("");
+  const { push } = useRouter();
   const [activeTab, setActiveTab] = useState<"connected" | "blocked">(
     "connected",
   );
@@ -29,7 +31,7 @@ export const MyConnection = () => {
   }, [search, activeTab, connectedUsers, blockedUsers]);
 
   const handleMessage = (id: string) => {
-    console.log("Message user:", id);
+    console.log("Message user:", push(`/chat/${id}`));
   };
 
   const handleBlock = (id: string) => {
