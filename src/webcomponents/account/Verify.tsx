@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,39 +21,48 @@ import {
 } from "@/components/ui/input-otp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 
-// ──────────────────────────────────────────────
-// Schema & Types
-// ──────────────────────────────────────────────
+/* ────────────────────────────────────────────── */
+/* Schema & Types                                 */
+/* ────────────────────────────────────────────── */
+
 const formSchema = z.object({
   otp: z.string().length(5, { message: "Please enter a 5-digit code" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-// ──────────────────────────────────────────────
-// Props (for easy API integration)
-// ──────────────────────────────────────────────
+/* ────────────────────────────────────────────── */
+/* Props                                          */
+/* ────────────────────────────────────────────── */
+
 interface OtpVerificationProps {
-  email?: string; // "johndoe@example.com"
-  onVerify?: (otp: string) => Promise<{ success: boolean; error?: string }>;
-  onResend?: () => Promise<{ success: boolean; error?: string }>;
-  initialCountdown?: number; // default 60
+  email?: string;
+  initialCountdown?: number;
 }
+
+/* ────────────────────────────────────────────── */
+/* Component                                      */
+/* ────────────────────────────────────────────── */
 
 export const Verify = ({
   email,
   initialCountdown = 60,
 }: OtpVerificationProps) => {
+  const router = useRouter();
+
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(initialCountdown);
   const [canResend, setCanResend] = useState(false);
-  const forgotPaswordFlow =
-    localStorage.getItem("forgot-password-flow") === "true";
-  console.log(forgotPaswordFlow);
-  const { push } = useRouter();
+
+  // ✅ SAFE localStorage access
+  const [forgotPasswordFlow, setForgotPasswordFlow] = useState(false);
+
+  useEffect(() => {
+    const value = localStorage.getItem("forgot-password-flow");
+    setForgotPasswordFlow(value === "true");
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -61,7 +71,10 @@ export const Verify = ({
 
   const otpValue = form.watch("otp");
 
-  // Countdown timer
+  /* ────────────────────────────────────────────── */
+  /* Countdown Timer                               */
+  /* ────────────────────────────────────────────── */
+
   useEffect(() => {
     if (countdown <= 0) {
       setCanResend(true);
@@ -75,60 +88,49 @@ export const Verify = ({
     return () => clearInterval(timer);
   }, [countdown]);
 
-  // Handle form submit (verify OTP)
+  /* ────────────────────────────────────────────── */
+  /* Submit Handler                                */
+  /* ────────────────────────────────────────────── */
+
   async function onSubmit(values: FormValues) {
-    // setError(null);
-    // setIsVerifying(true);
-    // try {
-    //   const result = await onVerify(values.otp);
-    //   if (!result.success) {
-    //     setError(result.error || "Invalid Code!");
-    //     form.setError("otp", { message: " " }); // just to trigger red border
-    //   } else {
-    //     // Success → redirect or show success toast
-    //     // toast.success("Verification successful!");
-    //   }
-    // } catch (err) {
-    //   setError("Something went wrong. Please try again.");
-    // } finally {
-    //   setIsVerifying(false);
-    // }
-    if (forgotPaswordFlow) {
-      push("/reset-password");
+    // 🔐 API call will go here later
+
+    if (forgotPasswordFlow) {
+      router.push("/reset-password");
     } else {
-      push("/success");
+      router.push("/success");
     }
   }
 
-  // Handle resend
+  /* ────────────────────────────────────────────── */
+  /* Resend Handler                                */
+  /* ────────────────────────────────────────────── */
+
   async function handleResend() {
-    // if (!canResend) return;
-    // setCanResend(false);
-    // setCountdown(initialCountdown);
-    // setError(null);
-    // try {
-    //   const result = await onResend();
-    //   if (!result.success) {
-    //     setError(result.error || "Failed to resend code.");
-    //   } else {
-    //     // toast.success("New code sent!");
-    //   }
-    // } catch {
-    //   setError("Failed to resend. Try again later.");
-    // }
+    if (!canResend) return;
+
+    setCanResend(false);
+    setCountdown(initialCountdown);
+    setError(null);
+
+    // 🔁 API resend logic can go here
   }
 
   const isSubmitDisabled = otpValue.length !== 5 || isVerifying;
 
+  /* ────────────────────────────────────────────── */
+  /* Render                                        */
+  /* ────────────────────────────────────────────── */
+
   return (
-    <div className="flex items-center justify-center bg-background p-4">
-      <Card className="w-full min-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">Verify Identity</CardTitle>
           <p className="text-sm text-muted-foreground">
             Please input the verification code sent to your email
           </p>
-          <p className="font-medium text-foreground">{email}</p>
+          {email && <p className="font-medium text-foreground">{email}</p>}
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -138,15 +140,14 @@ export const Verify = ({
                 control={form.control}
                 name="otp"
                 render={({ field }) => (
-                  <FormItem className="space-y-2">
+                  <FormItem>
                     <FormControl>
                       <div className="flex justify-center">
                         <InputOTP
                           maxLength={5}
                           value={field.value}
                           onChange={(value) => {
-                            const digitsOnly = value.replace(/\D/g, "");
-                            field.onChange(digitsOnly);
+                            field.onChange(value.replace(/\D/g, ""));
                             setError(null);
                           }}
                         >
@@ -158,39 +159,36 @@ export const Verify = ({
                         </InputOTP>
                       </div>
                     </FormControl>
-                    <div className="text-center text-sm font-medium text-destructive">
-                      {error && <p>{error}</p>}
-                    </div>
+
+                    {error && (
+                      <p className="text-center text-sm font-medium text-destructive">
+                        {error}
+                      </p>
+                    )}
+
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Submit Button */}
               <Button
                 type="submit"
                 className="w-full"
                 disabled={isSubmitDisabled}
-                // loading={isVerifying} // you can add loading prop if using custom button
               >
                 {isVerifying ? "Verifying..." : "Verify"}
               </Button>
             </form>
           </Form>
 
-          {/* Resend Section */}
-          <div className="text-center">
-            <Button
-              onClick={handleResend}
-              disabled={!canResend}
-              className={cn(
-                "-mt-2.5 w-full",
-                !canResend && "text-muted-foreground",
-              )}
-            >
-              {canResend ? "Resend code" : `Resend code in ${countdown}s`}
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={handleResend}
+            disabled={!canResend}
+            className={cn("w-full", !canResend && "text-muted-foreground")}
+          >
+            {canResend ? "Resend code" : `Resend code in ${countdown}s`}
+          </Button>
         </CardContent>
       </Card>
     </div>

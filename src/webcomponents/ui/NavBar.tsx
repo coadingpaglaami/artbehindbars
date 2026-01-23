@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  UserCogIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,8 +38,7 @@ export const NavBar = () => {
     { label: "FAQ", link: "/faq" },
     { label: "Contact Us", link: "/contact_us" },
     isAuthenticated && { label: "My Bids", link: "/my-bids" },
-  ].filter(Boolean) as { label: string; link: string }[
-  ];
+  ].filter(Boolean) as { label: string; link: string }[];
 
   const navItems = [
     {
@@ -60,6 +60,11 @@ export const NavBar = () => {
       name: "Settings",
       icon: Settings,
       link: "/edit_profile",
+    },
+    {
+      name: "Admin Panel",
+      icon: UserCogIcon,
+      link: "/admin/overview",
     },
     {
       name: "Logout",
