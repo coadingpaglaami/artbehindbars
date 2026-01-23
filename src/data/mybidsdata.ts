@@ -3,7 +3,7 @@ import { MyBidsPage } from "@/interface/bid";
 export const myBidsData: MyBidsPage = {
   activeBids: [
     {
-      artworkImage: "/images/artwork1.jpg",
+      artworkImage: "/artwork/artwork1.jpg",
       title: "Hope Beyond Bars",
       artist: "Marius Williams",
       userBid: 420,
@@ -19,7 +19,7 @@ export const myBidsData: MyBidsPage = {
       },
     },
     {
-      artworkImage: "/images/artwork2.jpg",
+      artworkImage: "/artwork/artwork2.jpg",
       title: "Divine Light",
       artist: "James Carter",
       userBid: 850,
@@ -35,7 +35,7 @@ export const myBidsData: MyBidsPage = {
       },
     },
     {
-      artworkImage: "/images/artwork3.jpg",
+      artworkImage: "/artwork/artwork3.png",
       title: "Redemption Path",
       artist: "Carlos Rodriguez",
       userBid: 680,
@@ -51,7 +51,7 @@ export const myBidsData: MyBidsPage = {
       },
     },
     {
-      artworkImage: "/images/artwork4.jpg",
+      artworkImage: "/artwork/artwork4.png",
       title: "Urban Dreams",
       artist: "DeShaun Jackson",
       userBid: 500,

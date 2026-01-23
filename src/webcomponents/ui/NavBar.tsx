@@ -36,6 +36,8 @@ export const NavBar = () => {
     { label: "Our Story", link: "/our_story" },
     { label: "FAQ", link: "/faq" },
     { label: "Contact Us", link: "/contact_us" },
+    isAuthenticated && { label: "My Bids", link: "/my-bids" },
+  ].filter(Boolean) as { label: string; link: string }[
   ];
 
   const navItems = [

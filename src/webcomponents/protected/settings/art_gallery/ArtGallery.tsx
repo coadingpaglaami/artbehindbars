@@ -10,10 +10,10 @@ const galleryImages = [
 
 export const ArtGallery = () => {
   return (
-    <div className="p-6">
+    <div className="p-6 w-full">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">Art Gallery</h2>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-3 gap-4 w-full">
         {galleryImages.map((image) => (
           <div
             key={image.id}

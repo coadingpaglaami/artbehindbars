@@ -21,8 +21,8 @@ export const SettingsBar = () => {
   ];
 
   return (
-    <div className="w-full max-w-[320px] bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-      <nav className="flex flex-col py-2">
+    <div className="w-full md:max-w-[320px] bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+      <nav className="flex flex-col max-md:flex-row shrink-0 overflow-x-auto py-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
 
@@ -30,7 +30,7 @@ export const SettingsBar = () => {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-4 px-6 py-4 transition-colors relative ${
+              className={`flex items-center gap-4 px-6 py-4 transition-colors relative  ${
                 isActive
                   ? "bg-[#FAF7F2] text-[#C5A073]"
                   : "text-[#4A4A4A] hover:bg-gray-50"
@@ -42,7 +42,7 @@ export const SettingsBar = () => {
               )}
 
               <item.icon size={24} strokeWidth={1.5} />
-              <span className="text-lg font-medium">{item.label}</span>
+              <span className="md:text-lg text-xs font-medium hidden md:inline">{item.label}</span>
             </Link>
           );
         })}
@@ -53,7 +53,7 @@ export const SettingsBar = () => {
           className="flex items-center gap-4 px-6 py-6 text-red-600 hover:bg-red-50 transition-colors mt-2"
         >
           <LogOut size={24} strokeWidth={2} />
-          <span className="text-lg font-semibold">Logout</span>
+          <span className="md:text-lg text-xs font-semibold hidden md:inline">Logout</span>
         </button>
       </nav>
     </div>

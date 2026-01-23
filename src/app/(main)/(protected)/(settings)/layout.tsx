@@ -13,9 +13,11 @@ export default function SettingsLayout({
         description="Manage your account settings and preferences"
       />
 
-      <div className="flex items-start py-16 gap-3.5">
+      <div className="flex items-start max-md:flex-col py-16 gap-3.5 w-full">
         <SettingsBar />
-        <div className="flex-1 bg-white shadow-md p-3.5 rounded-md">{children}</div>
+        <div className="flex-1 bg-white shadow-md p-3.5 rounded-md max-md:w-full">
+          {children}
+        </div>
       </div>
     </div>
   );

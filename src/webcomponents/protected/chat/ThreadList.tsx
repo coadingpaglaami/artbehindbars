@@ -27,7 +27,7 @@ export const ThreadList = ({ threads }: ThreadListProps) => {
   };
 
   return (
-    <div className="w-80 bg-white border-r overflow-y-auto">
+    <div className="md:w-80 w-16 bg-white border-r overflow-y-auto">
       {threads.map((thread) => {
         const hasUnread = thread.messages.some((m) => m.status === "Unread");
 
@@ -42,7 +42,7 @@ export const ThreadList = ({ threads }: ThreadListProps) => {
             }`}
           >
             <div className="flex gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
+              <div className="md:w-12 w-10 h-10 md:h-12 rounded-full bg-primary flex items-center justify-center text-white font-semibold max-md:p-2">
                 {getInitials(thread.otherPerson)}
               </div>
 
