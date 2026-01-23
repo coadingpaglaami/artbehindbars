@@ -8,4 +8,11 @@ export interface ProductProps {
   auctionPrice?: number;
   remainingTime?: Date;
   isSoldOut?: boolean;
+  bitHistory?: Bit[];
+}
+
+interface Bit {
+  name: string;
+  value: number;
+  timeStamp: Date;
 }

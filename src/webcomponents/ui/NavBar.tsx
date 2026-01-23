@@ -18,21 +18,26 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { usePathname, useRouter } from "next/navigation";
 
 export const NavBar = () => {
-  const [activeLink, setActiveLink] = useState("Home");
+  const activeLink = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const isAuthenticated = getClientAuthStatus();
   console.log(isAuthenticated);
 
-  const navLinks = [
-    "Home",
-    "Shop Art",
-    "Search Artists",
-    "Connect",
-    "Our Story",
-    "FAQ",
-    "Contact Us",
+  const navLinks: { label: string; link: string }[] = [
+    { label: "Home", link: "/" },
+
+    { label: "Shop Art", link: "/shop_art" },
+    { label: "Search Artists", link: "/artists" },
+    { label: "Connect", link: "/community" },
+    { label: "Our Story", link: "/our_story" },
+    { label: "FAQ", link: "/faq" },
+    { label: "Contact Us", link: "/contact_us" },
+    isAuthenticated && { label: "My Bids", link: "/my-bids" },
+  ].filter(Boolean) as { label: string; link: string }[
   ];
 
   const navItems = [
@@ -44,7 +49,7 @@ export const NavBar = () => {
     {
       name: "My Connections",
       icon: Users,
-      link: "/my-connections",
+      link: "/my-connection",
     },
     {
       name: "Messages",
@@ -54,12 +59,12 @@ export const NavBar = () => {
     {
       name: "Settings",
       icon: Settings,
-      link: "/settings",
+      link: "/edit_profile",
     },
     {
       name: "Logout",
       icon: LogOut,
-      link: "/logout",
+      link: "/login",
     },
   ];
 
@@ -81,22 +86,21 @@ export const NavBar = () => {
         <nav className="hidden lg:flex space-x-8">
           {navLinks.map((link) => (
             <Link
-              key={link}
-              href="#"
-              onClick={() => setActiveLink(link)}
+              key={link.label}
+              href={link.link}
               className="relative text-white text-lg group"
             >
-              {link}
+              {link.label}
               {/* Active border */}
               <span
                 className={`absolute left-0 bottom-0 h-0.5 bg-white transition-all duration-300 ${
-                  activeLink === link ? "w-full" : "w-0"
+                  activeLink === link.link ? "w-full" : "w-0"
                 }`}
               />
               {/* Hover border animation */}
               <span
                 className={`absolute left-0 bottom-0 h-0.5 bg-white transition-all duration-300 ${
-                  activeLink === link ? "w-0" : "w-0 group-hover:w-full"
+                  activeLink === link.link ? "w-0" : "w-0 group-hover:w-full"
                 }`}
               />
             </Link>
@@ -108,8 +112,8 @@ export const NavBar = () => {
           {isAuthenticated ? (
             <Popover>
               <PopoverTrigger asChild>
-                <button className="bg-[#FFFFFF4D] p-1.5 rounded-md flex items-center cursor-pointer text-white">
-                  <User size={20} /> <span className="mr-2">Account</span>
+                <button className="bg-[#FFFFFF4D] p-1.5 rounded-md flex items-center gap-2.5 cursor-pointer text-white">
+                  <User size={20} /> <span>Account</span>
                 </button>
               </PopoverTrigger>
               <PopoverContent className="flex flex-col gap-3 last:border-t-2 last:border-gray-300">
@@ -126,8 +130,11 @@ export const NavBar = () => {
               </PopoverContent>
             </Popover>
           ) : (
-            <button className="bg-white p-1.5 rounded-md flex items-center text-primary cursor-pointer">
-              <span className="mr-2">Login</span>
+            <button
+              className="bg-white p-1.5 rounded-md flex items-center text-primary gap-2.5 cursor-pointer"
+              onClick={() => router.push("/login")}
+            >
+              <span>Login</span>
               <User size={20} />
             </button>
           )}
@@ -142,16 +149,15 @@ export const NavBar = () => {
               <nav className="flex flex-col space-y-6 mt-8 mx-3">
                 {navLinks.map((link) => (
                   <Link
-                    key={link}
-                    href="#"
+                    key={link.label}
+                    href={link.link}
                     onClick={() => {
-                      setActiveLink(link);
                       setIsOpen(false);
                     }}
                     className="relative text-white text-lg"
                   >
-                    {link}
-                    {activeLink === link && (
+                    {link.label}
+                    {activeLink === link.label && (
                       <span className="absolute left-0 bottom-0 w-full h-0.5 bg-white" />
                     )}
                   </Link>

@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { PasswordInput } from "../reusable";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -34,6 +34,8 @@ export const Login = () => {
   const {
     register,
     handleSubmit,
+    trigger,
+    getValues,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -58,15 +60,21 @@ export const Login = () => {
     router.push("/");
   }, [authData, router]);
 
+  const handleForgotPassword = async () => {
+    const isEmailValid = await trigger("email");
+
+    if (!isEmailValid) return;
+
+    const email = getValues("email");
+
+    localStorage.setItem("forgot-password-email", email);
+    localStorage.setItem("forgot-password-flow", "true");
+
+    router.push("/verify");
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-4">
-      <Image
-        src="/navbar/logo.svg"
-        alt="Logo"
-        width={48}
-        height={48}
-        className="mb-6"
-      />
+    <div className="flex flex-col items-center">
       <h1 className="text-2xl font-bold mb-8">Welcome to your account</h1>
 
       <Button variant="outline" className="w-full max-w-xs mb-6">
@@ -123,17 +131,12 @@ export const Login = () => {
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="password">Password</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             {...register("password")}
+            placeholder="Your password"
             className={errors.password ? "border-red-500" : ""}
           />
-          {errors.password && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.password.message}
-            </p>
-          )}
         </div>
 
         <div className="flex items-center justify-between">
@@ -143,9 +146,13 @@ export const Login = () => {
               Remember me
             </Label>
           </div>
-          <Link href="/forgot-password" className="text-sm text-red-500">
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            className="text-sm text-red-500 hover:underline"
+          >
             Forgot password?
-          </Link>
+          </button>
         </div>
 
         {error && <p className="text-sm text-red-500 text-center">{error}</p>}

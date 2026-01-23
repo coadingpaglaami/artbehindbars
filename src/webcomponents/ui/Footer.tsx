@@ -1,14 +1,14 @@
 const quickLinks = [
-  { name: "Browse Artwork", href: "#artwork" },
-  { name: "About Us", href: "#about" },
-  { name: "Our Mission", href: "#mission" },
-  { name: "Get Involved", href: "#involved" },
+  { name: "Home", href: "/" },
+  { name: "Shop Art", href: "/shop_art" },
+  { name: "Search Artists", href: "/artists" },
+  { name: "Connect", href: "/community" },
 ];
 
 const supportLinks = [
-  { name: "FAQs", href: "#faq" },
-  { name: "Contact Us", href: "#contact" },
-  { name: "Support", href: "#support" },
+  { name: "Our Story", href: "/our_story" },
+  { name: "FAQ", href: "/faq" },
+  { name: "Contact Us", href: "/contact_us" },
 ];
 export const Footer = () => {
   return (
