@@ -1,7 +1,7 @@
 "use client";
 
 import { Member } from "@/interface/admin";
-import { Shield, Ban } from "lucide-react";
+import { Shield, Ban, UserX } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface MemberTableProps {
@@ -116,7 +116,7 @@ export const MemberTable = ({ members, onSuspend, onBan }: MemberTableProps) => 
                       </div>
                       <Progress
                         value={member.activityScore}
-                        className="h-2"
+                        className="h-2 **:data-[slot=progress-indicator]:bg-blue-600"
                         style={{ backgroundColor: "#E0E7FF" }}
                       />
                     </div>
@@ -144,7 +144,7 @@ export const MemberTable = ({ members, onSuspend, onBan }: MemberTableProps) => 
                           className="p-2 hover:bg-orange-50 rounded-lg transition-colors"
                           title="Suspend"
                         >
-                          <Shield size={18} className="text-orange-600" />
+                          <UserX size={18} className="text-orange-600" />
                         </button>
                       )}
                       {member.status !== "Banned" && (

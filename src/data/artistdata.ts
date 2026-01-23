@@ -17,13 +17,13 @@ export const artistData: ArtistInfo[] = [
       {
         artworkId: "1",
         title: "Hope Beyond Bars",
-        image: "/artist/artist1.jpg", // Example path for the artwork image
+        image: "/artwork/artwork1.jpg", // Example path for the artwork image
         currentBid: 420,
       },
       {
         artworkId: "2",
         title: "Freedom in Color",
-        image: "/images/freedom-in-color.jpg",
+        image: "/artwork/artwork2.jpg",
         currentBid: 500,
       },
     ],
@@ -44,13 +44,13 @@ export const artistData: ArtistInfo[] = [
       {
         artworkId: "3",
         title: "Divine Light",
-        image: "/artist/artist2.jpg",
+        image: "/artwork/artwork3.png",
         currentBid: 875,
       },
       {
         artworkId: "4",
         title: "Sacred Sanctuary",
-        image: "/images/sacred-sanctuary.jpg",
+        image: "/artwork/artwork4.png",
         currentBid: 820,
       },
     ],
@@ -71,13 +71,13 @@ export const artistData: ArtistInfo[] = [
       {
         artworkId: "5",
         title: "Urban Dreams",
-        image: "/artist/artist3.jpg",
+        image: "/artwork/artwork5.png",
         currentBid: 575,
       },
       {
         artworkId: "6",
         title: "Metamorphosis",
-        image: "/images/metamorphosis.jpg",
+        image: "/artwork/artwork6.jpg",
         currentBid: 640,
       },
     ],
@@ -98,13 +98,13 @@ export const artistData: ArtistInfo[] = [
       {
         artworkId: "7",
         title: "Redemption Path",
-        image: "/images/redemption-path.jpg",
+        image: "/artwork/artwork7.jpg",
         currentBid: 850,
       },
       {
         artworkId: "8",
         title: "Grace and Mercy",
-        image: "/images/grace-and-mercy.jpg",
+        image: "/artwork/artwork8.jpg",
         currentBid: 950,
       },
     ],
@@ -125,13 +125,13 @@ export const artistData: ArtistInfo[] = [
       {
         artworkId: "9",
         title: "Metamorphosis",
-        image: "/artist/artist5.jpg",
+        image: "/artwork/artwork6.jpg",
         currentBid: 640,
       },
       {
         artworkId: "10",
         title: "Freedom in Color",
-        image: "/images/freedom-in-color.jpg",
+        image: "/artwork/artwork2.jpg",
         currentBid: 500,
       },
     ],
@@ -152,13 +152,13 @@ export const artistData: ArtistInfo[] = [
       {
         artworkId: "11",
         title: "Grace and Mercy",
-        image: "/images/grace-and-mercy.jpg",
+        image: "/artwork/artwork7.png",
         currentBid: 950,
       },
       {
         artworkId: "12",
         title: "Behind the Wall",
-        image: "/images/behind-the-wall.jpg",
+        image: "/artwork/artwork2.jpg",
         currentBid: 950,
       },
     ],
@@ -179,13 +179,13 @@ export const artistData: ArtistInfo[] = [
       {
         artworkId: "13",
         title: "Sacred Sanctuary",
-        image: "/artist/artist7.jpg",
+        image: "/artwork/artwork1.jpg",
         currentBid: 820,
       },
       {
         artworkId: "14",
         title: "Redemption Path",
-        image: "/images/redemption-path.jpg",
+        image: "/artwork/artwork6.jpg",
         currentBid: 850,
       },
     ],
@@ -206,13 +206,13 @@ export const artistData: ArtistInfo[] = [
       {
         artworkId: "15",
         title: "Behind the Wall",
-        image: "/images/behind-the-wall.jpg",
+        image: "/artwork/artwork3.png",
         currentBid: 950,
       },
       {
         artworkId: "16",
         title: "Urban Dreams",
-        image: "/images/urban-dreams.jpg",
+        image: "/artwork/artwork4.png",
         currentBid: 575,
       },
     ],

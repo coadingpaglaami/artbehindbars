@@ -84,6 +84,7 @@ export const AccessControl = () => {
                 <div className="flex justify-center">
                   <Switch
                     checked={feature.visitor}
+                    className="data-[state=checked]:bg-blue-600" 
                     onCheckedChange={() => handleToggle(feature.id, "visitor")}
                     disabled={feature.admin === false} // safety: can't allow visitor if admin is off
                   />
@@ -92,6 +93,7 @@ export const AccessControl = () => {
                 <div className="flex justify-center">
                   <Switch
                     checked={feature.member}
+                    className="data-[state=checked]:bg-blue-600"
                     onCheckedChange={() => handleToggle(feature.id, "member")}
                   />
                 </div>
@@ -99,6 +101,10 @@ export const AccessControl = () => {
                 <div className="flex justify-center">
                   <Switch
                     checked={feature.admin}
+                   className="
+    data-[state=checked]:bg-blue-600
+    
+  "
                     onCheckedChange={() => handleToggle(feature.id, "admin")}
                     // You can add className="data-[state=checked]:bg-red-600" if you want visual warning
                   />

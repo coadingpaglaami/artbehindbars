@@ -1,4 +1,3 @@
-export * from "./";
 export * from "./overview";
 export * from "./artists";
 export * from "./artwork";

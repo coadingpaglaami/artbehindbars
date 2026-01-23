@@ -1,8 +1,16 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 export const MemberEngagement = () => {
+  const averageScore = 58; // You can make this dynamic later (props or state)
+  const maxScore = 100;
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -10,7 +18,9 @@ export const MemberEngagement = () => {
           <CardTitle>Member Engagement</CardTitle>
           <CardDescription>User activity metrics</CardDescription>
         </div>
-        <Badge variant="outline" className="text-green-600 border-green-600">✓</Badge>
+        <Badge variant="outline" className="text-green-600 border-green-600">
+          ✓
+        </Badge>
       </CardHeader>
       <CardContent>
         <div className="mb-6">
@@ -50,10 +60,23 @@ export const MemberEngagement = () => {
           </div>
         </div>
 
-        <div className="pt-4 border-t">
+        <div className="pt-4 border-t space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">Average Activity Score</span>
-            <span className="text-2xl font-bold">58</span>
+            <span className="text-sm text-gray-500">
+              Average Activity Score
+            </span>
+            <span className="text-2xl font-bold">{averageScore}</span>
+          </div>
+
+          <Progress
+            value={averageScore}
+            max={maxScore}
+            className="h-3 **:data-[slot=progress-indicator]:bg-green-600"
+          />
+
+          {/* Optional: small label for context */}
+          <div className="text-xs text-gray-400 text-right">
+            out of {maxScore}
           </div>
         </div>
       </CardContent>

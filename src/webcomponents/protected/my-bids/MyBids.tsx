@@ -29,7 +29,7 @@ export const MyBids = () => {
             </h3>
             <div className="space-y-4">
               {activeBids.map((bid, idx) => (
-                <MyBidsHistory key={idx} bid={bid} />
+                <MyBidsHistory key={idx} bid={bid} index={idx+1} />
               ))}
             </div>
           </div>
@@ -43,7 +43,7 @@ export const MyBids = () => {
             </h3>
             <div className="space-y-4">
               {completedBids.map((bid, idx) => (
-                <MyBidsHistory key={idx} bid={bid} />
+                <MyBidsHistory key={idx} bid={bid} index={idx+1} />
               ))}
             </div>
           </div>

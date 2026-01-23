@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/popover";
 import { NotificationItem } from "./NotificationItem";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export const generatedNotificationn = generateNotificationData(40);
 // Get unread notifications
 
 export const Navbar = () => {
   const [notificationData] = useState<Notification[]>(generatedNotificationn);
+  const {push} = useRouter(); 
   const unreadNotifications = notificationData.filter(
     (n) => n.status === "Unread",
   );
@@ -25,6 +27,7 @@ export const Navbar = () => {
   const displayNotifications = notificationData.slice(0, 10);
 
   const handleViewAll = () => {
+    push('/admin/notification');
     console.log("View all notifications clicked");
     // Navigate to notifications page or open modal
   };
