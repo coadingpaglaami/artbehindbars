@@ -3,10 +3,12 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export const HeroRight = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
+  const { push } = useRouter();
 
   // Carousel images data
   const carouselImages = [
@@ -24,7 +26,7 @@ export const HeroRight = () => {
   const prevSlide = () => {
     setDirection(-1);
     setCurrentSlide(
-      (prev) => (prev - 1 + carouselImages.length) % carouselImages.length
+      (prev) => (prev - 1 + carouselImages.length) % carouselImages.length,
     );
   };
 
@@ -78,8 +80,8 @@ export const HeroRight = () => {
                 idx === 0
                   ? "h-full w-2/5 z-20 scale-100"
                   : idx === 1
-                  ? "h-4/5 w-1/3 z-10 scale-95"
-                  : "h-4/5 w-[10%] z-0 opacity-70 scale-90"
+                    ? "h-4/5 w-1/3 z-10 scale-95"
+                    : "h-4/5 w-[10%] z-0 opacity-70 scale-90"
               }`}
             >
               <Image
@@ -91,7 +93,10 @@ export const HeroRight = () => {
               />
               {idx !== 2 && (
                 <div className="absolute inset-0 bg-black/25 bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 rounded-lg flex items-end justify-center pb-6 opacity-0 group-hover:opacity-100">
-                  <button className="bg-[#707070A8] backdrop-blur-lg text-white w-full px-6 py-2 rounded-lg font-semibold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                  <button
+                    onClick={() => push(`/product/${String(slide.id+1)}`)}
+                    className="bg-[#707070A8] backdrop-blur-lg text-white w-full px-6 py-2 rounded-lg font-semibold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
+                  >
                     View More{" "}
                     <ArrowRight className="inline-block ml-2" size={16} />
                   </button>

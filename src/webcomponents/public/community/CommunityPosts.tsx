@@ -37,12 +37,12 @@ export const CommunityPosts = ({
 
     const imageCount = community.postImage.length;
 
-    console.log(typeof String(index+1))
+    console.log(typeof String(index + 1));
 
     // Single image - full width
     if (imageCount === 1) {
       return (
-        <div className="relative w-full h-64 rounded-lg overflow-hidden">
+        <div className="relative w-full aspect-[4/1.3] rounded-lg overflow-hidden">
           <Image
             src={community.postImage[0]}
             alt="Post image"
@@ -112,7 +112,7 @@ export const CommunityPosts = ({
 
       {/* Author and Posted Time */}
       <div className="flex items-center gap-2 text-sm text-gray-600">
-        <Link href={`/profile/${String(index+1)}`} className="font-medium">
+        <Link href={`/profile/${String(index + 1)}`} className="font-medium">
           {community.authorName}
         </Link>
         <span>•</span>

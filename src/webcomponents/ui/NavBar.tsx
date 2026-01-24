@@ -77,7 +77,7 @@ export const NavBar = () => {
     <div className=" h-full lg:px-6 px-4 ">
       <div className="flex items-center justify-between h-full">
         {/* Logo */}
-        <div className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-2">
           <Image
             src="/navbar/logo.svg"
             alt="ArtBehindBars Logo"
@@ -85,7 +85,7 @@ export const NavBar = () => {
             height={32}
           />
           <span className="text-white text-xl">ArtBehindBars</span>
-        </div>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex space-x-8">

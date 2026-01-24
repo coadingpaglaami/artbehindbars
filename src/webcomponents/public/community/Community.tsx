@@ -2,13 +2,13 @@
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { communityPosts } from "@/data/communitydata";
 import { getClientAuthStatus } from "@/lib/auth";
 import { SearchBar } from "@/webcomponents/reusable";
-import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
 import { Clock, Filter, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CommunityPosts } from "./CommunityPosts";
@@ -130,10 +130,10 @@ export const Community = () => {
           onChange={setSearch}
           className="bg-transparent shadow-none"
         />
-        <div className="flex flex-col gap-1.5 md:flex-row md:items-stretch">
+        <div className="flex flex-col gap-1.5 md:flex-row md:items-stretch ">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex-1 p-2.5 border border-gray-300 rounded-md flex items-center gap-1.5 text-gray-700 hover:bg-gray-50 transition-colors">
+              <button className="flex-1 p-2.5 border border-gray-300 rounded-md flex w-full items-center gap-1.5 text-gray-700 hover:bg-gray-50 transition-colors">
                 <Filter size={18} />
                 <span>{selectedState}</span>
               </button>
@@ -141,7 +141,7 @@ export const Community = () => {
 
             <DropdownMenuContent
               align="start"
-              className="max-h-40 overflow-y-auto  bg-white min-w-44 py-2.5"
+              className="max-h-40 min-w-0 w-(--radix-dropdown-menu-trigger-width) overflow-y-auto bg-white py-2.5"
             >
               <DropdownMenuItem onClick={() => setSelectedState("All States")}>
                 All States

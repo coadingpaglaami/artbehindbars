@@ -1,7 +1,7 @@
 "use client";
 import { generateNotificationData } from "@/data/admin";
 import { Notification } from "@/interface/admin";
-import { Bell } from "lucide-react";
+import { Bell, Earth, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import {
   Popover,
@@ -12,12 +12,49 @@ import { NotificationItem } from "./NotificationItem";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+
 export const generatedNotificationn = generateNotificationData(40);
 // Get unread notifications
 
 export const Navbar = () => {
   const [notificationData] = useState<Notification[]>(generatedNotificationn);
-  const {push} = useRouter(); 
+  const { push } = useRouter();
+
+  const profileDropdownItems = [
+    {
+      label: "Main Website",
+      icon: Earth,
+      href: "/",
+    },
+    {
+      label: "Profile",
+      icon: User,
+      href: "/admin/profile",
+    },
+    {
+      label: "Notifications",
+      icon: Bell,
+      href: "/admin/notification",
+    },
+    {
+      type: "separator",
+    },
+    {
+      label: "Logout",
+      icon: LogOut,
+      className: "text-red-600 focus:text-red-600",
+      href: "/admin/login",
+    },
+  ];
+
   const unreadNotifications = notificationData.filter(
     (n) => n.status === "Unread",
   );
@@ -27,7 +64,7 @@ export const Navbar = () => {
   const displayNotifications = notificationData.slice(0, 10);
 
   const handleViewAll = () => {
-    push('/admin/notification');
+    push("/admin/notification");
     console.log("View all notifications clicked");
     // Navigate to notifications page or open modal
   };
@@ -107,14 +144,44 @@ export const Navbar = () => {
         <div className="h-10 w-[1.5px] bg-slate-100" />
 
         {/* User Information */}
-        <div className="flex flex-col text-right">
-          <span className="text-[15px] font-bold text-slate-800 leading-tight">
-            Alex Morgan
-          </span>
-          <span className="text-[13px] text-slate-400 font-medium">
-            Administrator
-          </span>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex flex-col text-right outline-none">
+              <span className="text-[15px] font-bold text-slate-800 leading-tight">
+                Alex Morgan
+              </span>
+              <span className="text-[13px] text-slate-400 font-medium">
+                Administrator
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-56">
+            {profileDropdownItems.map((item, index) => {
+              if (item.type === "separator") {
+                return <DropdownMenuSeparator key={index} />;
+              }
+
+              const Icon = item.icon;
+
+              return (
+                <DropdownMenuItem
+                  key={item.label}
+                  className={item.className}
+                  asChild
+                >
+                  <Link
+                    href={item.href || "#"}
+                    className="flex items-center gap-2 w-full"
+                  >
+                    {Icon && <Icon className="h-4 w-4" />}
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
