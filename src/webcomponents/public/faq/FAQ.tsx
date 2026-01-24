@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 export const FAQ = () => {
-  const [openItems, setOpenItems] = useState<number[]>([]);
+  const [openItems, setOpenItems] = useState<number>();
 
   const questionsAndAnswers: { question: string; answer: string }[] = [
     {
@@ -61,11 +61,7 @@ export const FAQ = () => {
   ];
 
   const toggleItem = (index: number) => {
-    setOpenItems((prev) =>
-      prev.includes(index)
-        ? prev.filter((item) => item !== index)
-        : [...prev, index]
-    );
+    setOpenItems((prev) => (prev === index ? undefined : index));
   };
 
   return (
@@ -79,7 +75,7 @@ export const FAQ = () => {
           mission.
         </span>
       </div>
-      
+
       {/* Accordion Section */}
       <div className="flex flex-col gap-4">
         {questionsAndAnswers.map((item, index) => (
@@ -98,7 +94,7 @@ export const FAQ = () => {
               <ChevronDown
                 size={24}
                 className={`shrink-0 text-gray-600 transition-transform duration-300 ${
-                  openItems.includes(index) ? "rotate-180" : ""
+                  openItems === index ? "rotate-180" : ""
                 }`}
               />
             </button>
@@ -106,7 +102,7 @@ export const FAQ = () => {
             {/* Answer Content */}
             <div
               className={`overflow-hidden transition-all duration-300 ${
-                openItems.includes(index) ? "max-h-96" : "max-h-0"
+                openItems === index ? "max-h-96" : "max-h-0"
               }`}
             >
               <div className="px-4 pb-4 pt-2 text-gray-700 border-t border-gray-200">

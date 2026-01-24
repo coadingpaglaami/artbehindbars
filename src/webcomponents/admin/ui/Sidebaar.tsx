@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,7 +12,6 @@ import {
   MessageSquare,
   ShieldCheck,
   Settings,
-  LogOut,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -117,28 +115,22 @@ export const Sidebar = () => {
 
       {/* Footer / Profile Section */}
       <div className="p-4 border-t border-slate-200 bg-white mt-auto">
-        <div className="flex items-center justify-between group cursor-pointer p-2 rounded-xl hover:bg-slate-50 transition-colors">
-          <div className="flex items-center gap-3">
-            {/* FIXED: Parent container needs w-11 h-11 for 'fill' to work */}
-            <div className="relative w-11 h-11">
-              <Image
-                src="/artist/artist1.jpg" // Use a real image path or avatar
-                alt="Profile"
-                className="rounded-full object-cover border border-slate-200"
-                fill
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-slate-800 leading-tight">
-                Alex Morgan
-              </span>
-              <span className="text-xs text-slate-500">alex@nexus.com</span>
-            </div>
+        <div className="flex items-center gap-3">
+          {/* FIXED: Parent container needs w-11 h-11 for 'fill' to work */}
+          <div className="relative w-11 h-11">
+            <Image
+              src="/artist/artist1.jpg" // Use a real image path or avatar
+              alt="Profile"
+              className="rounded-full object-cover border border-slate-200"
+              fill
+            />
           </div>
-
-          <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-            <LogOut size={20} />
-          </button>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-slate-800 leading-tight">
+              Alex Morgan
+            </span>
+            <span className="text-xs text-slate-500">alex@nexus.com</span>
+          </div>
         </div>
       </div>
     </nav>
