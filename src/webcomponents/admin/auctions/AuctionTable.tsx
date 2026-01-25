@@ -119,7 +119,7 @@ export const AuctionTable = ({ auctions }: AuctionTableProps) => {
                     {/* Artwork */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0">
                           <Image
                             src={auction.artworkImage}
                             alt={auction.artworkTitle}
@@ -135,7 +135,7 @@ export const AuctionTable = ({ auctions }: AuctionTableProps) => {
 
                     {/* Current Bid */}
                     <td className="px-6 py-4">
-                      <div className="flex flex-col">
+                      <div className="flex gap-1 items-center">
                         <span className="text-sm text-gray-500">$</span>
                         <span className="font-semibold text-gray-900">
                           {auction.currentBid}
