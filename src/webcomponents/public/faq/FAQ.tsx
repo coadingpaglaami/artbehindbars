@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { use, useState } from "react";
 
 export const FAQ = () => {
   const [openItems, setOpenItems] = useState<number>();
@@ -63,6 +64,7 @@ export const FAQ = () => {
   const toggleItem = (index: number) => {
     setOpenItems((prev) => (prev === index ? undefined : index));
   };
+  const {push}  = useRouter();
 
   return (
     <div className="mx-auto flex flex-col gap-6 max-w-4xl w-full py-16 px-4">
@@ -122,7 +124,7 @@ export const FAQ = () => {
           We&apos;re here to help. Reach out to our team and we&apos;ll get back
           to you as soon as possible.
         </span>
-        <Button className="bg-white text-primary hover:bg-white/90">
+        <Button className="bg-white text-primary hover:bg-white/90" onClick={() => push("/contact_us")}>
           Contact Us
         </Button>
       </div>

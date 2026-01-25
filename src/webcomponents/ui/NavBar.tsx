@@ -25,6 +25,7 @@ export const NavBar = () => {
   const activeLink = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const isAuthenticated = getClientAuthStatus();
   console.log(isAuthenticated);
 
@@ -115,7 +116,7 @@ export const NavBar = () => {
         {/* Login Button and Mobile Menu */}
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (
-            <Popover>
+            <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <button className="bg-[#FFFFFF4D] p-1.5 rounded-md flex items-center gap-2.5 cursor-pointer text-white">
                   <User size={20} /> <span>Account</span>
@@ -126,6 +127,7 @@ export const NavBar = () => {
                   <Link
                     key={item.name}
                     href={item.link}
+                    onClick={()=>setOpen(false)}
                     className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md"
                   >
                     <item.icon size={18} />
