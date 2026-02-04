@@ -24,7 +24,7 @@ export const ArtWorkGallery = ({ artist }: ArtWorkGalleryProps) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {artist.artwork.map((artwork) => (
             <Link
-              href={`/artwork/${artwork.artworkId}`}
+              href={`/product/${artwork.artworkId}`}
               key={artwork.artworkId}
               className="group"
             >

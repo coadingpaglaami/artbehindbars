@@ -1,10 +1,13 @@
+'use client';
 import Image from "next/image";
 import { WhySection } from "../home/WhySection";
 import { CoreValues } from "../home/CoreValues";
 import { OurImpact } from "../home/OurImpact";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export const OurStory = () => {
+  const {push} = useRouter();
   return (
     <>
       <div className="relative h-80 w-auto">
@@ -30,7 +33,7 @@ export const OurStory = () => {
           Every purchase makes a difference. Browse our collection and find a
           piece that speaks to you.
         </span>
-        <Button className="">Browse Artwork</Button>
+        <Button className="" onClick={() => push("/shop_art")}>Browse Artwork</Button>
       </div>
     </>
   );

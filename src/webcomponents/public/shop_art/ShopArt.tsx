@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ProductProps } from "@/interface/product";
+import { getClientAuthStatus } from "@/lib/auth";
 import { products } from "@/lib/data";
 import { Product, SearchBar } from "@/webcomponents/reusable";
 import { useMemo, useState } from "react";
@@ -15,6 +16,7 @@ import { useMemo, useState } from "react";
 /* eslint-disable react/no-unescaped-entities */
 export const ShopArt = () => {
   const [search, setSearch] = useState("");
+  const isAuthenticated = getClientAuthStatus();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedAvailability, setSelectedAvailability] =
@@ -107,7 +109,7 @@ export const ShopArt = () => {
             <Product
               key={product.productId}
               product={product}
-              buttonText={["Login to Purchase"]}
+              buttonText={[isAuthenticated ? "Make a Bid" : "Login to Purchase"]}
             />
           ))}
         </div>
