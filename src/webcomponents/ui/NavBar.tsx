@@ -74,17 +74,17 @@ export const NavBar = () => {
   ];
 
   return (
-    <div className=" h-full lg:px-6 px-4 ">
+    <div className=" h-full lg:px-6 px-4 max-w-360 mx-auto w-full">
       <div className="flex items-center justify-between h-full">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           <Image
             src="/navbar/logo.svg"
-            alt="ArtBehindBars Logo"
+            alt="The Art of Reform Logo"
             width={32}
             height={32}
           />
-          <span className="text-white text-xl">ArtBehindBars</span>
+          <span className="text-white text-xl">The Art of Reform</span>
         </Link>
 
         {/* Desktop Navigation */}

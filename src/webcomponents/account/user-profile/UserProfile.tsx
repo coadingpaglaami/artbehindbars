@@ -39,7 +39,7 @@ export const UserProfile = ({ profileId }: { profileId: string }) => {
   };
 
   return (
-    <div className="w-full max-w-max mx-auto rounded-xl border bg-white shadow-sm overflow-hidden my-16">
+    <div className="w-full  rounded-xl border bg-white shadow-sm overflow-hidden my-16">
       {/* Header / Profile info */}
       <div className="p-6 pb-2 flex gap-5">
         <div className="shrink-0">

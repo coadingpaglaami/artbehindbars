@@ -48,7 +48,7 @@ export const MyConnection = () => {
 
   return (
     <div className="py-16 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className=" space-y-6">
         <HeadingTwo
           title="My Connections"
           description="Manage your connections and interactions."

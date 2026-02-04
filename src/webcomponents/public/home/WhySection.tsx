@@ -2,7 +2,7 @@
 export const WhySection = () => {
   return (
     <section className="py-16 bg-[#FAFAFA]">
-      <div className="container mx-auto px-6 ">
+      <div className=" px-6 ">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Why We Exist */}
           <div className="space-y-6 shadow-md p-3.5 rounded-l-md rounded-r-md rounded-t-md rounded-b-md">

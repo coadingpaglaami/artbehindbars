@@ -12,7 +12,7 @@ const supportLinks = [
 ];
 export const Footer = () => {
   return (
-    <div className="container mx-auto px-6 py-12">
+    <div className=" px-6 py-12 max-w-360 mx-auto w-full">
       <div className="grid md:grid-cols-4 gap-8">
         {/* About Section */}
         <div className="space-y-4">

@@ -65,7 +65,7 @@ export const FAQ = () => {
   };
 
   return (
-    <div className="mx-auto flex flex-col gap-6 max-w-4xl w-full py-16 px-4">
+    <div className=" flex flex-col gap-6  w-full py-16 px-4">
       <div className="flex flex-col gap-2 items-center text-center">
         <h2 className="md:text-4xl text-2xl font-semibold">
           Frequently Asked Questions

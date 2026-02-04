@@ -7,7 +7,7 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <div className="flex flex-col py-16 px-4 sm:px-6 lg:px-8 w-full">
       <HeadingTwo
         title="Settings"
         description="Manage your account settings and preferences"

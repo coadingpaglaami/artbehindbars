@@ -91,7 +91,7 @@ export const Signup = () => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-8 px-4 py-10">
+    <div className="w-full max-w-md space-y-8 px-4 py-10">
       {/* Google Button */}
       <Button variant="outline" className="w-full gap-2" type="button">
         <svg

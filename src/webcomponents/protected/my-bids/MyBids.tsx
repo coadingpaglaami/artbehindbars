@@ -9,7 +9,7 @@ export const MyBids = () => {
 
   return (
     <div className="py-16 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col gap-2">
           <h2 className="md:text-4xl text-2xl font-semibold">My Bids</h2>

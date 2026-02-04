@@ -16,7 +16,7 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
   if (!productInformation) {
     return (
       <div className="py-16 px-4">
-        <div className="max-w-svh mx-auto text-center">
+        <div className="text-center">
           <h2 className="text-2xl font-semibold text-gray-900">
             Product not found
           </h2>
@@ -31,7 +31,7 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
 
   return (
     <div className="py-16 px-4">
-      <div className="max-w-svh mx-auto">
+      <div className="">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Side - Product Card */}
           <div className="lg:w-1/3">

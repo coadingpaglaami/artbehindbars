@@ -29,7 +29,7 @@ export const CoreValues = () => {
   ];
   return (
     <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-6">
+      <div className="px-6">
         <h2 className="text-4xl font-bold text-center mb-12 text-gray-900">
           Our Core Values
         </h2>
@@ -41,7 +41,7 @@ export const CoreValues = () => {
                 key={index}
                 className="bg-white p-6 rounded-lg shadow-md text-center space-y-4"
               >
-                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
                   <Icon size={32} className="text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">

@@ -12,4 +12,3 @@ export interface MessageThread {
   otherPerson: string; // The name of the other person in the conversation
   messages: Message[]; // Array of messages exchanged between the user and the other person
 }
-

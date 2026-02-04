@@ -7,7 +7,7 @@ export const OurImpact = () => {
 
   return (
     <section className="py-16 bg-linear-to-r from-[#C5A882] to-[#B8996E]">
-      <div className="container mx-auto px-6">
+      <div className="px-6">
         <h2 className="text-4xl font-semibold text-center mb-12 text-white">
           Our Impact
         </h2>

@@ -13,7 +13,7 @@ export const ArtistProfile = ({ artistId }: { artistId: string }) => {
   if (!artist) {
     return (
       <div className="py-16 px-4">
-        <div className="max-w-7xl mx-auto text-center">
+        <div className="text-center">
           <h2 className="text-2xl font-semibold text-gray-900">
             Artist not found
           </h2>
@@ -34,7 +34,7 @@ export const ArtistProfile = ({ artistId }: { artistId: string }) => {
 
   return (
     <div className="px-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="">
         <button
           onClick={() => push("/artists")}
           className="text-gray-400 hover:text-gray-600 flex items-center gap-2.5 p-2.5 transition-colors"

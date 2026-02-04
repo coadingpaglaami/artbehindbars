@@ -5,7 +5,7 @@ import { SendMessage } from "./SendMessage";
 
 export const ContactUs = () => {
   return (
-    <div className="max-w-max mx-auto py-16 flex flex-col gap-6">
+    <div className="py-16 flex flex-col gap-6">
       <div className="flex flex-col gap-2 items-center text-center">
         <h2 className="md:text-4xl text-2xl font-semibold">Contact Us</h2>
         <span className="text-[#525252]">

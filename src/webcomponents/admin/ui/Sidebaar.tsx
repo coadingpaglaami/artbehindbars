@@ -70,7 +70,7 @@ export const Sidebar = () => {
           />
         </div>
         <h1 className="text-xl font-bold text-slate-800">
-          Artbehindbar{" "}
+          The Art of Reform{" "}
           <span className="text-[#C5A073] font-semibold">Admin</span>
         </h1>
       </div>
