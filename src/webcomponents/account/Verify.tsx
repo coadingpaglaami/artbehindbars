@@ -21,48 +21,50 @@ import {
 } from "@/components/ui/input-otp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-
-/* ────────────────────────────────────────────── */
-/* Schema & Types                                 */
-/* ────────────────────────────────────────────── */
+import {
+  getVerificationEmail,
+  getOtpType,
+  clearVerificationData,
+} from "@/lib/cookies";
+import { useSignupEmailVerifyMutation } from "@/api/auth/query";
 
 const formSchema = z.object({
-  otp: z.string().length(5, { message: "Please enter a 5-digit code" }),
+  otp: z.string().length(6, { message: "Please enter a 6-digit code" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-/* ────────────────────────────────────────────── */
-/* Props                                          */
-/* ────────────────────────────────────────────── */
-
 interface OtpVerificationProps {
-  email?: string;
   initialCountdown?: number;
 }
 
-/* ────────────────────────────────────────────── */
-/* Component                                      */
-/* ────────────────────────────────────────────── */
-
-export const Verify = ({
-  email,
-  initialCountdown = 60,
-}: OtpVerificationProps) => {
+export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
-  const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(initialCountdown);
   const [canResend, setCanResend] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [otpType, setOtpTypeState] = useState<"signup" | "resetPassword" | null>(
+    null
+  );
 
-  // ✅ SAFE localStorage access
-  const [forgotPasswordFlow, setForgotPasswordFlow] = useState(false);
+  const { mutate: verifyMutate, isPending: isVerifying } =
+    useSignupEmailVerifyMutation();
 
+  // Load email and otpType from cookies
   useEffect(() => {
-    const value = localStorage.getItem("forgot-password-flow");
-    setForgotPasswordFlow(value === "true");
-  }, []);
+    const storedEmail = getVerificationEmail();
+    const storedOtpType = getOtpType();
+
+    if (!storedEmail || !storedOtpType) {
+      router.push("/login");
+      return;
+    }
+
+    setEmail(storedEmail);
+    setOtpTypeState(storedOtpType);
+  }, [router]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -71,10 +73,7 @@ export const Verify = ({
 
   const otpValue = form.watch("otp");
 
-  /* ────────────────────────────────────────────── */
-  /* Countdown Timer                               */
-  /* ────────────────────────────────────────────── */
-
+  // Countdown Timer
   useEffect(() => {
     if (countdown <= 0) {
       setCanResend(true);
@@ -88,39 +87,46 @@ export const Verify = ({
     return () => clearInterval(timer);
   }, [countdown]);
 
-  /* ────────────────────────────────────────────── */
-  /* Submit Handler                                */
-  /* ────────────────────────────────────────────── */
-
+  // Submit Handler
   async function onSubmit(values: FormValues) {
-    // 🔐 API call will go here later
+    if (!email || !otpType) return;
 
-    if (forgotPasswordFlow) {
-      router.push("/reset-password");
-    } else {
-      router.push("/success");
-    }
+    verifyMutate(
+      {
+        email,
+        otp: values.otp,
+        otpType,
+      },
+      {
+        onSuccess: (response) => {
+          clearVerificationData();
+
+          if (otpType === "resetPassword") {
+            router.push("/reset-password");
+          } else {
+            router.push("/success");
+          }
+        },
+        onError: (error) => {
+          setError(error.message || "Invalid verification code");
+        },
+      }
+    );
   }
 
-  /* ────────────────────────────────────────────── */
-  /* Resend Handler                                */
-  /* ────────────────────────────────────────────── */
-
+  // Resend Handler
   async function handleResend() {
-    if (!canResend) return;
+    if (!canResend || !email) return;
 
     setCanResend(false);
     setCountdown(initialCountdown);
     setError(null);
 
-    // 🔁 API resend logic can go here
+    // Call resend API here
+    // Example: await resendOtp(email, otpType);
   }
 
-  const isSubmitDisabled = otpValue.length !== 5 || isVerifying;
-
-  /* ────────────────────────────────────────────── */
-  /* Render                                        */
-  /* ────────────────────────────────────────────── */
+  const isSubmitDisabled = otpValue.length !== 6 || isVerifying;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -144,7 +150,7 @@ export const Verify = ({
                     <FormControl>
                       <div className="flex justify-center">
                         <InputOTP
-                          maxLength={5}
+                          maxLength={6}
                           value={field.value}
                           onChange={(value) => {
                             field.onChange(value.replace(/\D/g, ""));
@@ -152,7 +158,7 @@ export const Verify = ({
                           }}
                         >
                           <InputOTPGroup className="space-x-2.5 [&>div]:rounded-lg [&>div]:border-2 [&>div]:border-black/30">
-                            {[0, 1, 2, 3, 4].map((i) => (
+                            {[0, 1, 2, 3, 4, 5].map((i) => (
                               <InputOTPSlot key={i} index={i} />
                             ))}
                           </InputOTPGroup>

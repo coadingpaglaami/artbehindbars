@@ -9,8 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PasswordInput } from "../reusable";
+import { setTokens, setVerificationEmail, setOtpType } from "@/lib/cookies";
+import { useForgetPasswordMutation, useSigninMutation } from "@/api/auth";
+
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -20,16 +23,13 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// Demo user credentials
-const demoUser = {
-  email: "johndoe@example.com",
-  password: "password123",
-};
-
 export const Login = () => {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [authData, setAuthData] = useState<{ remember?: boolean } | null>(null);
+
+  const { mutate: signinMutate, isPending: isSigningIn } = useSigninMutation();
+  const { mutate: forgotPasswordMutate, isPending: isForgotPasswordPending } =
+    useForgetPasswordMutation();
 
   const {
     register,
@@ -45,20 +45,35 @@ export const Login = () => {
   });
 
   const onSubmit = (data: LoginFormValues) => {
-    if (data.email === demoUser.email && data.password === demoUser.password) {
-      // Defer side effects (cookie write and navigation) to useEffect
-      setAuthData({ remember: !!data.remember });
-    } else {
-      setError("Invalid email or password");
-    }
-  };
+    setError(null);
 
-  useEffect(() => {
-    if (!authData) return;
-    const expiry = authData.remember ? "; max-age=604800" : "";
-    document.cookie = `auth=true; path=/${expiry}`;
-    router.push("/");
-  }, [authData, router]);
+    signinMutate(
+      {
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: (response) => {
+          const { accessToken, refreshToken } = response;
+
+          // Store tokens in cookies
+          setTokens(accessToken, refreshToken);
+
+          // Handle remember me by setting longer expiry
+          if (data.remember) {
+            // Tokens are already set, you can extend expiry if needed
+            // Or handle remember me logic on backend
+          }
+
+          // Navigate to dashboard/home
+          router.push("/");
+        },
+        onError: (error) => {
+          setError(error.message || "Invalid email or password");
+        },
+      }
+    );
+  };
 
   const handleForgotPassword = async () => {
     const isEmailValid = await trigger("email");
@@ -67,10 +82,18 @@ export const Login = () => {
 
     const email = getValues("email");
 
-    localStorage.setItem("forgot-password-email", email);
-    localStorage.setItem("forgot-password-flow", "true");
+    forgotPasswordMutate({email}, {
+      onSuccess: () => {
+        // Save email and otpType to cookies
+        setVerificationEmail(email);
+        setOtpType("resetPassword");
 
-    router.push("/verify");
+        router.push("/verify");
+      },
+      onError: (error) => {
+        setError(error.message || "Failed to send reset code");
+      },
+    });
   };
 
   return (
@@ -137,6 +160,9 @@ export const Login = () => {
             placeholder="Your password"
             className={errors.password ? "border-red-500" : ""}
           />
+          {errors.password && (
+            <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
+          )}
         </div>
 
         <div className="flex items-center justify-between">
@@ -149,9 +175,10 @@ export const Login = () => {
           <button
             type="button"
             onClick={handleForgotPassword}
-            className="text-sm text-red-500 hover:underline"
+            disabled={isForgotPasswordPending}
+            className="text-sm text-red-500 hover:underline disabled:opacity-50"
           >
-            Forgot password?
+            {isForgotPasswordPending ? "Sending..." : "Forgot password?"}
           </button>
         </div>
 
@@ -160,8 +187,9 @@ export const Login = () => {
         <Button
           type="submit"
           className="w-full bg-[#c4a37a] hover:bg-[#b0906a]"
+          disabled={isSigningIn}
         >
-          Sign in
+          {isSigningIn ? "Signing in..." : "Sign in"}
         </Button>
       </form>
 
