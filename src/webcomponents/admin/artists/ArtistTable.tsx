@@ -1,21 +1,21 @@
 "use client";
 
-import { ArtistInfo } from "@/interface/admin";
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ArtistDialogue } from "./ArtistDialogue";
+import {  ArtistResponseDto } from "@/types/gallery.types";
 
 interface ArtistTableProps {
-  artists: ArtistInfo[];
-  onEdit: (artist: ArtistInfo) => void;
+  artists: ArtistResponseDto[];
+  onEdit: (artist: ArtistResponseDto) => void;
   onDelete: (artistId: string) => void;
 }
 
 export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => {
-  const [selectedArtist, setSelectedArtist] = useState<ArtistInfo | null>(null);
+  const [selectedArtist, setSelectedArtist] = useState<ArtistResponseDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleEdit = (artist: ArtistInfo) => {
+  const handleEdit = (artist: ArtistResponseDto) => {
     setSelectedArtist(artist);
     setIsDialogOpen(true);
   };
@@ -57,7 +57,7 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
             <tbody>
               {artists.map((artist) => (
                 <tr
-                  key={artist.artistId}
+                  key={artist.id}
                   className="border-b hover:bg-gray-50 transition-colors"
                   style={{ borderColor: "#E2E8F0" }}
                 >
@@ -69,12 +69,12 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
                         style={{ backgroundColor: "#DBEAFE" }}
                       >
                         <span className="text-blue-600">
-                          {getInitial(artist.artistName)}
+                          {getInitial(artist.name)}
                         </span>
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {artist.artistName}
+                          {artist.name}
                         </div>
                         <div className="text-sm text-gray-500">{artist.state}</div>
                       </div>
@@ -83,21 +83,21 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
 
                   {/* ID Number */}
                   <td className="px-6 py-4 text-gray-700">
-                    {artist.artistIdNumber}
+                    {artist.inmateId}
                   </td>
 
                   {/* Facility */}
-                  <td className="px-6 py-4 text-gray-700">{artist.facility}</td>
+                  <td className="px-6 py-4 text-gray-700">{artist.facilityName}</td>
 
                   {/* Release Window */}
                   <td className="px-6 py-4 text-gray-700">
-                    {artist.releaseStartYear} - {artist.releaseEndYear}
+               {artist.minReleaseDate} - {artist.maxReleaseDate}
                   </td>
 
                   {/* Artworks */}
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                      {artist.artworks} Artworks
+                      10 Artworks
                     </span>
                   </td>
 
@@ -105,14 +105,14 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleEdit(artist)}
+                        onClick={() => handleEdit(artist.id as unknown as ArtistResponseDto)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Edit"
                       >
                         <Pencil size={18} style={{ color: "#94A3B8" }} />
                       </button>
                       <button
-                        onClick={() => onDelete(artist.artistId)}
+                        onClick={() => onDelete(artist.id)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Delete"
                       >
@@ -134,7 +134,7 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
           setIsDialogOpen(false);
           setSelectedArtist(null);
         }}
-        artist={selectedArtist || null}
+        artist={selectedArtist}
         mode="edit"
       />
     </>

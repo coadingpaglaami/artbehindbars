@@ -4,6 +4,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,9 +18,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { setTokens } from "@/lib/cookies";
+import { useSigninMutation } from "@/api/auth";
 
 const formSchema = z.object({
-  email: z.email({ message: "Please enter a valid email address" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(1, { message: "Password is required" }),
   rememberMe: z.boolean().default(false).optional(),
 });
@@ -26,6 +30,11 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export const Login = () => {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+
+  const { mutate: signinMutate, isPending } = useSigninMutation();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,12 +44,44 @@ export const Login = () => {
     },
   });
 
-  const isLoading = form.formState.isSubmitting;
+  const isLoading = form.formState.isSubmitting || isPending;
   const isValid = form.formState.isValid;
 
   function onSubmit(values: FormValues) {
-    console.log("Login attempt with:", values);
-    // Handle your login logic here (API call, etc.)
+    setError(null);
+
+    signinMutate(
+      {
+        email: values.email,
+        password: values.password,
+      },
+      {
+        onSuccess: (response) => {
+          const { accessToken, refreshToken, user } = response;
+
+          // Check if user is admin
+          if (user.role !== "ADMIN") {
+            setError("Access denied. Admin privileges required.");
+            return;
+          }
+
+          // Store tokens in cookies
+          setTokens(accessToken, refreshToken);
+
+          // Handle remember me (tokens are already set, extend expiry if needed)
+          if (values.rememberMe) {
+            // You can implement extended token expiry here if needed
+            // Or handle on backend
+          }
+
+          // Navigate to admin dashboard
+          router.push("/admin/overview");
+        },
+        onError: (error) => {
+          setError(error.message || "Invalid email or password");
+        },
+      }
+    );
   }
 
   return (
@@ -56,10 +97,9 @@ export const Login = () => {
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_30%_70%,rgba(255,255,255,0.4)_0%,transparent_50%)]" />
 
           <div className="relative z-10 flex flex-col items-center gap-6">
-            {/* You can replace with your actual logo */}
             <div className="relative w-20 h-20">
               <Image
-                src="/navbar/logo.svg" // ← change to your real logo path
+                src="/navbar/logo.svg"
                 alt="Infinity Logo"
                 fill
                 className="object-contain"
@@ -93,6 +133,7 @@ export const Login = () => {
                         placeholder="admin@artbehindbar.com"
                         type="email"
                         autoComplete="email"
+                        disabled={isLoading}
                         {...field}
                       />
                     </FormControl>
@@ -112,6 +153,7 @@ export const Login = () => {
                         type="password"
                         placeholder="Enter your password"
                         autoComplete="current-password"
+                        disabled={isLoading}
                         {...field}
                       />
                     </FormControl>
@@ -130,6 +172,7 @@ export const Login = () => {
                         <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={isLoading}
                         />
                       </FormControl>
                       <FormLabel className="text-sm font-medium leading-none cursor-pointer">
@@ -139,6 +182,12 @@ export const Login = () => {
                   )}
                 />
               </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+                  {error}
+                </div>
+              )}
 
               <Button
                 type="submit"
