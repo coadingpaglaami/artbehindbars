@@ -27,7 +27,13 @@ export const createArtist = async (
 
   formData.append("artistImage", artistImage);
 
-  const { data } = await axios.post<ArtistResponseDto>("/artist", formData);
+  console.log(payload)
+
+  const { data } = await axios.post<ArtistResponseDto>("/artist", formData,{
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
   return data;
 };

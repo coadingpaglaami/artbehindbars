@@ -150,6 +150,8 @@ export const ArtistDialogue = ({
   };
 
   const onSubmit = (values: FormValues) => {
+     console.log("✅ submit fired", values);
+     console.log(form.formState.errors);
     setError(null);
 
     if (mode === "add") {
@@ -230,6 +232,7 @@ maxReleaseDate: values.maxReleaseDate.toISOString(),
                             alt="Artist preview"
                             fill
                             className="object-cover"
+                            
                           />
                           <button
                             type="button"
