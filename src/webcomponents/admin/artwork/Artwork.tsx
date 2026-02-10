@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { generateArtworkData } from "@/data/admin";
 import { AdminHeading } from "@/webcomponents/reusable";
 import { Plus, LayoutGrid, TableProperties } from "lucide-react";
 import { useState, useMemo } from "react";
@@ -16,62 +15,71 @@ import { ArtWorkTableView } from "./ArtWorkTableView";
 import { ArtWorkImageView } from "./ArtWorkImageView";
 import { ArtWorkDialogue } from "./ArtWorkDialogue";
 import { Pagination } from "@/webcomponents/reusable";
-import { Artwork as ArtworkInterface } from "@/interface/admin";
+import { useGetArtworks, useGetArtists, useDeleteArtworkMutation } from "@/api/gallary";
+import { Category } from "@/types/gallery.types";
+import { toast } from "sonner";
 
 export const Artwork = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedArtist, setSelectedArtist] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
   const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const artworkData: ArtworkInterface[] = generateArtworkData(70);
   const itemsPerPage = viewMode === "grid" ? 9 : 10;
 
-  // Get unique artists
-  const uniqueArtists = useMemo(() => {
-    const artists = new Set(artworkData.map((art) => art.artist));
-    return Array.from(artists).sort();
-  }, [artworkData]);
+  // Fetch artworks with object destructuring
+  const {
+    data: artworksData,
+    isLoading: isLoadingArtworks,
+    isError: isArtworksError,
+    error: artworksError,
+    refetch: refetchArtworks,
+  } = useGetArtworks({
+    page: currentPage,
+    limit: itemsPerPage,
+    category: selectedCategory === "all" ? undefined : selectedCategory,
+  });
 
-  // Filter artworks
-  const filteredArtworks = useMemo(() => {
-    let filtered = artworkData;
+  // Fetch artists for filter with object destructuring
+  const { data: artistsData } = useGetArtists({
+    page: 1,
+    limit: 100,
+  });
 
-    // Filter by search
-    if (search.trim()) {
-      filtered = filtered.filter(
-        (art) =>
-          art.artworkTitle.toLowerCase().includes(search.toLowerCase()) ||
-          art.artworkId.toLowerCase().includes(search.toLowerCase()),
-      );
-    }
-
-    // Filter by artist
-    if (selectedArtist !== "all") {
-      filtered = filtered.filter((art) => art.artist === selectedArtist);
-    }
-
-    return filtered;
-  }, [search, selectedArtist, artworkData]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredArtworks.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentArtworks = filteredArtworks.slice(startIndex, endIndex);
-
-  const handleEdit = (artwork: ArtworkInterface) => {
-    console.log("Edit artwork:", artwork);
-  };
+  // Delete mutation with object destructuring
+  const { mutate: deleteArtwork, isPending: isDeleting } = useDeleteArtworkMutation();
 
   const handleDelete = (artworkId: string) => {
-    console.log("Delete artwork:", artworkId);
+    if (window.confirm("Are you sure you want to delete this artwork?")) {
+      deleteArtwork(artworkId, {
+        onSuccess: () => {
+          toast.success("Artwork deleted successfully");
+          refetchArtworks();
+        },
+        onError: (error) => {
+          toast.error(`Failed to delete artwork: ${error.message}`);
+        },
+      });
+    }
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  const handleSuccess = () => {
+    refetchArtworks();
+  };
+
+  const artworks = artworksData?.data || [];
+  const totalPages = artworksData?.meta?.totalPages || 1;
+
+  // Get unique artists from fetched data
+  const uniqueArtists = useMemo(() => {
+    if (!artistsData?.data) return [];
+    return artistsData.data.map(artist => artist.name);
+  }, [artistsData]);
 
   return (
     <div className="py-16 flex flex-col gap-6">
@@ -92,7 +100,7 @@ export const Artwork = () => {
           <div className="relative group flex-1 max-w-md">
             <input
               type="text"
-              placeholder="Search by title or ID..."
+              placeholder="Search by title..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -102,24 +110,21 @@ export const Artwork = () => {
             />
           </div>
 
-          {/* Artist Filter */}
+          {/* Category Filter */}
           <Select
-            value={selectedArtist}
-            onValueChange={(value) => {
-              setSelectedArtist(value);
+            value={selectedCategory}
+            onValueChange={(value: Category | "all") => {
+              setSelectedCategory(value);
               setCurrentPage(1);
             }}
           >
             <SelectTrigger className="w-50 h-12 bg-[#F8FAFC] border-[#E2E8F0]">
-              <SelectValue placeholder="All Artists" />
+              <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Artists</SelectItem>
-              {uniqueArtists.map((artist) => (
-                <SelectItem key={artist} value={artist}>
-                  {artist}
-                </SelectItem>
-              ))}
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="Religious">Religious</SelectItem>
+              <SelectItem value="Non_Religious">Non Religious</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -160,28 +165,56 @@ export const Artwork = () => {
         </div>
       </div>
 
-      {/* Content View */}
-      {viewMode === "table" ? (
-        <ArtWorkTableView
-          artworks={currentArtworks}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      ) : (
-        <ArtWorkImageView
-          artworks={currentArtworks}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+      {/* Loading State */}
+      {isLoadingArtworks && (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
+      {/* Error State */}
+      {isArtworksError && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+          Error loading artworks: {artworksError?.message || "Something went wrong"}
+        </div>
+      )}
+
+      {/* Content View */}
+      {!isLoadingArtworks && !isArtworksError && (
+        <>
+          {artworks.length > 0 ? (
+            <>
+              {viewMode === "table" ? (
+                <ArtWorkTableView
+                  artworks={artworks}
+                  onDelete={handleDelete}
+                  onEditSuccess={handleSuccess}
+                  allArtists={uniqueArtists}
+                />
+              ) : (
+                <ArtWorkImageView
+                  artworks={artworks}
+                  onDelete={handleDelete}
+                  onEditSuccess={handleSuccess}
+                  allArtists={uniqueArtists}
+                />
+              )}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              )}
+            </>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+              <p className="text-gray-600">No artworks found</p>
+            </div>
+          )}
+        </>
       )}
 
       {/* Add Artwork Dialog */}
@@ -190,6 +223,7 @@ export const Artwork = () => {
         onClose={() => setIsAddDialogOpen(false)}
         mode="add"
         allArtists={uniqueArtists}
+        onSuccess={handleSuccess}
       />
     </div>
   );

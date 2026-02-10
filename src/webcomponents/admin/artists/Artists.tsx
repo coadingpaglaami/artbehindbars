@@ -7,9 +7,8 @@ import { useState } from "react";
 import { ArtistTable } from "./ArtistTable";
 import { ArtistDialogue } from "./ArtistDialogue";
 import { Pagination } from "@/webcomponents/reusable";
-import { useGetArtists } from "@/api/gallary";
-import { ArtistResponseDto } from "@/types/gallery.types";
-
+import { useGetArtists, useDeleteArtistMutation } from "@/api/gallary";
+import { toast } from "sonner";
 
 export const Artists = () => {
   const [search, setSearch] = useState("");
@@ -17,7 +16,7 @@ export const Artists = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const itemsPerPage = 10;
 
-  // Fetch artists using TanStack Query
+  // Fetch artists using TanStack Query with object destructuring
   const {
     data: artistsData,
     isLoading,
@@ -29,25 +28,32 @@ export const Artists = () => {
     limit: itemsPerPage,
   });
 
-  const handleEdit = (artist: ArtistResponseDto) => {
-    console.log("Edit artist:", artist);
-    // Edit functionality will be implemented later
-  };
+  // Delete mutation with object destructuring
+  const { mutate: deleteArtist, isPending: isDeleting } =
+    useDeleteArtistMutation();
 
   const handleDelete = (artistId: string) => {
-    console.log("Delete artist:", artistId);
-    // Delete functionality will be implemented later
+    if (window.confirm("Are you sure you want to delete this artist?")) {
+      deleteArtist(artistId, {
+        onSuccess: () => {
+          toast.success("Artist deleted successfully");
+          refetch();
+        },
+        onError: (error) => {
+          toast.error(`Failed to delete artist: ${error.message}`);
+        },
+      });
+    }
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  const handleAddSuccess = () => {
-    refetch(); // Refetch artists after successful creation
+  const handleSuccess = () => {
+    refetch();
   };
 
-  // Calculate total pages from API response
   const totalPages = artistsData?.meta?.totalPages || 1;
   const artists = artistsData?.data || [];
 
@@ -101,8 +107,8 @@ export const Artists = () => {
             <>
               <ArtistTable
                 artists={artists}
-                onEdit={handleEdit}
                 onDelete={handleDelete}
+                onEditSuccess={handleSuccess}
               />
 
               {totalPages > 1 && (
@@ -126,7 +132,7 @@ export const Artists = () => {
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
         mode="add"
-        onSuccess={handleAddSuccess}
+        onSuccess={handleSuccess}
       />
     </div>
   );

@@ -48,7 +48,7 @@ export interface ArtistResponseDto extends ArtistRequestDto {
 export interface ArtWorkUploadRequestDto {
   artistId: string;
   title: string;
-  isAnonymous: boolean;
+  isAnonymous?: boolean;
   category: Category;
   startingBidPrice: number;
   buyItNowPrice: number | string;

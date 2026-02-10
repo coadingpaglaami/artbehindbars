@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CalendarIcon, Upload, X } from "lucide-react";
-import { useCreateArtist } from "@/api/gallary";
+import { useCreateArtist, useUpdateArtistMutation } from "@/api/gallary";
 import { ArtistResponseDto } from "@/types/gallery.types";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -34,14 +34,15 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const artistSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
   inmateId: z.string().min(3, "Inmate ID is required"),
   state: z.string().min(2, "State is required"),
   facilityName: z.string().min(3, "Facility name is required"),
-  minReleaseDate: z.date({error: 'Min release date is required' }),
-  maxReleaseDate: z.date({error: 'Max release date is required' }),
+  minReleaseDate: z.date({ error: "Min release date is required" }),
+  maxReleaseDate: z.date({ error: "Max release date is required" }),
   lifeSentence: z.string().min(2, "Life sentence information is required"),
   image: z.instanceof(File).optional().nullable(),
 });
@@ -64,11 +65,16 @@ export const ArtistDialogue = ({
   onSuccess,
 }: ArtistDialogueProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [hasNewImage, setHasNewImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { mutate: createArtistMutate, isPending } = useCreateArtist();
+  // Mutations with object destructuring
+  const { mutate: createArtist, isPending: isCreating } = useCreateArtist();
+  const { mutate: updateArtist, isPending: isUpdating } =
+    useUpdateArtistMutation();
 
-  const form = useForm({
+  const form = useForm<FormValues>({
     resolver: zodResolver(artistSchema),
     defaultValues: {
       fullName: "",
@@ -98,8 +104,14 @@ export const ArtistDialogue = ({
         lifeSentence: artist.lifeSentence,
         image: null,
       });
-      // If artist has image URL, set preview
-      // setImagePreview(artist.imageUrl);
+
+      // Set existing image URL if available
+      if (artist.image) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setExistingImageUrl(artist.image || null);
+        setImagePreview(artist.image || null);
+      }
+      setHasNewImage(false);
     } else {
       form.reset({
         fullName: "",
@@ -111,8 +123,9 @@ export const ArtistDialogue = ({
         lifeSentence: "",
         image: null,
       });
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setImagePreview(null);
+      setExistingImageUrl(null);
+      setHasNewImage(false);
     }
     setError(null);
   }, [artist, mode, form, isOpen]);
@@ -133,6 +146,7 @@ export const ArtistDialogue = ({
       }
 
       form.setValue("image", file);
+      setHasNewImage(true);
 
       // Create preview
       const reader = new FileReader();
@@ -147,11 +161,15 @@ export const ArtistDialogue = ({
   const removeImage = () => {
     form.setValue("image", null);
     setImagePreview(null);
+    setHasNewImage(false);
+    setExistingImageUrl(null);
+    // If in edit mode, restore existing image
+    if (mode === "edit" && existingImageUrl) {
+      setImagePreview(existingImageUrl);
+    }
   };
 
   const onSubmit = (values: FormValues) => {
-     console.log("✅ submit fired", values);
-     console.log(form.formState.errors);
     setError(null);
 
     if (mode === "add") {
@@ -166,12 +184,12 @@ export const ArtistDialogue = ({
         inmateId: values.inmateId,
         state: values.state,
         facilityName: values.facilityName,
-    minReleaseDate: values.minReleaseDate.toISOString(),
-maxReleaseDate: values.maxReleaseDate.toISOString(),
+        minReleaseDate: values.minReleaseDate.toISOString(),
+        maxReleaseDate: values.maxReleaseDate.toISOString(),
         lifeSentence: values.lifeSentence,
       };
 
-      createArtistMutate(
+      createArtist(
         {
           payload,
           image: values.image,
@@ -180,27 +198,68 @@ maxReleaseDate: values.maxReleaseDate.toISOString(),
           onSuccess: () => {
             form.reset();
             setImagePreview(null);
+            setExistingImageUrl(null);
+            setHasNewImage(false);
+            toast.success("Artist profile created successfully");
             onClose();
             onSuccess?.();
           },
           onError: (error) => {
             setError(error.message || "Failed to create artist");
           },
-        },
+        }
       );
     } else {
-      // Edit mode - API will be implemented later
-      console.log("Updating artist:", values);
-      onClose();
+      // Edit mode
+      if (!artist?.id) {
+        setError("Artist ID is missing");
+        return;
+      }
+
+      const payload = {
+        name: values.fullName,
+        inmateId: values.inmateId,
+        state: values.state,
+        facilityName: values.facilityName,
+        minReleaseDate: values.minReleaseDate.toISOString(),
+        maxReleaseDate: values.maxReleaseDate.toISOString(),
+        lifeSentence: values.lifeSentence,
+      };
+
+      updateArtist(
+        {
+          id: artist.id,
+          artist: payload,
+          artistImage: hasNewImage ? values.image || undefined : undefined,
+        },
+        {
+          onSuccess: () => {
+            form.reset();
+            setImagePreview(null);
+            setExistingImageUrl(null);
+            setHasNewImage(false);
+            toast.success("Artist profile updated successfully");
+            onClose();
+            onSuccess?.();
+          },
+          onError: (error) => {
+            setError(error.message || "Failed to update artist");
+          },
+        }
+      );
     }
   };
 
   const handleClose = () => {
     form.reset();
     setImagePreview(null);
+    setExistingImageUrl(null);
+    setHasNewImage(false);
     setError(null);
     onClose();
   };
+
+  const isPending = isCreating || isUpdating;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -220,9 +279,11 @@ maxReleaseDate: values.maxReleaseDate.toISOString(),
             <FormField
               control={form.control}
               name="image"
-              render={({}) => (
+              render={() => (
                 <FormItem className="flex flex-col gap-2">
-                  <FormLabel>Artist Image *</FormLabel>
+                  <FormLabel>
+                    Artist Image {mode === "add" && "*"}
+                  </FormLabel>
                   <FormControl>
                     <div className="flex flex-col gap-4">
                       {imagePreview ? (
@@ -232,7 +293,6 @@ maxReleaseDate: values.maxReleaseDate.toISOString(),
                             alt="Artist preview"
                             fill
                             className="object-cover"
-                            
                           />
                           <button
                             type="button"
@@ -241,6 +301,16 @@ maxReleaseDate: values.maxReleaseDate.toISOString(),
                           >
                             <X size={16} />
                           </button>
+                          {mode === "edit" && !hasNewImage && (
+                            <div className="absolute bottom-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                              Existing Image
+                            </div>
+                          )}
+                          {hasNewImage && (
+                            <div className="absolute bottom-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                              New Image
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <label
@@ -256,6 +326,21 @@ maxReleaseDate: values.maxReleaseDate.toISOString(),
                           </p>
                           <Input
                             id="image-upload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                      {mode === "edit" && imagePreview && (
+                        <label
+                          htmlFor="image-upload-change"
+                          className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer underline text-center"
+                        >
+                          Change Image
+                          <Input
+                            id="image-upload-change"
                             type="file"
                             accept="image/*"
                             onChange={handleImageChange}
@@ -333,14 +418,12 @@ maxReleaseDate: values.maxReleaseDate.toISOString(),
 
             {/* Min Release Date and Max Release Date */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Min Release Date */}
               <FormField
                 control={form.control}
                 name="minReleaseDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-2">
                     <FormLabel>Min Release Date *</FormLabel>
-
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -348,45 +431,48 @@ maxReleaseDate: values.maxReleaseDate.toISOString(),
                             variant="outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground",
+                              !field.value && "text-muted-foreground"
                             )}
                           >
                             {field.value
-                              ? format(new Date(field.value), "yyyy MM dd")
-                              : "Pick year"}
-
+                              ? format(new Date(field.value), "yyyy-MM-dd")
+                              : "Pick date"}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-
                       <PopoverContent className="w-auto p-0" align="start">
-                       <Calendar
-  mode="single"
-  captionLayout="dropdown"
-  startMonth={new Date(1900, 0)}
-  endMonth={new Date(2100, 0)}
-  selected={field.value ? new Date(field.value) : undefined}
-onSelect={(date) =>
-    field.onChange(date ? new Date(date.getFullYear(), 0, 1) : null)
-  }
-/>
+                        <Calendar
+                          mode="single"
+                          captionLayout="dropdown"
+                          startMonth={new Date(1900, 0)}
+                          endMonth={new Date(2100, 0)}
+                          selected={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onSelect={(date) => {
+                            if (!date) return field.onChange(null);
+                            const normalized = new Date(
+                              date.getFullYear(),
+                              date.getMonth(),
+                              date.getDate()
+                            );
+                            field.onChange(normalized);
+                          }}
+                        />
                       </PopoverContent>
                     </Popover>
-
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Max Release Date */}
               <FormField
                 control={form.control}
                 name="maxReleaseDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-2">
                     <FormLabel>Max Release Date *</FormLabel>
-
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -394,35 +480,37 @@ onSelect={(date) =>
                             variant="outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground",
+                              !field.value && "text-muted-foreground"
                             )}
                           >
                             {field.value
-                              ? format(new Date(field.value), "yyyy MM dd")
-                              : "Pick year"}
+                              ? format(new Date(field.value), "yyyy-MM-dd")
+                              : "Pick date"}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
                           captionLayout="dropdown"
                           startMonth={new Date(1900, 0)}
-                          endMonth={new Date(2100, 0)} // ← allows future years
+                          endMonth={new Date(2100, 0)}
                           selected={
-                            field.value
-                              ? new Date(Number(field.value), 0)
-                              : undefined
+                            field.value ? new Date(field.value) : undefined
                           }
-                       onSelect={(date) =>
-    field.onChange(date ? new Date(date.getFullYear(), 0, 1) : null)
-  }
+                          onSelect={(date) => {
+                            if (!date) return field.onChange(null);
+                            const normalized = new Date(
+                              date.getFullYear(),
+                              date.getMonth(),
+                              date.getDate()
+                            );
+                            field.onChange(normalized);
+                          }}
                         />
                       </PopoverContent>
                     </Popover>
-
                     <FormMessage />
                   </FormItem>
                 )}
@@ -430,13 +518,12 @@ onSelect={(date) =>
             </div>
 
             {/* Life Sentence */}
-            {/* Life Sentence */}
             <FormField
               control={form.control}
               name="lifeSentence"
               render={({ field }) => (
                 <FormItem className="flex flex-col gap-2">
-                  <FormLabel>Life Sentence</FormLabel>
+                  <FormLabel>Life Sentence *</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Enter life sentence details"

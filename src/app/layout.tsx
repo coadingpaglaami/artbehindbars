@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./global.css";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,9 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "The Art of Reform",
   description: "Welcome To The Art of Reform",
-  icons:{
-    icon: "/navbar/logo.svg"
-  }
+  icons: {
+    icon: "/navbar/logo.svg",
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
         {children}
+        <Toaster />
       </body>
     </html>
   );

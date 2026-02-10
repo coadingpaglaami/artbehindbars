@@ -3,16 +3,22 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ArtistDialogue } from "./ArtistDialogue";
-import {  ArtistResponseDto } from "@/types/gallery.types";
+import { ArtistResponseDto } from "@/types/gallery.types";
+import { format } from "date-fns";
 
 interface ArtistTableProps {
   artists: ArtistResponseDto[];
-  onEdit: (artist: ArtistResponseDto) => void;
   onDelete: (artistId: string) => void;
+  onEditSuccess: () => void;
 }
 
-export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => {
-  const [selectedArtist, setSelectedArtist] = useState<ArtistResponseDto | null>(null);
+export const ArtistTable = ({
+  artists,
+  onDelete,
+  onEditSuccess,
+}: ArtistTableProps) => {
+  const [selectedArtist, setSelectedArtist] =
+    useState<ArtistResponseDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleEdit = (artist: ArtistResponseDto) => {
@@ -24,12 +30,17 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
     return name.charAt(0).toUpperCase();
   };
 
+  const handleEditSuccess = () => {
+    onEditSuccess();
+    setIsDialogOpen(false);
+    setSelectedArtist(null);
+  };
+
   return (
     <>
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            {/* Table Header */}
             <thead style={{ backgroundColor: "#F8FAFC" }}>
               <tr className="border-b" style={{ borderColor: "#E2E8F0" }}>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
@@ -53,7 +64,6 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
               </tr>
             </thead>
 
-            {/* Table Body */}
             <tbody>
               {artists.map((artist) => (
                 <tr
@@ -61,7 +71,6 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
                   className="border-b hover:bg-gray-50 transition-colors"
                   style={{ borderColor: "#E2E8F0" }}
                 >
-                  {/* Artist */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div
@@ -76,36 +85,34 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
                         <div className="font-medium text-gray-900">
                           {artist.name}
                         </div>
-                        <div className="text-sm text-gray-500">{artist.state}</div>
+                        <div className="text-sm text-gray-500">
+                          {artist.state}
+                        </div>
                       </div>
                     </div>
                   </td>
 
-                  {/* ID Number */}
+                  <td className="px-6 py-4 text-gray-700">{artist.inmateId}</td>
+
                   <td className="px-6 py-4 text-gray-700">
-                    {artist.inmateId}
+                    {artist.facilityName}
                   </td>
 
-                  {/* Facility */}
-                  <td className="px-6 py-4 text-gray-700">{artist.facilityName}</td>
-
-                  {/* Release Window */}
                   <td className="px-6 py-4 text-gray-700">
-               {artist.minReleaseDate} - {artist.maxReleaseDate}
+                    {format(new Date(artist.minReleaseDate), "yyyy-MM-dd")} -{" "}
+                    {format(new Date(artist.maxReleaseDate), "yyyy-MM-dd")}
                   </td>
 
-                  {/* Artworks */}
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                       10 Artworks
                     </span>
                   </td>
 
-                  {/* Actions */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleEdit(artist.id as unknown as ArtistResponseDto)}
+                        onClick={() => handleEdit(artist)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Edit"
                       >
@@ -136,6 +143,7 @@ export const ArtistTable = ({ artists, onEdit, onDelete }: ArtistTableProps) => 
         }}
         artist={selectedArtist}
         mode="edit"
+        onSuccess={handleEditSuccess}
       />
     </>
   );

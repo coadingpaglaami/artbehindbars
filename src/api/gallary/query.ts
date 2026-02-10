@@ -11,6 +11,10 @@ import {
   adminGetFanMail,
   adminReplyFanMail,
   archiveFanMail,
+  updateArtist,
+  deleteArtist,
+  deleteArtwork,
+  updateArtwork,
 } from "./api";
 
 import {
@@ -21,6 +25,8 @@ import {
   CreateFanMailDto,
   ReplyFanMailDto,
   FanMailQueryDto,
+  ArtistResponseDto,
+  ArtworkResponseDto,
 } from "@/types/gallery.types";
 
 /* ---------- Artists ---------- */
@@ -43,6 +49,24 @@ export const useCreateArtist = () =>
     }) => createArtist(payload, image),
   });
 
+export const useUpdateArtistMutation = () =>
+  useMutation<
+    ArtistResponseDto,
+    Error,
+    { id: string; artist: Partial<ArtistRequestDto>; artistImage?: File }
+  >({
+    mutationKey: ["updateArtist"],
+    mutationFn: ({ id, artist, artistImage }) =>
+      updateArtist(id, artist, artistImage),
+  });
+
+/* -------- Delete Artist -------- */
+export const useDeleteArtistMutation = () =>
+  useMutation<{ message: string }, Error, string>({
+    mutationKey: ["deleteArtist"],
+    mutationFn: deleteArtist,
+  });
+
 /* ---------- Artworks ---------- */
 
 export const useUploadArtwork = () =>
@@ -61,6 +85,28 @@ export const useGetArtworks = (params: GetArtworksQueryDto) =>
   useQuery({
     queryKey: ["artworks", params],
     queryFn: () => getAllArtworks(params),
+  });
+
+export const useUpdateArtworkMutation = () =>
+  useMutation<
+    ArtworkResponseDto,
+    Error,
+    {
+      id: string;
+      artwork: Partial<ArtWorkUploadRequestDto>;
+      artworkImage?: File;
+    }
+  >({
+    mutationKey: ["updateArtwork"],
+    mutationFn: ({ id, artwork, artworkImage }) =>
+      updateArtwork(id, artwork, artworkImage),
+  });
+
+/* -------- Delete Artwork -------- */
+export const useDeleteArtworkMutation = () =>
+  useMutation<{ message: string }, Error, string>({
+    mutationKey: ["deleteArtwork"],
+    mutationFn: deleteArtwork,
   });
 
 /* ---------- Fan Mail (User) ---------- */
@@ -101,13 +147,8 @@ export const useAdminFanMail = (id: string) =>
 export const useReplyFanMail = () =>
   useMutation({
     mutationKey: ["replyFanMail"],
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: string;
-      payload: ReplyFanMailDto;
-    }) => adminReplyFanMail(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: ReplyFanMailDto }) =>
+      adminReplyFanMail(id, payload),
   });
 
 export const useArchiveFanMail = () =>

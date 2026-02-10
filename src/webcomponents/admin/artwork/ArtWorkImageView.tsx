@@ -1,60 +1,54 @@
 "use client";
 
-import { Artwork } from "@/interface/admin";
 import { Pencil, Trash2, Eye } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { ArtWorkDialogue } from "./ArtWorkDialogue";
+import { ArtworkResponseDto } from "@/types/gallery.types";
 
 interface ArtWorkImageViewProps {
-  artworks: Artwork[];
-  onEdit: (artwork: Artwork) => void;
+  artworks: ArtworkResponseDto[];
   onDelete: (artworkId: string) => void;
+  onEditSuccess: () => void;
+  allArtists: string[];
 }
 
 export const ArtWorkImageView = ({
   artworks,
-  onEdit,
   onDelete,
+  onEditSuccess,
+  allArtists,
 }: ArtWorkImageViewProps) => {
-  const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
+  const [selectedArtwork, setSelectedArtwork] = useState<ArtworkResponseDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleEdit = (artwork: Artwork) => {
+  const handleEdit = (artwork: ArtworkResponseDto) => {
     setSelectedArtwork(artwork);
     setIsDialogOpen(true);
   };
 
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "Available":
-        return { bg: "#DEF7EC", text: "#03543F" };
-      case "Auction":
-        return { bg: "#E1EFFE", text: "#1E429F" };
-      case "Sold":
-        return { bg: "#F3F4F6", text: "#6B7280" };
-      default:
-        return { bg: "#F3F4F6", text: "#6B7280" };
-    }
+  const handleEditSuccess = () => {
+    onEditSuccess();
+    setIsDialogOpen(false);
+    setSelectedArtwork(null);
   };
 
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {artworks.map((artwork) => {
-          const statusStyle = getStatusStyle(artwork.status);
-          const isAnonymous = artwork.artist === "Anonymous";
+          const isAnonymous = artwork.isAnonymous;
 
           return (
             <div
-              key={artwork.artworkId}
+              key={artwork.id}
               className="bg-white rounded-lg shadow-md overflow-hidden group"
             >
               {/* Image */}
               <div className="relative w-full aspect-square">
                 <Image
-                  src={artwork.artworkImage}
-                  alt={artwork.artworkTitle}
+                  src={artwork.imageUrl}
+                  alt={artwork.title}
                   fill
                   className="object-cover"
                 />
@@ -82,17 +76,15 @@ export const ArtWorkImageView = ({
                   >
                     <Eye size={20} style={{ color: "#94A3B8" }} />
                   </button>
-                  {artwork.status !== "Sold" && (
-                    <button
-                      onClick={() => handleEdit(artwork)}
-                      className="p-3 bg-white rounded-lg hover:bg-gray-100 transition-colors"
-                      title="Edit"
-                    >
-                      <Pencil size={20} style={{ color: "#94A3B8" }} />
-                    </button>
-                  )}
                   <button
-                    onClick={() => onDelete(artwork.artworkId)}
+                    onClick={() => handleEdit(artwork)}
+                    className="p-3 bg-white rounded-lg hover:bg-gray-100 transition-colors"
+                    title="Edit"
+                  >
+                    <Pencil size={20} style={{ color: "#94A3B8" }} />
+                  </button>
+                  <button
+                    onClick={() => onDelete(artwork.id)}
                     className="p-3 bg-white rounded-lg hover:bg-gray-100 transition-colors"
                     title="Delete"
                   >
@@ -106,28 +98,38 @@ export const ArtWorkImageView = ({
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      {artwork.artworkTitle}
+                      {artwork.title}
                     </h3>
-                    <p className="text-sm text-gray-500">{artwork.artist}</p>
+                    <p className="text-sm text-gray-500">
+                      {isAnonymous ? "Anonymous" : artwork.artist?.name || "N/A"}
+                    </p>
                   </div>
                   <span
                     className="px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap"
                     style={{
-                      backgroundColor: statusStyle.bg,
-                      color: statusStyle.text,
+                      backgroundColor: "#E1EFFE",
+                      color: "#1E429F",
                     }}
                   >
-                    {artwork.status}
+                    {artwork.category.replace("_", " ")}
                   </span>
                 </div>
 
                 <div className="border-t border-gray-200 pt-3 flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900">
-                    ${artwork.price}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {artwork.category}
-                  </span>
+                  <div>
+                    <p className="text-xs text-gray-500">Starting Bid</p>
+                    <span className="text-lg font-semibold text-gray-900">
+                      ${artwork.startingBidPrice}
+                    </span>
+                  </div>
+                  {typeof artwork.buyItNowPrice === "number" && artwork.buyItNowPrice > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-500">Buy Now</p>
+                      <span className="text-sm font-medium text-gray-700">
+                        ${artwork.buyItNowPrice}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -143,6 +145,8 @@ export const ArtWorkImageView = ({
         }}
         artwork={selectedArtwork}
         mode="edit"
+        allArtists={allArtists}
+        onSuccess={handleEditSuccess}
       />
     </>
   );
