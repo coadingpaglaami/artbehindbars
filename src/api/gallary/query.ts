@@ -15,6 +15,8 @@ import {
   deleteArtist,
   deleteArtwork,
   updateArtwork,
+  getArtistById,
+  getArtworkById,
 } from "./api";
 
 import {
@@ -35,6 +37,13 @@ export const useGetArtists = (params: PaginationQueryDto) =>
   useQuery({
     queryKey: ["artists", params],
     queryFn: () => getAllArtists(params),
+  });
+
+export const useGetArtistById = (id: string) =>
+  useQuery({
+    queryKey: ["artist", id],
+    queryFn: () => getArtistById(id),
+    enabled: !!id,
   });
 
 export const useCreateArtist = () =>
@@ -85,6 +94,13 @@ export const useGetArtworks = (params: GetArtworksQueryDto) =>
   useQuery({
     queryKey: ["artworks", params],
     queryFn: () => getAllArtworks(params),
+  });
+
+export const useGetArtworkById = (id: string) =>
+  useQuery({
+    queryKey: ["artwork", id],
+    queryFn: () => getArtworkById(id),
+    enabled: !!id,
   });
 
 export const useUpdateArtworkMutation = () =>

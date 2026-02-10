@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { communityPosts } from "@/data/communitydata";
-import { getClientAuthStatus } from "@/lib/auth";
 import { SearchBar } from "@/webcomponents/reusable";
 import { Clock, Filter, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -16,6 +15,7 @@ import { CreatePost } from "./CreatePost";
 import { CommunityDiscussion } from "./CommunityDiscussion";
 import { CommunityGuideLine } from "./GuideLine";
 import { PopularTags } from "./PopulerTags";
+import { isClientAuthenticated } from "@/lib/auth-client";
 
 const states = [
   "Alabama",
@@ -70,7 +70,7 @@ export const Community = () => {
   const [search, setSearch] = useState("");
   const [selectedState, setSelectedState] = useState<string>("All States");
   const [sortBy, setSortBy] = useState<"recent" | "popular">("recent");
-  const isAuthenticated = getClientAuthStatus();
+  const isAuthenticated = isClientAuthenticated();
 
   // Filter and sort community posts
   const filteredPosts = useMemo(() => {

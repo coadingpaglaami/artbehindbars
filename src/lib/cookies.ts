@@ -1,21 +1,22 @@
 import { getCookie, setCookie, removeCookie } from "typescript-cookie";
 import { OtpType } from "@/types/auth.type";
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "./constant";
 
 // Token management
 export const getAccessToken = (): string | undefined =>
-  getCookie("accessToken");
+  getCookie(ACCESS_TOKEN_COOKIE);
 
 export const getRefreshToken = (): string | undefined =>
-  getCookie("refreshToken");
+  getCookie(REFRESH_TOKEN_COOKIE);
 
 export const setTokens = (access: string, refresh: string): void => {
-  setCookie("accessToken", access, { secure: false, path: "/" });
-  setCookie("refreshToken", refresh, { secure: false, path: "/" });
+  setCookie(ACCESS_TOKEN_COOKIE, access, { secure: false, path: "/" });
+  setCookie(REFRESH_TOKEN_COOKIE, refresh, { secure: false, path: "/" });
 };
 
 export const clearTokens = (): void => {
-  removeCookie("accessToken", { path: "/" });
-  removeCookie("refreshToken", { path: "/" });
+  removeCookie(ACCESS_TOKEN_COOKIE, { path: "/" });
+  removeCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
 };
 
 // OTP verification flow management

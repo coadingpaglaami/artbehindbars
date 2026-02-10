@@ -10,9 +10,15 @@ interface ProductLeftProps {
   product: ProductProps;
   onModeChange: (mode: "bid" | "buy") => void;
   mode: "bid" | "buy";
+  isAuthenticated: boolean;
 }
 
-export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) => {
+export const ProductLeft = ({
+  product,
+  onModeChange,
+  mode,
+  isAuthenticated,
+}: ProductLeftProps) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -31,7 +37,9 @@ export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) =
       if (difference > 0) {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          hours: Math.floor(
+            (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          ),
           minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
           seconds: Math.floor((difference % (1000 * 60)) / 1000),
         });
@@ -41,7 +49,10 @@ export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) =
     return () => clearInterval(timer);
   }, [product.remainingTime]);
 
-  const currentBid = product.bitHistory?.[product.bitHistory.length - 1]?.value || product.auctionPrice || 0;
+  const currentBid =
+    product.bitHistory?.[product.bitHistory.length - 1]?.value ||
+    product.auctionPrice ||
+    0;
   const shippingCost = 15;
   const totalPrice = product.productPrice + shippingCost;
 
@@ -73,6 +84,13 @@ export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) =
           <p className="text-gray-600">by {product.productArtist}</p>
         </div>
 
+        {/* Category Badge */}
+        <div className="flex gap-2">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            {product.productCategory}
+          </span>
+        </div>
+
         {/* Divider */}
         <div className="border-b border-gray-300"></div>
 
@@ -82,13 +100,13 @@ export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) =
             <div className="flex justify-between items-center">
               <span className="text-gray-700">Current Bid</span>
               <span className="font-semibold" style={{ color: "#1447E6" }}>
-                ${currentBid}
+                ${currentBid.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-700">Buy It Now</span>
               <span className="font-semibold" style={{ color: "#008236" }}>
-                ${product.productPrice}
+                ${product.productPrice.toFixed(2)}
               </span>
             </div>
           </div>
@@ -97,20 +115,20 @@ export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) =
             <div className="flex justify-between items-center">
               <span className="text-gray-700">Artwork Price</span>
               <span className="font-semibold text-gray-900">
-                ${product.productPrice}
+                ${product.productPrice.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-700">Shipping & Handling</span>
               <span className="font-semibold text-gray-900">
-                ${shippingCost}
+                ${shippingCost.toFixed(2)}
               </span>
             </div>
             <div className="border-b border-gray-300"></div>
             <div className="flex justify-between items-center">
               <span className="font-semibold text-gray-900">Total</span>
               <span className="font-bold text-xl" style={{ color: "#008236" }}>
-                ${totalPrice}
+                ${totalPrice.toFixed(2)}
               </span>
             </div>
           </div>
@@ -122,11 +140,14 @@ export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) =
         {/* Countdown Timer or Purchase Rules */}
         {mode === "bid" ? (
           <div>
-            <div className="flex items-center gap-2 text-sm mb-2" style={{ color: "#F54900" }}>
+            <div
+              className="flex items-center gap-2 text-sm mb-2"
+              style={{ color: "#F54900" }}
+            >
               <Clock size={18} />
-              <span className="font-medium">Action ends in</span>
+              <span className="font-medium">Auction ends in</span>
             </div>
-            
+
             <div className="grid grid-cols-4 gap-2">
               {[
                 { value: timeLeft.days, label: "Days" },
@@ -138,7 +159,9 @@ export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) =
                   <div className="bg-black text-white w-full py-2 rounded text-center font-bold">
                     {String(item.value).padStart(2, "0")}
                   </div>
-                  <span className="text-xs text-gray-600 mt-1">{item.label}</span>
+                  <span className="text-xs text-gray-600 mt-1">
+                    {item.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -147,30 +170,37 @@ export const ProductLeft = ({ product, onModeChange, mode }: ProductLeftProps) =
           <div className="space-y-2">
             {purchaseRules.map((rule, idx) => (
               <div key={idx} className="flex items-start gap-2">
-                <CheckCircle size={18} className="text-green-500 flex-shrink-0 mt-0.5" />
+                <CheckCircle
+                  size={18}
+                  className="text-green-500 shrink-0 mt-0.5"
+                />
                 <span className="text-sm text-gray-700">{rule}</span>
               </div>
             ))}
           </div>
         )}
 
-        {/* Action Buttons */}
-        {mode === "bid" ? (
-          <Button
-            className="w-full text-white font-semibold"
-            style={{ backgroundColor: "#00A63E" }}
-            onClick={() => onModeChange("buy")}
-          >
-            Buy It Now
-          </Button>
-        ) : (
-          <Button
-            className="w-full text-white font-semibold"
-            style={{ backgroundColor: "#1447E6" }}
-            onClick={() => onModeChange("bid")}
-          >
-            Switch to Bidding
-          </Button>
+        {/* Action Buttons - Only show if authenticated */}
+        {isAuthenticated && (
+          <>
+            {mode === "bid" ? (
+              <Button
+                className="w-full text-white font-semibold"
+                style={{ backgroundColor: "#00A63E" }}
+                onClick={() => onModeChange("buy")}
+              >
+                Buy It Now
+              </Button>
+            ) : (
+              <Button
+                className="w-full text-white font-semibold"
+                style={{ backgroundColor: "#1447E6" }}
+                onClick={() => onModeChange("bid")}
+              >
+                Switch to Bidding
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>

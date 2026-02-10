@@ -1,4 +1,7 @@
+/* eslint-disable react-hooks/purity */
 "use client";
+
+import { useGetArtworks } from "@/api/gallary";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -7,50 +10,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProductProps } from "@/interface/product";
-import { getClientAuthStatus } from "@/lib/auth";
-import { products } from "@/lib/data";
+import { isClientAuthenticated } from "@/lib/auth-client";
+import { Category } from "@/types/gallery.types";
 import { Product, SearchBar } from "@/webcomponents/reusable";
 import { useMemo, useState } from "react";
 
-/* eslint-disable react/no-unescaped-entities */
+
 export const ShopArt = () => {
   const [search, setSearch] = useState("");
-  const isAuthenticated = getClientAuthStatus();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
+  const [selectedAvailability, setSelectedAvailability] = useState<string>("all");
+  
+  const isAuthenticated = isClientAuthenticated();
+  const itemsPerPage = 12;
 
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedAvailability, setSelectedAvailability] =
-    useState<string>("all");
-  const categories = Array.from(
-    new Set(products.map((item) => item.productCategory))
-  );
-  const filteredProducts = useMemo<ProductProps[]>(() => {
-    return products.filter((product) => {
-      // 1️⃣ Category filter
-      const categoryMatch =
-        selectedCategory === "all" ||
-        product.productCategory === selectedCategory;
-      const searchMatch =
-        product.productTitle.toLowerCase().includes(search.toLowerCase()) ||
-        product.productArtist.toLowerCase().includes(search.toLowerCase());
+  // Fetch artworks using TanStack Query
+  const {
+    data: artworksData,
+    isLoading,
+    isError,
+    error,
+  } = useGetArtworks({
+    page: currentPage,
+    limit: itemsPerPage,
+    category: selectedCategory === "all" ? undefined : selectedCategory,
+  });
 
-      // 2️⃣ Availability filter
-      const availabilityMatch =
-        selectedAvailability === "all" ||
-        (selectedAvailability === "Available" && !product.isSoldOut) ||
-        (selectedAvailability === "Sold" && product.isSoldOut);
-
-      return categoryMatch && availabilityMatch && searchMatch;
+  // Extract unique categories from the fetched artworks
+  const categories = useMemo<Category[]>(() => {
+    if (!artworksData?.data) return [];
+    
+    const uniqueCategories = new Set<Category>();
+    artworksData.data.forEach((artwork) => {
+      uniqueCategories.add(artwork.category);
     });
-  }, [selectedCategory, selectedAvailability, search]);
-  console.log(categories);
+    
+    return Array.from(uniqueCategories);
+  }, [artworksData?.data]);
+
+  // Client-side filtering for search and availability
+  const filteredProducts = useMemo(() => {
+    if (!artworksData?.data) return [];
+
+    return artworksData.data.filter((artwork) => {
+      // Search filter (client-side for now)
+      const searchMatch =
+        search === "" ||
+        artwork.title.toLowerCase().includes(search.toLowerCase()) ||
+        artwork.artist?.name.toLowerCase().includes(search.toLowerCase());
+
+      // Availability filter (will be used when sold out logic is implemented)
+      // const availabilityMatch =
+      //   selectedAvailability === "all" ||
+      //   (selectedAvailability === "Available" && !artwork.isSoldOut) ||
+      //   (selectedAvailability === "Sold" && artwork.isSoldOut);
+
+      // For now, just use search match
+      return searchMatch;
+    });
+  }, [artworksData?.data, search, selectedAvailability]);
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value as Category | "all");
+    setCurrentPage(1); // Reset to first page
+  };
+
   return (
     <div className="py-16 flex flex-col gap-6 lg:px-8 px-4">
       <div className="flex flex-col gap-2">
         <h2 className="md:text-4xl text-2xl font-semibold mb-6">Shop Art</h2>
         <span className="text-[#525252]">
           Browse our collection of original prison artwork. All pieces are
-          auction-based with "Buy It Now" options.
+          auction-based with &quot;Buy It Now&quot; options.
         </span>
       </div>
 
@@ -59,61 +91,128 @@ export const ShopArt = () => {
         value={search}
         onChange={setSearch}
       />
+
       <div className="flex flex-col md:flex-row gap-2.5">
         <div className="flex flex-col gap-2 flex-1">
-          <Label htmlFor="email">Categories</Label>
-          <Select defaultValue="all" onValueChange={setSelectedCategory}>
+          <Label htmlFor="category">Categories</Label>
+          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Category" />
             </SelectTrigger>
             <SelectContent>
-              {/* 1. Manually add the "All" option */}
               <SelectItem value="all">All Categories</SelectItem>
-
-              {/* 2. Map through unique categories from your data */}
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
-                  {category}
+                  {category.replace("_", " ")}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex flex-col gap-2 flex-1">
-          <Label htmlFor="email">Availability</Label>
-          <Select defaultValue="all" onValueChange={setSelectedAvailability}>
+          <Label htmlFor="availability">Availability</Label>
+          <Select
+            value={selectedAvailability}
+            onValueChange={setSelectedAvailability}
+            disabled // Disabled until sold out logic is implemented
+          >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select Category" />
+              <SelectValue placeholder="Select Availability" />
             </SelectTrigger>
             <SelectContent>
-              {/* 1. Manually add the "All" option */}
               <SelectItem value="all">All Availability</SelectItem>
-
-              {/* 2. Map through unique categories from your data */}
-              {["Sold", "Available"].map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
+              <SelectItem value="Available">Available</SelectItem>
+              <SelectItem value="Sold">Sold</SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-xs text-gray-500">
+            Availability filter will be enabled when sold out logic is implemented
+          </p>
         </div>
       </div>
-      <div className="flex flex-col gap-1.5">
-        <span className="text-sm ">
-          {" "}
-          Showing {filteredProducts.length} results
-        </span>
-        <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {filteredProducts.map((product) => (
-            <Product
-              key={product.productId}
-              product={product}
-              buttonText={[isAuthenticated ? "Make a Bid" : "Login to Purchase"]}
-            />
-          ))}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
-      </div>
+      )}
+
+      {/* Error State */}
+      {isError && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+          Error loading artworks: {error?.message || "Something went wrong"}
+        </div>
+      )}
+
+      {/* Products Grid */}
+      {!isLoading && !isError && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm">
+            Showing {filteredProducts.length} results
+          </span>
+          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {filteredProducts.map((artwork) => (
+              <Product
+                key={artwork.id}
+                product={{
+                  productId: artwork.id,
+                  productTitle: artwork.title,
+                  productArtist: artwork.isAnonymous
+                    ? "Anonymous"
+                    : artwork.artist?.name || "Unknown Artist",
+                  productPrice: artwork.buyItNowPrice,
+                  auctionPrice: artwork.startingBidPrice,
+                  prouductPhoto: artwork.imageUrl,
+                  productCategory: artwork.category,
+                  // isSoldOut: artwork.isSoldOut, // Will be uncommented when API supports it
+                  isSoldOut: false, // Temporary
+                  // remainingTime: new Date(artwork.auctionEndTime), // Will be added when API supports it
+                  remainingTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Temporary: 2 days from now
+                }}
+                buttonText={[
+                  isAuthenticated ? "Make a Bid" : "Login to Purchase",
+                ]}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {artworksData && artworksData.meta.totalPages > 1 && (
+            <div className="flex justify-center mt-8 gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2">
+                Page {currentPage} of {artworksData.meta.totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.min(artworksData.meta.totalPages, prev + 1)
+                  )
+                }
+                disabled={currentPage === artworksData.meta.totalPages}
+                className="px-4 py-2 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !isError && filteredProducts.length === 0 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+          <p className="text-gray-600">No artworks found</p>
+        </div>
+      )}
     </div>
   );
 };

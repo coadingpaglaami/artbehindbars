@@ -12,21 +12,21 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { getClientAuthStatus } from "@/lib/auth";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";;
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { usePathname, useRouter } from "next/navigation";
+import { isClientAuthenticated } from "@/lib/auth-client";
 
 export const NavBar = () => {
   const activeLink = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [open, setOpen] = useState(false);
-  const isAuthenticated = getClientAuthStatus();
+  const isAuthenticated = isClientAuthenticated();
   console.log(isAuthenticated);
 
   const navLinks: { label: string; link: string }[] = [

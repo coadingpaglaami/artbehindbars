@@ -46,6 +46,11 @@ export const getAllArtists = async (
   return data;
 };
 
+export const getArtistById = async (id: string): Promise<ArtistResponseDto> => {
+  const { data } = await axios.get(`/artist/${id}`);
+  return data;
+}
+
 export const updateArtist = async (
   id: string,
   artist: Partial<ArtistRequestDto>,
@@ -148,6 +153,11 @@ export const getAllArtworks = async (
 
   return data;
 };
+
+export const getArtworkById = async (id: string): Promise<ArtworkResponseDto> => {
+  const { data } = await axios.get(`/artwork/${id}`);
+  return data;
+}
 
 /* ---------------- Fan Mail (User) ---------------- */
 

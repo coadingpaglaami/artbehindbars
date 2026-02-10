@@ -1,18 +1,36 @@
-// src/lib/auth-server.ts
-
-// This marker causes build error if accidentally imported into client code
+// src/lib/auth/auth-server.ts
 import 'server-only';
 
 import { cookies } from 'next/headers';
-import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
+import { jwtDecode } from 'jwt-decode';
+import { ACCESS_TOKEN_COOKIE } from './constant';
 
-export const accessToken = 'auth';
-export const AUTH_COOKIE_VALUE = 'true';
+export interface JwtPayload {
+  sub: string;
+  email: string;
+  role: "USER" | "ADMIN";
+  iat: number;
+  exp: number;
+}
 
-export async function isAuthenticated(
-  cookieStore?: ReadonlyRequestCookies | Promise<ReadonlyRequestCookies>
-): Promise<boolean> {
-  const jar = await Promise.resolve(cookieStore ?? cookies());
-  const authCookie = jar.get(accessToken)?.value;
-  return authCookie === AUTH_COOKIE_VALUE;
+export async function getServerAccessToken(): Promise<string | undefined> {
+  return (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
+}
+
+export async function decodeServerToken(): Promise<JwtPayload | null> {
+  try {
+    const token = await getServerAccessToken();
+    if (!token) return null;
+    return jwtDecode<JwtPayload>(token);
+  } catch {
+    return null;
+  }
+}
+
+export async function isServerAuthenticated(): Promise<boolean> {
+  const payload = await decodeServerToken();
+  if (!payload) return false;
+
+  const now = Math.floor(Date.now() / 1000);
+  return payload.exp > now;
 }

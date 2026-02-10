@@ -29,9 +29,10 @@ const shippingSchema = z.object({
 
 interface BuyOptionProps {
   product: ProductProps;
+  artworkId: string;
 }
 
-export const BuyOption = ({ product }: BuyOptionProps) => {
+export const BuyOption = ({ product, artworkId }: BuyOptionProps) => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const shippingCost = 15;
   const totalPrice = product.productPrice + shippingCost;
@@ -58,10 +59,8 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
   const isFormValid = form.formState.isValid && termsAccepted;
 
   const onSubmit = (values: z.infer<typeof shippingSchema>) => {
-    if (termsAccepted) {
-      console.log("Purchase completed:", values);
-      // Handle purchase submission
-    }
+    // Buy Now API will be implemented later
+    console.log("Buy Now clicked - API not implemented yet:", values);
   };
 
   return (
@@ -83,12 +82,14 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
           <div className="flex justify-between items-center">
             <span className="text-gray-700">Artwork Price</span>
             <span className="font-semibold text-gray-900">
-              ${product.productPrice}
+              ${product.productPrice.toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-700">Shipping & Handling</span>
-            <span className="font-semibold text-gray-900">${shippingCost}</span>
+            <span className="font-semibold text-gray-900">
+              ${shippingCost.toFixed(2)}
+            </span>
           </div>
 
           <div className="border-b border-gray-300 my-2"></div>
@@ -96,7 +97,7 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
           <div className="flex justify-between items-center">
             <span className="font-semibold text-gray-900">Total</span>
             <span className="font-bold text-xl" style={{ color: "#008236" }}>
-              ${totalPrice}
+              ${totalPrice.toFixed(2)}
             </span>
           </div>
         </div>
@@ -214,7 +215,7 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
               <div className="flex items-start gap-2">
                 <AlertCircle
                   size={18}
-                  className="text-gray-600 flex-shrink-0 mt-0.5"
+                  className="text-gray-600 shrink-0 mt-0.5"
                 />
                 <div className="space-y-1 text-sm text-gray-700">
                   {purchaseRules.map((rule, idx) => (
@@ -273,20 +274,31 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
               </label>
             </div>
 
+            {/* Buy Now API Not Implemented Notice */}
+            <div
+              className="p-3 rounded-lg border"
+              style={{ backgroundColor: "#FFF7ED", borderColor: "#FDBA74" }}
+            >
+              <p className="text-sm text-orange-800">
+                <strong>Note:</strong> Buy Now functionality will be available
+                soon. Please use the bidding option for now.
+              </p>
+            </div>
+
             <Button
               type="submit"
               className="w-full text-white font-semibold"
               style={{ backgroundColor: "#008236" }}
-              disabled={!isFormValid}
+              disabled={true} // Disabled until API is ready
             >
-              Complete Purchase
+              Complete Purchase (Coming Soon)
             </Button>
 
             <p className="text-center text-sm text-gray-600">
               By clicking &quot;Complete Purchase&quot;, you agree to purchase
               this artwork for{" "}
               <span className="font-semibold" style={{ color: "#008236" }}>
-                ${totalPrice}
+                ${totalPrice.toFixed(2)}
               </span>
             </p>
           </form>
