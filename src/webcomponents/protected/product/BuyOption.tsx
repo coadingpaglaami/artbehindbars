@@ -1,7 +1,7 @@
 "use client";
 
 import { ProductProps } from "@/interface/product";
-import { ShoppingCart, Lock, AlertCircle } from "lucide-react";
+import { ShoppingCart, Lock, AlertCircle, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { SquarePaymentsForm } from "./SquarePaymentsForm"; // Adjust path
+import { useRouter } from "next/navigation";
+import { useCheckoutPayment } from "@/api/payment";
+import { ShippingInfoDto } from "@/types/payment.type";
 
 const shippingSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -32,10 +36,14 @@ interface BuyOptionProps {
   artworkId: string;
 }
 
-export const BuyOption = ({ product }: BuyOptionProps) => {
+export const BuyOption = ({ product, artworkId }: BuyOptionProps) => {
+  const router = useRouter();
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const shippingCost = 15;
   const totalPrice = product.productPrice + shippingCost;
+
+  const { mutate: checkoutPayment, isPending, isSuccess, error } = useCheckoutPayment();
 
   const form = useForm<z.infer<typeof shippingSchema>>({
     resolver: zodResolver(shippingSchema),
@@ -56,12 +64,71 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
     "Certificate of authenticity included with purchase",
   ];
 
-  // const isFormValid = form.formState.isValid && termsAccepted;
+  const isFormValid = form.formState.isValid && termsAccepted;
+
+  // Handle payment token from Square
+  const handlePaymentToken = async (token: string, verificationToken?: string) => {
+    const shippingData = form.getValues();
+
+    const shippingInfo: ShippingInfoDto = {
+      fullName: shippingData.fullName,
+      streetAddress: shippingData.streetAddress,
+      city: shippingData.city,
+      state: shippingData.state,
+      zipCode: shippingData.zipCode,
+      phoneNumber: shippingData.phoneNumber,
+    };
+
+    const payload = {
+      sourceId: token,
+      amount: Math.round(totalPrice * 100), // Convert to cents
+      artworkId: artworkId,
+      shippingInfo: shippingInfo,
+    };
+
+    checkoutPayment(payload, {
+      onSuccess: (data) => {
+        // Redirect to success page or show success message
+        console.log("Order created:", data);
+        router.push(`/orders/${data.id}`); // Adjust route as needed
+      },
+      onError: (error) => {
+        console.error("Payment processing failed:", error);
+      },
+    });
+  };
 
   const onSubmit = (values: z.infer<typeof shippingSchema>) => {
-    // Buy Now API will be implemented later
-    console.log("Buy Now clicked - API not implemented yet:", values);
+    if (!isFormValid) return;
+    setShowPaymentForm(true);
   };
+
+  // Success State
+  if (isSuccess) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="flex flex-col items-center justify-center text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+              <CheckCircle size={32} className="text-green-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">
+              Purchase Successful!
+            </h3>
+            <p className="text-gray-600">
+              Your order has been confirmed and will be processed shortly.
+            </p>
+            <Button
+              onClick={() => router.push("/orders")}
+              className="bg-primary text-white"
+            >
+              View My Orders
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -127,7 +194,11 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input 
+                      placeholder="John Doe" 
+                      {...field} 
+                      disabled={showPaymentForm || isPending}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -141,7 +212,11 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
                 <FormItem>
                   <FormLabel>Street Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="123 Main St" {...field} />
+                    <Input 
+                      placeholder="123 Main St" 
+                      {...field} 
+                      disabled={showPaymentForm || isPending}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,7 +231,11 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
                   <FormItem>
                     <FormLabel>City</FormLabel>
                     <FormControl>
-                      <Input placeholder="New York" {...field} />
+                      <Input 
+                        placeholder="New York" 
+                        {...field} 
+                        disabled={showPaymentForm || isPending}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -170,7 +249,11 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
                   <FormItem>
                     <FormLabel>State</FormLabel>
                     <FormControl>
-                      <Input placeholder="NY" {...field} />
+                      <Input 
+                        placeholder="NY" 
+                        {...field} 
+                        disabled={showPaymentForm || isPending}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -186,7 +269,11 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
                   <FormItem>
                     <FormLabel>Zip Code</FormLabel>
                     <FormControl>
-                      <Input placeholder="10001" {...field} />
+                      <Input 
+                        placeholder="10001" 
+                        {...field} 
+                        disabled={showPaymentForm || isPending}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -200,7 +287,11 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="(555) 123-4567" {...field} />
+                      <Input 
+                        placeholder="(555) 123-4567" 
+                        {...field} 
+                        disabled={showPaymentForm || isPending}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -233,28 +324,51 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
                 Payment Information
               </h3>
 
-              <div
-                className="p-6 rounded flex flex-col items-center justify-center text-center space-y-3"
-                style={{
-                  backgroundColor: "#F5F5F5",
-                  border: "1px solid #D4D4D4",
-                }}
-              >
+              {!showPaymentForm ? (
                 <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center"
-                  style={{ border: "2px solid #D4D4D4" }}
+                  className="p-6 rounded flex flex-col items-center justify-center text-center space-y-3"
+                  style={{
+                    backgroundColor: "#F5F5F5",
+                    border: "1px solid #D4D4D4",
+                  }}
                 >
-                  <Lock size={24} style={{ color: "#D4D4D4" }} />
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{ border: "2px solid #D4D4D4" }}
+                  >
+                    <Lock size={24} style={{ color: "#D4D4D4" }} />
+                  </div>
+                  <h4 className="text-xl font-semibold text-gray-900">
+                    Secure Payment Processing
+                  </h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p>Payment will be processed securely after confirmation</p>
+                    <p className="text-xs">SSL encrypted and PCI compliant</p>
+                  </div>
                 </div>
-                <h4 className="text-xl font-semibold text-gray-900">
-                  Secure Payment Processing
-                </h4>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <p>Payment will be processed securely after confirmation</p>
-                  <p className="text-xs">SSL encrypted and PCI compliant</p>
-                </div>
-              </div>
+              ) : (
+                <SquarePaymentsForm
+                  totalAmount={totalPrice}
+                  onPaymentSuccess={handlePaymentToken}
+                  isProcessing={isPending}
+                />
+              )}
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div
+                className="p-3 rounded-lg border"
+                style={{ backgroundColor: "#FEE2E2", borderColor: "#FCA5A5" }}
+              >
+                <p className="text-sm text-red-800">
+                  <strong>Payment Error:</strong>{" "}
+                  {error instanceof Error
+                    ? error.message
+                    : "Payment processing failed. Please try again."}
+                </p>
+              </div>
+            )}
 
             <div className="border-b border-gray-300"></div>
 
@@ -264,6 +378,7 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
                 onCheckedChange={(checked) =>
                   setTermsAccepted(checked === true)
                 }
+                disabled={showPaymentForm || isPending}
               />
               <label className="text-sm text-gray-700">
                 I agree to the{" "}
@@ -274,33 +389,37 @@ export const BuyOption = ({ product }: BuyOptionProps) => {
               </label>
             </div>
 
-            {/* Buy Now API Not Implemented Notice */}
-            <div
-              className="p-3 rounded-lg border"
-              style={{ backgroundColor: "#FFF7ED", borderColor: "#FDBA74" }}
-            >
-              <p className="text-sm text-orange-800">
-                <strong>Note:</strong> Buy Now functionality will be available
-                soon. Please use the bidding option for now.
-              </p>
-            </div>
+            {!showPaymentForm && (
+              <>
+                <Button
+                  type="submit"
+                  className="w-full text-white font-semibold"
+                  style={{ backgroundColor: "#008236" }}
+                  disabled={ !isFormValid || isPending}
+                >
+                  {isPending ? "Processing..." : "Continue to Payment"}
+                </Button>
 
-            <Button
-              type="submit"
-              className="w-full text-white font-semibold"
-              style={{ backgroundColor: "#008236" }}
-              disabled={true} // Disabled until API is ready
-            >
-              Complete Purchase (Coming Soon)
-            </Button>
+                <p className="text-center text-sm text-gray-600">
+                  By clicking &quot;Continue to Payment&quot;, you agree to
+                  purchase this artwork for{" "}
+                  <span className="font-semibold" style={{ color: "#008236" }}>
+                    ${totalPrice.toFixed(2)}
+                  </span>
+                </p>
+              </>
+            )}
 
-            <p className="text-center text-sm text-gray-600">
-              By clicking &quot;Complete Purchase&quot;, you agree to purchase
-              this artwork for{" "}
-              <span className="font-semibold" style={{ color: "#008236" }}>
-                ${totalPrice.toFixed(2)}
-              </span>
-            </p>
+            {showPaymentForm && !isPending && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowPaymentForm(false)}
+              >
+                ← Back to Shipping Info
+              </Button>
+            )}
           </form>
         </Form>
       </div>

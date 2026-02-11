@@ -83,6 +83,9 @@ importers:
       react-hook-form:
         specifier: ^7.71.1
         version: 7.71.1(react@19.2.3)
+      react-square-web-payments-sdk:
+        specifier: ^3.3.0
+        version: 3.3.0(react@19.2.3)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -925,8 +928,19 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
+  '@square/web-payments-sdk-types@1.82.5':
+    resolution: {integrity: sha512-HO+TiWMi2T6z2yrwoJbeXevMyKffaTJmbGnPdjcVPE9p3KK+mvr6z5R1U5r9MIoVehHSrlHr1RJGHdLV4Ie2zg==}
+
+  '@square/web-sdk@2.1.0':
+    resolution: {integrity: sha512-eeecdVyKAM01ak6zw2i1oKqOO1vMYqH/aH36XbXqleFeDImmfz9OnhrrIll8WuVN4YGSzWajUrqC8qtvQd878Q==}
+
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
+
+  '@stitches/react@1.2.8':
+    resolution: {integrity: sha512-9g9dWI4gsSVe8bNLlb+lMkBYsnIKCZTmvqvDG+Avnn69XfmHZKiaMrx7cgTaddq7aTPPmXiTsbFcUy0xgI4+wA==}
+    peerDependencies:
+      react: '>= 16.3.0'
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
@@ -2286,6 +2300,11 @@ packages:
       '@types/react':
         optional: true
 
+  react-square-web-payments-sdk@3.3.0:
+    resolution: {integrity: sha512-VtYMXHTajt+XQYInBW2j4vSNNlrPUNnft395snH6LjEKCrxSvmXjvjJHN1I8PgIjUpQ/prlR5YyREIaoO5l2TQ==}
+    peerDependencies:
+      react: ^16 || ^17 || ^18 || ^19
+
   react-style-singleton@2.2.3:
     resolution: {integrity: sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==}
     engines: {node: '>=10'}
@@ -2527,6 +2546,11 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
       typescript: '>=4.8.4 <6.0.0'
+
+  typescript@5.1.6:
+    resolution: {integrity: sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==}
+    engines: {node: '>=14.17'}
+    hasBin: true
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -3386,7 +3410,19 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
+  '@square/web-payments-sdk-types@1.82.5':
+    dependencies:
+      typescript: 5.1.6
+
+  '@square/web-sdk@2.1.0':
+    dependencies:
+      '@square/web-payments-sdk-types': 1.82.5
+
   '@standard-schema/utils@0.3.0': {}
+
+  '@stitches/react@1.2.8(react@19.2.3)':
+    dependencies:
+      react: 19.2.3
 
   '@swc/helpers@0.5.15':
     dependencies:
@@ -4856,6 +4892,12 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.8
 
+  react-square-web-payments-sdk@3.3.0(react@19.2.3):
+    dependencies:
+      '@square/web-sdk': 2.1.0
+      '@stitches/react': 1.2.8(react@19.2.3)
+      react: 19.2.3
+
   react-style-singleton@2.2.3(@types/react@19.2.8)(react@19.2.3):
     dependencies:
       get-nonce: 1.0.1
@@ -5181,6 +5223,8 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
+
+  typescript@5.1.6: {}
 
   typescript@5.9.3: {}
 
