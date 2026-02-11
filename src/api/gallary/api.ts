@@ -11,6 +11,7 @@ import {
   CreateFanMailDto,
   ReplyFanMailDto,
   FanMailQueryDto,
+  GetArtistsQueryDto,
 } from "@/types/gallery.types";
 
 /* ---------------- Artist ---------------- */
@@ -39,10 +40,18 @@ export const createArtist = async (
 };
 
 export const getAllArtists = async (
-  params: PaginationQueryDto,
+  params: GetArtistsQueryDto,
 ): Promise<PaginatedResponseDto<ArtistResponseDto>> => {
   const { data } = await axios.get("/artist", { params });
 
+  return data;
+};
+
+export const getArtistArtwork = async (
+  id: string,
+  params: PaginationQueryDto,
+): Promise<PaginatedResponseDto<ArtworkResponseDto>> => {
+  const { data } = await axios.get(`/artist/${id}/artworks`, { params });
   return data;
 };
 

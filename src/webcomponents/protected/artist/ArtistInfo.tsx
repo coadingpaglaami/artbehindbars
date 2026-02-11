@@ -1,13 +1,19 @@
 "use client";
 
-import { ArtistInfo as ArtistInfoType } from "@/interface/artist";
 import { Mail, User, MapPin, Building2, Calendar } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { ArtistDialog } from "./ArtistDialog";
+import { ArtistResponseDto } from "@/types/gallery.types";
 
-export const ArtistInfo = ({ artist }: { artist: ArtistInfoType }) => {
+export const ArtistInfo = ({
+  artist,
+  artworkCount = 0,
+}: {
+  artist: ArtistResponseDto;
+  artworkCount?: number;
+}) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const getInitial = (name: string) => {
@@ -18,7 +24,7 @@ export const ArtistInfo = ({ artist }: { artist: ArtistInfoType }) => {
     {
       icon: <User size={20} />,
       label: "Inmate ID",
-      value: artist.artistInmateId,
+      value: artist.inmateId,
     },
     {
       icon: <MapPin size={20} />,
@@ -33,7 +39,7 @@ export const ArtistInfo = ({ artist }: { artist: ArtistInfoType }) => {
     {
       icon: <Calendar size={20} />,
       label: "Expected Release",
-      value: `${artist.minReleaseDate} - ${artist.maxReleaseDate}`,
+      value: `${new Date(artist.minReleaseDate).toLocaleDateString()} - ${new Date(artist.maxReleaseDate).toLocaleDateString()}`,
     },
   ];
 
@@ -43,17 +49,17 @@ export const ArtistInfo = ({ artist }: { artist: ArtistInfoType }) => {
         {/* Left Side - Image (20%) */}
         <div className="lg:w-1/5">
           <div className="relative w-full aspect-square rounded-lg overflow-hidden shadow-md">
-            {artist.artistImage ? (
+            {artist.image ? (
               <Image
-                src={artist.artistImage}
-                alt={artist.artistName}
+                src={artist.image}
+                alt={artist.name}
                 fill
                 className="object-cover"
               />
             ) : (
               <div className="w-full h-full bg-primary flex items-center justify-center">
                 <span className="text-white text-6xl font-bold">
-                  {getInitial(artist.artistName)}
+                  {getInitial(artist.name)}
                 </span>
               </div>
             )}
@@ -65,7 +71,7 @@ export const ArtistInfo = ({ artist }: { artist: ArtistInfoType }) => {
           {/* Artist Name and Artwork Count */}
           <div>
             <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
-              {artist.artistName} ({artist.artwork.length})
+              {artist.name} ({artworkCount})
             </h1>
             <div
               className="h-1 w-32"
@@ -99,11 +105,17 @@ export const ArtistInfo = ({ artist }: { artist: ArtistInfoType }) => {
           </div>
 
           {/* About the Artist */}
+          {/* Note: Bio field not in ArtistResponseDto - add to backend if needed */}
           <div>
             <h3 className="text-lg font-semibold text-gray-700 mb-2">
               About the Artist
             </h3>
-            <p className="text-gray-700 leading-relaxed">{artist.artistBio}</p>
+            <p className="text-gray-700 leading-relaxed">
+              Artist from {artist.state}, currently at {artist.facilityName}.
+              {artist.lifeSentence === "Yes"
+                ? " Serving a life sentence."
+                : ` Expected release between ${new Date(artist.minReleaseDate).getFullYear()} and ${new Date(artist.maxReleaseDate).getFullYear()}.`}
+            </p>
           </div>
 
           {/* Send Fan Mail Button */}
@@ -127,7 +139,7 @@ export const ArtistInfo = ({ artist }: { artist: ArtistInfoType }) => {
       <ArtistDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        artistName={artist.artistName}
+        artistName={artist.name}
       />
     </>
   );

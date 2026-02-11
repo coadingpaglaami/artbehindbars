@@ -1,8 +1,6 @@
 /* ---------------- Enums ---------------- */
 
-export type Category =
-  | "Religious"
-  | "Non_Religious"
+export type Category = "Religious" | "Non_Religious";
 
 export type FanMailStatus = "PENDING" | "REPLIED";
 
@@ -11,6 +9,10 @@ export type FanMailStatus = "PENDING" | "REPLIED";
 export interface PaginationQueryDto {
   page?: number;
   limit?: number;
+}
+
+export interface GetArtistsQueryDto extends PaginationQueryDto {
+  searchTerm?: string;
 }
 
 export interface PaginationMetaDto {

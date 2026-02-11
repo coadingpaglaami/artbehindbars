@@ -1,12 +1,14 @@
-import { ArtistInfo } from "@/interface/artist";
+
+import { ArtistResponseDto, ArtworkResponseDto, PaginatedResponseDto } from "@/types/gallery.types";
 import Image from "next/image";
 import Link from "next/link";
 
 interface ArtWorkGalleryProps {
-  artist: ArtistInfo;
+  artist: ArtistResponseDto;
+  artworks: PaginatedResponseDto<ArtworkResponseDto>;
 }
 
-export const ArtWorkGallery = ({ artist }: ArtWorkGalleryProps) => {
+export const ArtWorkGallery = ({ artist, artworks }: ArtWorkGalleryProps) => {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -15,24 +17,24 @@ export const ArtWorkGallery = ({ artist }: ArtWorkGalleryProps) => {
           Artwork Gallery
         </h2>
         <p className="text-gray-600">
-          Explore all available and sold artworks by {artist.artistName}
+          Explore all available and sold artworks by {artist.name}
         </p>
       </div>
 
       {/* Artwork Grid */}
-      {artist.artwork.length > 0 ? (
+      {artworks?.meta?.total > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {artist.artwork.map((artwork) => (
+          {artworks.data?.map((artwork) => (
             <Link
-              href={`/product/${artwork.artworkId}`}
-              key={artwork.artworkId}
+              href={`/product/${artwork.id}`}
+              key={artwork.id}
               className="group"
             >
               <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                 {/* Artwork Image */}
                 <div className="relative w-full aspect-square">
                   <Image
-                    src={artwork.image}
+                    src={artwork.imageUrl}
                     alt={artwork.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -44,13 +46,22 @@ export const ArtWorkGallery = ({ artist }: ArtWorkGalleryProps) => {
                   <h3 className="font-semibold text-gray-900 line-clamp-1">
                     {artwork.title}
                   </h3>
-                  
+
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Current Bid</span>
+                    <span className="text-sm text-gray-600">Starting Bid</span>
                     <span className="font-bold text-lg text-primary">
-                      ${artwork.currentBid}
+                      ${artwork.startingBidPrice.toFixed(2)}
                     </span>
                   </div>
+                  
+                  {artwork.buyItNowPrice > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Buy Now</span>
+                      <span className="font-bold text-sm text-gray-900">
+                        ${artwork.buyItNowPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </Link>
@@ -62,7 +73,7 @@ export const ArtWorkGallery = ({ artist }: ArtWorkGalleryProps) => {
             No Artworks Yet
           </h3>
           <p className="text-gray-600">
-            {artist.artistName} hasn&apos;t uploaded any artworks yet. Check back
+            {artist.name} hasn&apos;t uploaded any artworks yet. Check back
             later!
           </p>
         </div>

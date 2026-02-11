@@ -17,6 +17,7 @@ import {
   updateArtwork,
   getArtistById,
   getArtworkById,
+  getArtistArtwork,
 } from "./api";
 
 import {
@@ -100,6 +101,13 @@ export const useGetArtworkById = (id: string) =>
   useQuery({
     queryKey: ["artwork", id],
     queryFn: () => getArtworkById(id),
+    enabled: !!id,
+  });
+
+export const useGetArtistArtwork = (id: string, params: PaginationQueryDto) =>
+  useQuery({
+    queryKey: ["artistArtwork", id, params],
+    queryFn: () => getArtistArtwork(id, params),
     enabled: !!id,
   });
 

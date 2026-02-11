@@ -32,7 +32,7 @@ interface BuyOptionProps {
   artworkId: string;
 }
 
-export const BuyOption = ({ product, artworkId }: BuyOptionProps) => {
+export const BuyOption = ({ product }: BuyOptionProps) => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const shippingCost = 15;
   const totalPrice = product.productPrice + shippingCost;
@@ -56,7 +56,7 @@ export const BuyOption = ({ product, artworkId }: BuyOptionProps) => {
     "Certificate of authenticity included with purchase",
   ];
 
-  const isFormValid = form.formState.isValid && termsAccepted;
+  // const isFormValid = form.formState.isValid && termsAccepted;
 
   const onSubmit = (values: z.infer<typeof shippingSchema>) => {
     // Buy Now API will be implemented later

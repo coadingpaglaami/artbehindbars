@@ -44,7 +44,7 @@ export const ArtistDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-150">
         <DialogHeader>
           <DialogTitle className="text-2xl">Send Fan Mail</DialogTitle>
           <DialogDescription>
