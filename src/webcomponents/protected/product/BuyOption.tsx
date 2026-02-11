@@ -90,7 +90,7 @@ export const BuyOption = ({ product, artworkId }: BuyOptionProps) => {
       onSuccess: (data) => {
         // Redirect to success page or show success message
         console.log("Order created:", data);
-        router.push(`/orders/${data.id}`); // Adjust route as needed
+        router.push(`/order/${data.id}`); // Adjust route as needed
       },
       onError: (error) => {
         console.error("Payment processing failed:", error);

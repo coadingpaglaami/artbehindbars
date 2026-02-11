@@ -43,6 +43,7 @@ export interface ArtistResponseDto extends ArtistRequestDto {
   id: string;
   createdAt: string;
   image: string;
+  
 }
 
 /* ---------------- Artwork ---------------- */
@@ -60,6 +61,7 @@ export interface ArtWorkUploadResponseDto extends ArtWorkUploadRequestDto {
   id: string;
   createdAt: string;
   imageUrl: string;
+  isSold: boolean;
 }
 
 export interface ArtworkArtistDto {
@@ -76,6 +78,7 @@ export interface ArtworkResponseDto {
   createdAt: string;
   imageUrl: string;
   artist: ArtworkArtistDto | null;
+  isSold: boolean;
 }
 
 /* ---------------- Artwork Query ---------------- */

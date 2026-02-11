@@ -25,6 +25,7 @@ export const Artwork = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
   const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+ 
 
   const itemsPerPage = viewMode === "grid" ? 9 : 10;
 
@@ -51,7 +52,7 @@ export const Artwork = () => {
   const { mutate: deleteArtwork, isPending: isDeleting } = useDeleteArtworkMutation();
 
   const handleDelete = (artworkId: string) => {
-    if (window.confirm("Are you sure you want to delete this artwork?")) {
+  
       deleteArtwork(artworkId, {
         onSuccess: () => {
           toast.success("Artwork deleted successfully");
@@ -61,7 +62,7 @@ export const Artwork = () => {
           toast.error(`Failed to delete artwork: ${error.message}`);
         },
       });
-    }
+   
   };
 
   const handlePageChange = (page: number) => {

@@ -38,6 +38,7 @@ export const ShopArt = () => {
   });
 
   // Extract unique categories from the fetched artworks
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const categories = useMemo<Category[]>(() => {
     if (!artworksData?.data) return [];
     
@@ -50,6 +51,7 @@ export const ShopArt = () => {
   }, [artworksData?.data]);
 
   // Client-side filtering for search and availability
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const filteredProducts = useMemo(() => {
     if (!artworksData?.data) return [];
 
@@ -156,21 +158,7 @@ export const ShopArt = () => {
             {filteredProducts.map((artwork) => (
               <Product
                 key={artwork.id}
-                product={{
-                  productId: artwork.id,
-                  productTitle: artwork.title,
-                  productArtist: artwork.isAnonymous
-                    ? "Anonymous"
-                    : artwork.artist?.name || "Unknown Artist",
-                  productPrice: artwork.buyItNowPrice,
-                  auctionPrice: artwork.startingBidPrice,
-                  prouductPhoto: artwork.imageUrl,
-                  productCategory: artwork.category,
-                  // isSoldOut: artwork.isSoldOut, // Will be uncommented when API supports it
-                  isSoldOut: false, // Temporary
-                  // remainingTime: new Date(artwork.auctionEndTime), // Will be added when API supports it
-                  remainingTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Temporary: 2 days from now
-                }}
+                product={artwork}
                 buttonText={[
                   isAuthenticated ? "Make a Bid" : "Login to Purchase",
                 ]}

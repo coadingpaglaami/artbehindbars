@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { ArtWorkDialogue } from "./ArtWorkDialogue";
 import { ArtworkResponseDto } from "@/types/gallery.types";
+import { DeleteDialog } from "@/webcomponents/reusable";
 
 interface ArtWorkImageViewProps {
   artworks: ArtworkResponseDto[];
@@ -21,6 +22,7 @@ export const ArtWorkImageView = ({
 }: ArtWorkImageViewProps) => {
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkResponseDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteArtwork, setDeleteArtwork] = useState<ArtworkResponseDto | null>(null);
 
   const handleEdit = (artwork: ArtworkResponseDto) => {
     setSelectedArtwork(artwork);
@@ -84,7 +86,7 @@ export const ArtWorkImageView = ({
                     <Pencil size={20} style={{ color: "#94A3B8" }} />
                   </button>
                   <button
-                    onClick={() => onDelete(artwork.id)}
+                    onClick={() => setDeleteArtwork(artwork)}
                     className="p-3 bg-white rounded-lg hover:bg-gray-100 transition-colors"
                     title="Delete"
                   >
@@ -136,7 +138,18 @@ export const ArtWorkImageView = ({
           );
         })}
       </div>
+   <DeleteDialog
+  isOpen={!!deleteArtwork}
+  targetName={deleteArtwork?.title || "this artwork"}
+  onClose={() => setDeleteArtwork(null)}
+  onConfirm={async () => {
+    if (!deleteArtwork
 
+    ) return;
+     onDelete(deleteArtwork.id);
+    setDeleteArtwork(null);
+  }}
+/>
       <ArtWorkDialogue
         isOpen={isDialogOpen}
         onClose={() => {

@@ -4,3 +4,4 @@ export * from "./HeadingTwo";
 export * from "./Pagination";
 export * from './AdminHeading';
 export * from './PasswordInput';
+export * from './DeleteDialogue';
