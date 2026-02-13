@@ -8,6 +8,7 @@ import { useState } from "react";
 import { isClientAuthenticated } from "@/lib/auth-client";
 import { useGetArtworkById } from "@/api/gallary";
 import { UnauthenticatedView } from "./UnAuthenticateView";
+import {  ArtworkResponseDto } from "@/types/gallery.types";
 
 export const ProductInformation = ({ productId }: { productId: string }) => {
   const [mode, setMode] = useState<"bid" | "buy">("bid");
@@ -82,7 +83,7 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
           {/* Left Side - Product Card */}
           <div className="lg:w-1/3">
             <ProductLeft
-              product={productData}
+              product={artwork as ArtworkResponseDto}
               onModeChange={setMode}
               mode={mode}
               isAuthenticated={isAuthenticated}
@@ -93,7 +94,10 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
           <div className="lg:w-2/3">
             {isAuthenticated ? (
               mode === "bid" ? (
-                <BidOption product={productData} artworkId={productId} />
+                <BidOption
+                  product={artwork as ArtworkResponseDto}
+                  artworkId={artwork?.auction?.id as string}
+                />
               ) : (
                 <BuyOption product={productData} artworkId={productId} />
               )

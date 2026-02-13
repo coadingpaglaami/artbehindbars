@@ -1,15 +1,19 @@
 "use client";
 
-import { ProductProps } from "@/interface/product";
 import { TrendingUp, Info } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useGetAuctionBids, usePlaceBidMutation } from "@/api/auction";
+import {
+  useGetAuction,
+  useGetAuctionBids,
+  usePlaceBidMutation,
+} from "@/api/auction";
+import { ArtworkResponseDto } from "@/types/gallery.types";
 
 interface BidOptionProps {
-  product: ProductProps;
+  product: ArtworkResponseDto;
   artworkId: string;
 }
 
@@ -24,14 +28,15 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
     data: bidsData,
     isLoading: isBidsLoading,
     refetch: refetchBids,
-  } = useGetAuctionBids(artworkId, { page: 1, limit: 10 });
+  } = useGetAuctionBids(product.auction?.id as string, { page: 1, limit: 10 });
 
   // Place bid mutation
   const { mutate: placeBidMutate, isPending: isPlacingBid } =
     usePlaceBidMutation();
+  const { data } = useGetAuction(product.auction?.id as string);
 
-  const currentBid =
-    bidsData?.data?.[0]?.bidPrice || product.auctionPrice || 0;
+  const currentBid = data?.currentPrice
+  if(currentBid==undefined) return;
   const minimumBid = Math.ceil(currentBid * 1.05);
 
   const quickBidOptions = [
@@ -92,7 +97,7 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
         onError: (error) => {
           setError(error.message || "Failed to place bid");
         },
-      }
+      },
     );
   };
 

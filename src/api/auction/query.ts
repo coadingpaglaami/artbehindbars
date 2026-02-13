@@ -10,6 +10,7 @@ import {
   PaginatedResponseDto,
   PaginationQueryDto,
   GetAuctionsQueryDto,
+  UserAuctionHistoryItemDto,
 } from "@/types/auction.type";
 
 /* ============================================================
@@ -22,6 +23,7 @@ export const auctionKeys = {
   detail: (id: string) => ["auction", "detail", id] as const,
   bids: (id: string, params?: unknown) =>
     ["auction", "bids", id, params] as const,
+  myHistory: (params?: unknown) => ["auction", "my-history", params] as const,
 };
 
 /* ============================================================
@@ -82,8 +84,7 @@ export const useExtendAuction = () =>
     { id: string; payload: ExtendAuctionDto }
   >({
     mutationKey: ["auction", "extend"],
-    mutationFn: ({ id, payload }) =>
-      api.extendAuction(id, payload),
+    mutationFn: ({ id, payload }) => api.extendAuction(id, payload),
   });
 
 /* ============================================================
@@ -94,4 +95,11 @@ export const useGetAllAuctions = (params: GetAuctionsQueryDto) =>
   useQuery<PaginatedResponseDto<AuctionResponseDto>>({
     queryKey: auctionKeys.lists(params),
     queryFn: () => api.getAllAuctions(params),
+  });
+
+export const useMyAuctionHistory = (params: PaginationQueryDto) =>
+  useQuery<PaginatedResponseDto<UserAuctionHistoryItemDto>>({
+    queryKey: auctionKeys.myHistory(params),
+    queryFn: () => api.getMyAuctionHistory(params),
+    staleTime: 1000 * 30, // 30 sec
   });

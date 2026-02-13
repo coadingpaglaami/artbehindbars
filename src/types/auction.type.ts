@@ -108,3 +108,26 @@ export interface AuctionDetailsResponseDto {
 export interface GetAuctionsQueryDto extends PaginationQueryDto {
   status?: AuctionStatus;
 }
+
+/* ============================================================
+   USER AUCTION HISTORY
+============================================================ */
+
+export type UserBidStatus = "WINNING" | "OUTBID" | "LOST";
+
+export interface UserAuctionHistoryItemDto {
+  auctionId: string;
+  artworkId: string;
+  artworkTitle: string;
+  imageUrl: string;
+
+  myLastBid: number;
+  highestBid: number;
+
+  auctionStatus: AuctionStatus;
+  userBidStatus: UserBidStatus;
+
+  endAt: string; // ISO string
+  secondsRemaining: number;
+}
+

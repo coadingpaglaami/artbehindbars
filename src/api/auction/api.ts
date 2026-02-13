@@ -9,6 +9,7 @@ import {
   PaginatedResponseDto,
   PaginationQueryDto,
   GetAuctionsQueryDto,
+  UserAuctionHistoryItemDto,
 } from "@/types/auction.type";
 
 /* ============================================================
@@ -92,6 +93,16 @@ export const getAllAuctions = async (
   const { data } = await axios.get<
     PaginatedResponseDto<AuctionResponseDto>
   >("/auction", { params });
+
+  return data;
+};
+
+export const getMyAuctionHistory = async (
+  params: PaginationQueryDto,
+): Promise<PaginatedResponseDto<UserAuctionHistoryItemDto>> => {
+  const { data } = await axios.get<
+    PaginatedResponseDto<UserAuctionHistoryItemDto>
+  >("/auction/my/history", { params });
 
   return data;
 };

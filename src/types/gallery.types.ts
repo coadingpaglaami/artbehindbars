@@ -1,5 +1,7 @@
 /* ---------------- Enums ---------------- */
 
+import { AuctionDetailsResponseDto } from "./auction.type";
+
 export type Category = "Religious" | "Non_Religious";
 
 export type FanMailStatus = "PENDING" | "REPLIED";
@@ -79,6 +81,7 @@ export interface ArtworkResponseDto {
   imageUrl: string;
   artist: ArtworkArtistDto | null;
   isSold: boolean;
+  auction: AuctionDetailsResponseDto | null;
 }
 
 /* ---------------- Artwork Query ---------------- */

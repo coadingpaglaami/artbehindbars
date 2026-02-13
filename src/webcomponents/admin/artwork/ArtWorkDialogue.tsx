@@ -91,7 +91,6 @@ export const ArtWorkDialogue = ({
   const [createdArtworkId, setCreatedArtworkId] = useState<string | null>(null); // NEW
 
   const steps = mode === "add" ? ADD_STEPS : EDIT_STEPS;
-  const totalSteps = steps.length; // 5 for add, 4 for edit
   const auctionStepRef = useRef<AuctionTimingStepRef>(null);
 
   // Fetch artists with object destructuring
