@@ -215,6 +215,7 @@ function AuctionTimingStepInner(
                 }))
               }
               className="pl-9"
+              
             />
           </div>
         </div>
