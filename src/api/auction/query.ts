@@ -1,23 +1,97 @@
-import { PaginationQueryDto } from "@/types/gallery.types";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getAuctionBids, placeBid } from "./api";
-import { PlaceBidDto } from "@/types/auction.type";
+import * as api from "./api";
+import {
+  CreateAuctionDto,
+  ExtendAuctionDto,
+  PlaceBidDto,
+  AuctionResponseDto,
+  AuctionDetailsResponseDto,
+  AuctionBidDto,
+  PaginatedResponseDto,
+  PaginationQueryDto,
+  GetAuctionsQueryDto,
+} from "@/types/auction.type";
+
+/* ============================================================
+   QUERY KEYS
+============================================================ */
+
+export const auctionKeys = {
+  all: ["auction"] as const,
+  lists: (params?: unknown) => ["auction", "list", params] as const,
+  detail: (id: string) => ["auction", "detail", id] as const,
+  bids: (id: string, params?: unknown) =>
+    ["auction", "bids", id, params] as const,
+};
+
+/* ============================================================
+   ADMIN: CREATE
+============================================================ */
+
+export const useCreateAuction = () =>
+  useMutation<AuctionResponseDto, Error, CreateAuctionDto>({
+    mutationKey: ["auction", "create"],
+    mutationFn: api.createAuction,
+  });
+
+/* ============================================================
+   USER: PLACE BID
+============================================================ */
+
+export const usePlaceBidMutation = () =>
+  useMutation<{ message: string }, Error, PlaceBidDto>({
+    mutationKey: ["auction", "placeBid"],
+    mutationFn: api.placeBid,
+  });
+
+/* ============================================================
+   GET SINGLE AUCTION (Live Refresh)
+============================================================ */
+
+export const useGetAuction = (id: string) =>
+  useQuery<AuctionDetailsResponseDto>({
+    queryKey: auctionKeys.detail(id),
+    queryFn: () => api.getAuction(id),
+    enabled: !!id,
+    refetchInterval: 5000, // live countdown & bid updates
+  });
+
+/* ============================================================
+   GET AUCTION BIDS
+============================================================ */
 
 export const useGetAuctionBids = (
   auctionId: string,
   params: PaginationQueryDto,
-) => {
-  return useQuery({
-    queryKey: ["auctionBids", auctionId, params],
-    queryFn: () => getAuctionBids(auctionId, params),
+) =>
+  useQuery<PaginatedResponseDto<AuctionBidDto>>({
+    queryKey: auctionKeys.bids(auctionId, params),
+    queryFn: () => api.getAuctionBids(auctionId, params),
     enabled: !!auctionId,
-    refetchInterval: 10000, // Refetch every 10 seconds for real-time updates
+    refetchInterval: 10000, // 10 sec polling
   });
-};
 
-export const usePlaceBidMutation = () => {
-  return useMutation({
-    mutationKey: ["placeBid"],
-    mutationFn: (data: PlaceBidDto) => placeBid(data),
+/* ============================================================
+   ADMIN: EXTEND
+============================================================ */
+
+export const useExtendAuction = () =>
+  useMutation<
+    AuctionResponseDto,
+    Error,
+    { id: string; payload: ExtendAuctionDto }
+  >({
+    mutationKey: ["auction", "extend"],
+    mutationFn: ({ id, payload }) =>
+      api.extendAuction(id, payload),
   });
-};
+
+/* ============================================================
+   ADMIN: GET ALL
+============================================================ */
+
+export const useGetAllAuctions = (params: GetAuctionsQueryDto) =>
+  useQuery<PaginatedResponseDto<AuctionResponseDto>>({
+    queryKey: auctionKeys.lists(params),
+    queryFn: () => api.getAllAuctions(params),
+  });

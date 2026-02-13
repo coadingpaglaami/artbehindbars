@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -30,8 +30,11 @@ import {
 } from "@/api/gallary";
 import { ArtworkResponseDto, Category } from "@/types/gallery.types";
 import { toast } from "sonner";
+import { useCreateAuction } from "@/api/auction";
+import { AuctionTimingStep, AuctionTimingStepRef } from "./AuctionTimingStep";
+import { AuctionResponseDto } from "@/types/auction.type";
 
-const artworkSchema = z.object({
+export const artworkSchema = z.object({
   image: z.instanceof(File).optional().nullable(),
   artistId: z.string().optional(),
   artworkTitle: z.string().min(2, "Title is required"),
@@ -42,7 +45,25 @@ const artworkSchema = z.object({
     .min(1, "Starting auction price is required")
     .optional(),
   isAnonymous: z.boolean().optional(),
+  // Step 5 - Auction fields (only used in add mode)
+  auctionStartDate: z.date().optional().nullable(),
+  auctionEndDate: z.date().optional().nullable(),
 });
+
+const ADD_STEPS = [
+  { number: 1, label: "Image" },
+  { number: 2, label: "Artist" },
+  { number: 3, label: "Details" },
+  { number: 4, label: "Pricing" },
+  { number: 5, label: "Auction" }, // add mode only
+];
+
+const EDIT_STEPS = [
+  { number: 1, label: "Image" },
+  { number: 2, label: "Artist" },
+  { number: 3, label: "Details" },
+  { number: 4, label: "Pricing" },
+];
 
 type FormValues = z.infer<typeof artworkSchema>;
 
@@ -67,6 +88,11 @@ export const ArtWorkDialogue = ({
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [hasNewImage, setHasNewImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdArtworkId, setCreatedArtworkId] = useState<string | null>(null); // NEW
+
+  const steps = mode === "add" ? ADD_STEPS : EDIT_STEPS;
+  const totalSteps = steps.length; // 5 for add, 4 for edit
+  const auctionStepRef = useRef<AuctionTimingStepRef>(null);
 
   // Fetch artists with object destructuring
   const { data: artistsData } = useGetArtists({ page: 1, limit: 10 });
@@ -75,6 +101,8 @@ export const ArtWorkDialogue = ({
   const { mutate: uploadArtwork, isPending: isUploading } = useUploadArtwork();
   const { mutate: updateArtwork, isPending: isUpdating } =
     useUpdateArtworkMutation();
+  const { mutate: createAuction, isPending: isCreatingAuction } =
+    useCreateAuction(); // NEW
 
   const form = useForm<FormValues>({
     resolver: zodResolver(artworkSchema),
@@ -169,19 +197,16 @@ export const ArtWorkDialogue = ({
     setError(null);
 
     if (mode === "add") {
-      // Validate image for add mode
       if (!values.image) {
         setError("Artwork image is required");
         return;
       }
 
-      // Validate artist selection if not anonymous
       if (!Boolean(values.isAnonymous) && !values.artistId) {
         setError("Please select an artist or post anonymously");
         return;
       }
 
-      // Find artist ID from name
       const selectedArtist = artistsData?.data.find(
         (artist) => artist.name === values.artistId,
       );
@@ -196,19 +221,12 @@ export const ArtWorkDialogue = ({
       };
 
       uploadArtwork(
+        { payload, image: values.image },
         {
-          payload,
-          image: values.image,
-        },
-        {
-          onSuccess: () => {
-            form.reset();
-            setImagePreview(null);
-            setExistingImageUrl(null);
-            setHasNewImage(false);
-            toast.success("Artwork uploaded successfully");
-            onClose();
-            onSuccess?.();
+          onSuccess: (response) => {
+            // ✅ NEW: Store artwork ID and advance to step 5
+            setCreatedArtworkId(response.id);
+            setCurrentStep(5);
           },
           onError: (error) => {
             setError(error.message || "Failed to upload artwork");
@@ -260,18 +278,41 @@ export const ArtWorkDialogue = ({
     }
   };
 
+  const handleAuctionSubmit = (auctionPayload: {
+    artworkId: string;
+    startAt: string;
+    endAt: string;
+  }) => {
+    createAuction(auctionPayload, {
+      onSuccess: (auctionResponse) => {
+        toast.success(
+          `Auction scheduled for "${auctionResponse.artworkTitle}"!`,
+        );
+        handleClose();
+        onSuccess?.();
+      },
+      onError: (error) => {
+        setError(error.message || "Failed to create auction");
+      },
+    });
+  };
+
   const handleNext = () => {
+    // Step 5 is handled by AuctionTimingStep's own submit button
+    // Step 4 in add mode → triggers form submit which moves to step 5
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
-    } else {
-      form.handleSubmit(onSubmit)();
+    } else if (currentStep === 4) {
+      form.handleSubmit(onSubmit)(); // Submits artwork, then sets step 5 on success
     }
+    // Step 5 has its own submit button — handleNext not called
   };
 
   const handleBack = () => {
+    // Prevent going back once artwork is uploaded (step 5)
+    if (currentStep === 5) return;
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
-
   const handleClose = () => {
     form.reset();
     setImagePreview(null);
@@ -279,17 +320,16 @@ export const ArtWorkDialogue = ({
     setHasNewImage(false);
     setCurrentStep(1);
     setError(null);
+    setCreatedArtworkId(null); // NEW
     onClose();
+  };
+  const handleAuctionSkip = () => {
+    toast.success("Artwork uploaded successfully");
+    handleClose();
+    onSuccess?.();
   };
 
   const isPending = isUploading || isUpdating;
-
-  const steps = [
-    { number: 1, label: "Image" },
-    { number: 2, label: "Artist" },
-    { number: 3, label: "Details" },
-    { number: 4, label: "Pricing" },
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -547,6 +587,23 @@ export const ArtWorkDialogue = ({
           )}
         </div>
 
+        {currentStep === 5 && mode === "add" && createdArtworkId && (
+          <AuctionTimingStep
+            ref={auctionStepRef}
+            createdArtworkId={createdArtworkId}
+            onAuctionSuccess={(auction: AuctionResponseDto) => {
+              // ✅ explicit type
+              toast.success(`Auction created for "${auction.artworkTitle}"!`);
+              handleClose();
+              onSuccess?.();
+            }}
+            onSubmitAuction={handleAuctionSubmit}
+            onAuctionSkip={handleAuctionSkip}
+            isPending={isCreatingAuction}
+            error={error}
+          />
+        )}
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
             {error}
@@ -559,27 +616,51 @@ export const ArtWorkDialogue = ({
               type="button"
               variant="outline"
               onClick={handleBack}
-              disabled={isPending}
+              // Disable back on step 5 — artwork already persisted
+              disabled={isPending || currentStep === 5}
             >
               Back
             </Button>
           )}
-          <Button
-            type="button"
-            className="bg-primary text-white"
-            onClick={handleNext}
-            disabled={isPending}
-          >
-            {isPending
-              ? mode === "add"
-                ? "Uploading..."
-                : "Updating..."
-              : currentStep === 4
+
+          {/* Steps 1–4: standard Next / Publish button */}
+          {currentStep !== 5 && (
+            <Button
+              type="button"
+              className="bg-primary text-white"
+              onClick={handleNext}
+              disabled={isPending}
+            >
+              {isPending
                 ? mode === "add"
-                  ? "Publish Artwork"
-                  : "Update Artwork"
-                : "Next Step"}
-          </Button>
+                  ? "Uploading..."
+                  : "Updating..."
+                : currentStep === 4
+                  ? mode === "add"
+                    ? "Publish Artwork"
+                    : "Update Artwork"
+                  : "Next Step"}
+            </Button>
+          )}
+
+          {/* Step 5: triggers AuctionTimingStep's internal validation via ref */}
+          {currentStep === 5 && (
+            <Button
+              type="button"
+              className="bg-primary text-white"
+              onClick={() => auctionStepRef.current?.submit()}
+              disabled={isCreatingAuction}
+            >
+              {isCreatingAuction ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+                  Creating Auction...
+                </span>
+              ) : (
+                "Create Auction"
+              )}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
