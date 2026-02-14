@@ -3,13 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-  TrendingUp,
-  AlertTriangle,
-  XCircle,
-  Clock,
-  Trophy,
-} from "lucide-react";
+import { TrendingUp, AlertTriangle, XCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -17,20 +11,27 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useQueryClient } from "@tanstack/react-query";
-import { UserAuctionHistoryItemDto, UserBidStatus } from "@/types/auction.type"; // Adjust path
+import {
+  PlaceBidDto,
+  UserAuctionHistoryItemDto,
+  UserBidStatus,
+} from "@/types/auction.type"; // Adjust path
 import { usePlaceBidMutation } from "@/api/auction";
+import { getSocket } from "@/lib/socket";
+import { toast } from "sonner";
 
 interface MyBidsHistoryProps {
   bid: UserAuctionHistoryItemDto;
-  index: number;
+  refetch?: () => void; // Optional refetch function to refresh parent list after bid
 }
 
-export const MyBidsHistory = ({ bid, index }: MyBidsHistoryProps) => {
+export const MyBidsHistory = ({ bid, refetch }: MyBidsHistoryProps) => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(bid.secondsRemaining);
+  const [liveHighestBid, setLiveHighestBid] = useState(bid.highestBid);
 
   const {
     mutate: placeBid,
@@ -56,6 +57,47 @@ export const MyBidsHistory = ({ bid, index }: MyBidsHistoryProps) => {
 
     return () => clearInterval(timer);
   }, [bid.secondsRemaining, bid.auctionStatus]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !bid.auctionId) return;
+
+    socket.emit("joinAuction", bid.auctionId);
+
+    const handleNewBid = (
+      data: PlaceBidDto & { firstName?: string; lastName?: string },
+    ) => {
+      if (data.auctionId !== bid.auctionId) return;
+
+      setLiveHighestBid(data.bidPrice);
+      // Optionally update artwork details if needed
+      // refetchArtwork(); // update artwork details (if needed)
+      // refetchBids(); // optional for now
+
+      const bidderName =
+        data.firstName && data.lastName
+          ? `${data.firstName} ${data.lastName}`
+          : `User ${data.auctionId || "Unknown"}`;
+      toast.success(
+        `New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`,
+        {
+          position: "top-right",
+          duration: 5000,
+        },
+      );
+      
+      queryClient.invalidateQueries({
+        queryKey: ["auctions", "myHistory", "artwork", bid.artworkId],
+      });
+      refetch?.(); // Trigger parent list refresh
+    };
+    socket.on("auction:newBid", handleNewBid);
+
+    return () => {
+      socket.emit("leaveAuction", bid.auctionId);
+      socket.off("auction:newBid", handleNewBid);
+    };
+  }, [bid.auctionId, queryClient]);
 
   const formatCountdown = (secs: number): string => {
     if (secs <= 0) return "Ended";
@@ -117,7 +159,7 @@ export const MyBidsHistory = ({ bid, index }: MyBidsHistoryProps) => {
 
   const handleBidSelection = (amount: number) => {
     placeBid(
-      { auctionId: bid.auctionId, bidPrice:amount },
+      { auctionId: bid.auctionId, bidPrice: amount },
       {
         onSuccess: () => {
           setIsPopoverOpen(false);
@@ -241,7 +283,7 @@ export const MyBidsHistory = ({ bid, index }: MyBidsHistoryProps) => {
           )}
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+          <div className="relative flex flex-col sm:flex-row gap-2 pt-2">
             {/* Winning — active auction */}
             {bid.userBidStatus === "WINNING" && !isCompleted && (
               <Button
@@ -272,7 +314,11 @@ export const MyBidsHistory = ({ bid, index }: MyBidsHistoryProps) => {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80 p-4" align="start">
+                  <PopoverContent
+                    align="start"
+                    side="top"
+                    className="w-full max-w-none p-4"
+                  >
                     <div className="space-y-3">
                       <div className="space-y-1">
                         <h4 className="font-semibold text-sm">
@@ -280,7 +326,7 @@ export const MyBidsHistory = ({ bid, index }: MyBidsHistoryProps) => {
                         </h4>
                         <p className="text-xs text-muted-foreground">
                           Current highest bid:{" "}
-                          <strong>${bid.highestBid.toFixed(2)}</strong>
+                          <strong>${liveHighestBid.toFixed(2)}</strong>
                         </p>
                       </div>
                       <div className="flex gap-2 flex-wrap">

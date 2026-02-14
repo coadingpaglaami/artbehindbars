@@ -152,33 +152,39 @@ export const ProductLeft = ({
 
         {/* Countdown Timer or Purchase Rules */}
         {mode === "bid" ? (
-          <div>
-            <div
-              className="flex items-center gap-2 text-sm mb-2"
-              style={{ color: "#F54900" }}
-            >
-              <Clock size={18} />
-              <span className="font-medium">Auction ends in</span>
-            </div>
+          product?.auction?.status === "Ongoing" ? (
+            <div>
+              <div
+                className="flex items-center gap-2 text-sm mb-2"
+                style={{ color: "#F54900" }}
+              >
+                <Clock size={18} />
+                <span className="font-medium">Auction ends in</span>
+              </div>
 
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { value: timeLeft?.days, label: "Days" },
-                { value: timeLeft?.hours, label: "Hours" },
-                { value: timeLeft?.minutes, label: "Min" },
-                { value: timeLeft?.seconds, label: "Sec" },
-              ].map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center">
-                  <div className="bg-black text-white w-full py-2 rounded text-center font-bold">
-                    {String(item.value).padStart(2, "0")}
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { value: timeLeft?.days, label: "Days" },
+                  { value: timeLeft?.hours, label: "Hours" },
+                  { value: timeLeft?.minutes, label: "Min" },
+                  { value: timeLeft?.seconds, label: "Sec" },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex flex-col items-center">
+                    <div className="bg-black text-white w-full py-2 rounded text-center font-bold">
+                      {String(item.value).padStart(2, "0")}
+                    </div>
+                    <span className="text-xs text-gray-600 mt-1">
+                      {item.label}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-600 mt-1">
-                    {item.label}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-4 bg-green-50 border border-green-200 text-green-700 rounded">
+              This auction has ended
+            </div>
+          )
         ) : (
           <div className="space-y-2">
             {purchaseRules.map((rule, idx) => (

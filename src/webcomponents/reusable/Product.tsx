@@ -125,7 +125,7 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
 
             {/* Current Bid - Will show actual bid when auction API is integrated */}
             <div className="flex justify-between items-center">
-              <span className="text-gray-700">Starting Bid</span>
+              <span className="text-gray-700">Current Bid</span>
               <span className="text-[#1447E6] font-semibold">
                 $
                 {typeof product.auction?.currentPrice === "number"

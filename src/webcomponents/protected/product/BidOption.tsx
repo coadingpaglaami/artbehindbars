@@ -10,14 +10,14 @@ import { ArtworkResponseDto } from "@/types/gallery.types";
 import { useEffect } from "react";
 import { PlaceBidDto } from "@/types/auction.type";
 import { getSocket } from "@/lib/socket";
-import { Socket } from "socket.io-client";
+import { toast } from "sonner";
 
 interface BidOptionProps {
   product: ArtworkResponseDto;
-  artworkId: string;
+  refetchArtwork: () => void;
 }
 
-export const BidOption = ({ product, artworkId }: BidOptionProps) => {
+export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
   const [bidAmount, setBidAmount] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [commitmentAccepted, setCommitmentAccepted] = useState(false);
@@ -25,6 +25,7 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
   const [currentPrice, setCurrentPrice] = useState(
     product.auction?.currentPrice || 0,
   );
+  console.log(product);
 
   // Fetch bids for this auction
   const {
@@ -52,11 +53,18 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
     const socket = getSocket();
     if (!socket) return;
 
-    const handleNewBid = (data: PlaceBidDto) => {
+    const handleNewBid = (data: PlaceBidDto & { firstName?: string; lastName?: string }) => {
       if (data.auctionId !== product.auction?.id) return;
 
       setCurrentPrice(data.bidPrice);
+      refetchArtwork(); // update artwork details (if needed)
       refetchBids(); // optional for now
+
+      const bidderName = data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : `User ${data.auctionId || 'Unknown'}`;
+      toast.success(`New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`, {
+        position: "top-right",
+        duration: 5000,
+      });
     };
 
     socket.on("auction:newBid", handleNewBid);
@@ -66,8 +74,14 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
     };
   }, [product.auction?.id]);
 
-  const currentBid = product.auction?.currentPrice;
-  if (currentBid == undefined) return;
+  const currentBid = currentPrice;
+  if (currentBid == null) {
+  return (
+    <div className="flex justify-center items-center py-20">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
   const minimumBid = currentPrice * 1.05;
 
   const quickBidOptions = [
@@ -115,7 +129,7 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
 
     placeBidMutate(
       {
-        auctionId: artworkId,
+        auctionId: product.auction?.id as string,
         bidPrice: bidValue,
       },
       {
@@ -163,7 +177,7 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
 
         <Input
           type="number"
-          placeholder={`$ ${minimumBid}`}
+          placeholder={`$ ${minimumBid.toFixed(2)} or more`}
           value={bidAmount}
           onChange={(e) => {
             setBidAmount(e.target.value);
@@ -272,7 +286,9 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
         ) : (
           <div className="space-y-3">
             {bidsData?.data && bidsData.data.length > 0 ? (
-              bidsData.data.map((bid, idx) => (
+              [...bidsData.data]
+  .sort((a, b) => b.bidPrice - a.bidPrice)
+  .map((bid, idx) => (
                 <div
                   key={idx}
                   className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0"

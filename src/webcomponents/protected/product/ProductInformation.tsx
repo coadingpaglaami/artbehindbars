@@ -20,6 +20,8 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
     isLoading,
     isError,
     error,
+ refetch,
+    
   } = useGetArtworkById(productId);
 
   if (isLoading) {
@@ -96,7 +98,7 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
               mode === "bid" ? (
                 <BidOption
                   product={artwork as ArtworkResponseDto}
-                  artworkId={artwork?.auction?.id as string}
+                  refetchArtwork={refetch}
                 />
               ) : (
                 <BuyOption product={productData} artworkId={productId} />

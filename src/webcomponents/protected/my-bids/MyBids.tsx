@@ -34,13 +34,19 @@ export const MyBids = () => {
   const { data: allData } = useMyAuctionHistory({ page: 1, limit: 10 });
 
   // Paginated fetch for current tab
-  const { data, isLoading, isError } = useMyAuctionHistory({
+  const { data, isLoading, isError,refetch } = useMyAuctionHistory({
     page: currentPage,
     limit: ITEMS_PER_PAGE,
   });
 
-  const allItems: UserAuctionHistoryItemDto[] = allData?.data ?? [];
-  const items: UserAuctionHistoryItemDto[] = data?.data ?? [];
+  const allItems: UserAuctionHistoryItemDto[] = useMemo(
+    () => allData?.data ?? [],
+    [allData],
+  );
+  const items = useMemo(
+    () => data?.data ?? [],
+    [data],
+  );
 
   // Client-side filter by tab
   const filteredItems = useMemo(() => {
@@ -137,8 +143,8 @@ export const MyBids = () => {
       {/* Bid List */}
       {!isLoading && !isError && filteredItems.length > 0 && (
         <div className="flex flex-col gap-4">
-          {filteredItems.map((item, idx) => (
-            <MyBidsHistory key={item.auctionId} bid={item} index={idx} />
+          {filteredItems.map((item) => (
+            <MyBidsHistory key={item.auctionId} bid={item} refetch={refetch} />
           ))}
         </div>
       )}
