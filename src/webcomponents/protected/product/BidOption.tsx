@@ -5,12 +5,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  useGetAuction,
-  useGetAuctionBids,
-  usePlaceBidMutation,
-} from "@/api/auction";
+import { useGetAuctionBids, usePlaceBidMutation } from "@/api/auction";
 import { ArtworkResponseDto } from "@/types/gallery.types";
+import { useEffect } from "react";
+import { PlaceBidDto } from "@/types/auction.type";
+import { getSocket } from "@/lib/socket";
+import { Socket } from "socket.io-client";
 
 interface BidOptionProps {
   product: ArtworkResponseDto;
@@ -22,6 +22,9 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [commitmentAccepted, setCommitmentAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPrice, setCurrentPrice] = useState(
+    product.auction?.currentPrice || 0,
+  );
 
   // Fetch bids for this auction
   const {
@@ -33,11 +36,39 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
   // Place bid mutation
   const { mutate: placeBidMutate, isPending: isPlacingBid } =
     usePlaceBidMutation();
-  const { data } = useGetAuction(product.auction?.id as string);
 
-  const currentBid = data?.currentPrice
-  if(currentBid==undefined) return;
-  const minimumBid = Math.ceil(currentBid * 1.05);
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !product.auction?.id) return;
+
+    socket.emit("joinAuction", product.auction.id);
+
+    return () => {
+      socket.emit("leaveAuction", product.auction?.id);
+    };
+  }, [product.auction?.id]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleNewBid = (data: PlaceBidDto) => {
+      if (data.auctionId !== product.auction?.id) return;
+
+      setCurrentPrice(data.bidPrice);
+      refetchBids(); // optional for now
+    };
+
+    socket.on("auction:newBid", handleNewBid);
+
+    return () => {
+      socket.off("auction:newBid", handleNewBid);
+    };
+  }, [product.auction?.id]);
+
+  const currentBid = product.auction?.currentPrice;
+  if (currentBid == undefined) return;
+  const minimumBid = currentPrice * 1.05;
 
   const quickBidOptions = [
     { label: "+5%", value: Math.ceil(currentBid * 1.05) },
@@ -92,7 +123,6 @@ export const BidOption = ({ product, artworkId }: BidOptionProps) => {
           setBidAmount("");
           setTermsAccepted(false);
           setCommitmentAccepted(false);
-          refetchBids();
         },
         onError: (error) => {
           setError(error.message || "Failed to place bid");

@@ -20,9 +20,12 @@ export const ArtWorkImageView = ({
   onEditSuccess,
   allArtists,
 }: ArtWorkImageViewProps) => {
-  const [selectedArtwork, setSelectedArtwork] = useState<ArtworkResponseDto | null>(null);
+  const [selectedArtwork, setSelectedArtwork] =
+    useState<ArtworkResponseDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [deleteArtwork, setDeleteArtwork] = useState<ArtworkResponseDto | null>(null);
+  const [deleteArtwork, setDeleteArtwork] = useState<ArtworkResponseDto | null>(
+    null,
+  );
 
   const handleEdit = (artwork: ArtworkResponseDto) => {
     setSelectedArtwork(artwork);
@@ -103,7 +106,9 @@ export const ArtWorkImageView = ({
                       {artwork.title}
                     </h3>
                     <p className="text-sm text-gray-500">
-                      {isAnonymous ? "Anonymous" : artwork.artist?.name || "N/A"}
+                      {isAnonymous
+                        ? "Anonymous"
+                        : artwork.artist?.name || "N/A"}
                     </p>
                   </div>
                   <span
@@ -121,35 +126,34 @@ export const ArtWorkImageView = ({
                   <div>
                     <p className="text-xs text-gray-500">Starting Bid</p>
                     <span className="text-lg font-semibold text-gray-900">
-                      ${artwork.startingBidPrice}
+                      {artwork.auction?.currentPrice!=undefined ? `$${artwork.auction?.currentPrice}` :"Auction price is not implemented yet"}
                     </span>
                   </div>
-                  {typeof artwork.buyItNowPrice === "number" && artwork.buyItNowPrice > 0 && (
-                    <div>
-                      <p className="text-xs text-gray-500">Buy Now</p>
-                      <span className="text-sm font-medium text-gray-700">
-                        ${artwork.buyItNowPrice}
-                      </span>
-                    </div>
-                  )}
+                  {typeof artwork.buyItNowPrice === "number" &&
+                    artwork.buyItNowPrice > 0 && (
+                      <div>
+                        <p className="text-xs text-gray-500">Buy Now</p>
+                        <span className="text-sm font-medium text-gray-700">
+                          ${artwork.buyItNowPrice}
+                        </span>
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
           );
         })}
       </div>
-   <DeleteDialog
-  isOpen={!!deleteArtwork}
-  targetName={deleteArtwork?.title || "this artwork"}
-  onClose={() => setDeleteArtwork(null)}
-  onConfirm={async () => {
-    if (!deleteArtwork
-
-    ) return;
-     onDelete(deleteArtwork.id);
-    setDeleteArtwork(null);
-  }}
-/>
+      <DeleteDialog
+        isOpen={!!deleteArtwork}
+        targetName={deleteArtwork?.title || "this artwork"}
+        onClose={() => setDeleteArtwork(null)}
+        onConfirm={async () => {
+          if (!deleteArtwork) return;
+          onDelete(deleteArtwork.id);
+          setDeleteArtwork(null);
+        }}
+      />
       <ArtWorkDialogue
         isOpen={isDialogOpen}
         onClose={() => {

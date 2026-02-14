@@ -8,7 +8,7 @@ import { useState } from "react";
 import { isClientAuthenticated } from "@/lib/auth-client";
 import { useGetArtworkById } from "@/api/gallary";
 import { UnauthenticatedView } from "./UnAuthenticateView";
-import {  ArtworkResponseDto } from "@/types/gallery.types";
+import { ArtworkResponseDto } from "@/types/gallery.types";
 
 export const ProductInformation = ({ productId }: { productId: string }) => {
   const [mode, setMode] = useState<"bid" | "buy">("bid");

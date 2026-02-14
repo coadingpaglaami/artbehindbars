@@ -1,6 +1,6 @@
 /* ---------------- Enums ---------------- */
 
-import { AuctionDetailsResponseDto } from "./auction.type";
+import { AuctionDetailsResponseDto, AuctionResponseDto } from "./auction.type";
 
 export type Category = "Religious" | "Non_Religious";
 
@@ -55,7 +55,6 @@ export interface ArtWorkUploadRequestDto {
   title: string;
   isAnonymous?: boolean;
   category: Category;
-  startingBidPrice: number;
   buyItNowPrice: number | string;
 }
 
@@ -64,6 +63,7 @@ export interface ArtWorkUploadResponseDto extends ArtWorkUploadRequestDto {
   createdAt: string;
   imageUrl: string;
   isSold: boolean;
+  auction:AuctionResponseDto;
 }
 
 export interface ArtworkArtistDto {

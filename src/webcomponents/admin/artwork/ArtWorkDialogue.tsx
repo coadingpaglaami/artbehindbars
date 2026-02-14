@@ -40,10 +40,6 @@ export const artworkSchema = z.object({
   artworkTitle: z.string().min(2, "Title is required"),
   category: z.enum(["Religious", "Non_Religious"]),
   buyNowPrice: z.number().min(1, "Buy now price must be at least 1"),
-  startingAuctionPrice: z
-    .number()
-    .min(1, "Starting auction price is required")
-    .optional(),
   isAnonymous: z.boolean().optional(),
   // Step 5 - Auction fields (only used in add mode)
   auctionStartDate: z.date().optional().nullable(),
@@ -111,7 +107,6 @@ export const ArtWorkDialogue = ({
       artworkTitle: "",
       category: "Religious",
       buyNowPrice: 0,
-      startingAuctionPrice: 0,
       isAnonymous: false,
     },
   });
@@ -126,7 +121,6 @@ export const ArtWorkDialogue = ({
         artworkTitle: artwork.title,
         category: artwork.category as Category,
         buyNowPrice: artwork.buyItNowPrice,
-        startingAuctionPrice: artwork.startingBidPrice,
         isAnonymous: artwork.isAnonymous,
       });
 
@@ -142,7 +136,6 @@ export const ArtWorkDialogue = ({
         artworkTitle: "",
         category: "Religious",
         buyNowPrice: 0,
-        startingAuctionPrice: 0,
         isAnonymous: false,
       });
       setImagePreview(null);
@@ -215,7 +208,6 @@ export const ArtWorkDialogue = ({
         title: values.artworkTitle,
         isAnonymous: Boolean(values.isAnonymous),
         category: values.category,
-        startingBidPrice: values.startingAuctionPrice || 0,
         buyItNowPrice: Number(values.buyNowPrice) || 0,
       };
 
@@ -249,7 +241,6 @@ export const ArtWorkDialogue = ({
         title: values.artworkTitle,
         isAnonymous: Boolean(values.isAnonymous),
         category: values.category,
-        startingBidPrice: values.startingAuctionPrice || 0,
         buyItNowPrice: values.buyNowPrice || 0,
       };
 
@@ -558,25 +549,6 @@ export const ArtWorkDialogue = ({
                   onChange={(e) =>
                     form.setValue(
                       "buyNowPrice",
-                      parseFloat(e.target.value) || 0,
-                    )
-                  }
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave 0 for auction only
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Starting Auction Price ($) *
-                </label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={form.watch("startingAuctionPrice") || ""}
-                  onChange={(e) =>
-                    form.setValue(
-                      "startingAuctionPrice",
                       parseFloat(e.target.value) || 0,
                     )
                   }

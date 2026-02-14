@@ -23,8 +23,9 @@ export const ArtWorkTableView = ({
   const [selectedArtwork, setSelectedArtwork] =
     useState<ArtworkResponseDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-   const [deleteArtwork, setDeleteArtwork] =
-  useState<ArtworkResponseDto | null>(null);
+  const [deleteArtwork, setDeleteArtwork] = useState<ArtworkResponseDto | null>(
+    null,
+  );
 
   const handleEdit = (artwork: ArtworkResponseDto) => {
     setSelectedArtwork(artwork);
@@ -110,7 +111,9 @@ export const ArtWorkTableView = ({
                     </td>
 
                     <td className="px-6 py-4 font-semibold text-gray-900">
-                      ${artwork.startingBidPrice}
+                      {artwork.auction?.currentPrice != undefined
+                        ? `$${artwork.auction?.currentPrice}`
+                        : "Auction price is not implemented yet"}
                     </td>
 
                     <td className="px-6 py-4 text-gray-700">
@@ -136,7 +139,7 @@ export const ArtWorkTableView = ({
                           <Pencil size={18} style={{ color: "#94A3B8" }} />
                         </button>
                         <button
-                           onClick={() => setDeleteArtwork(artwork)}
+                          onClick={() => setDeleteArtwork(artwork)}
                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                           title="Delete"
                         >
@@ -153,17 +156,15 @@ export const ArtWorkTableView = ({
       </div>
 
       <DeleteDialog
-  isOpen={!!deleteArtwork}
-  targetName={deleteArtwork?.title || "this artwork"}
-  onClose={() => setDeleteArtwork(null)}
-  onConfirm={async () => {
-    if (!deleteArtwork
-
-    ) return;
-     onDelete(deleteArtwork.id);
-    setDeleteArtwork(null);
-  }}
-/>
+        isOpen={!!deleteArtwork}
+        targetName={deleteArtwork?.title || "this artwork"}
+        onClose={() => setDeleteArtwork(null)}
+        onConfirm={async () => {
+          if (!deleteArtwork) return;
+          onDelete(deleteArtwork.id);
+          setDeleteArtwork(null);
+        }}
+      />
 
       <ArtWorkDialogue
         isOpen={isDialogOpen}

@@ -1,11 +1,11 @@
 "use client";
 
-import { ProductProps } from "@/interface/product";
 import Image from "next/image";
 import { Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { isClientAuthenticated } from "@/lib/auth-client";
 import { ArtworkResponseDto } from "@/types/gallery.types";
+import { useEffect, useState } from "react";
 
 export interface ProductCardProps {
   product: ArtworkResponseDto;
@@ -16,32 +16,56 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
   const isAuthenticated = isClientAuthenticated();
   const router = useRouter();
 
-  // Calculate remaining time
-  // const getRemainingTime = () => {
-  //   if (!product.) return "Auction ended";
+  const [timeLeft, setTimeLeft] = useState<string>("");
 
-  //   const now = new Date();
-  //   const remaining = product.remainingTime.getTime() - now.getTime();
+  useEffect(() => {
+    if (!product.auction) return;
 
-  //   if (remaining <= 0) return "Auction ended";
+    const updateTimer = () => {
+      if (product.auction?.status === "Ended") {
+        setTimeLeft("Ended");
+        return;
+      }
 
-  //   const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-  //   const hours = Math.floor(
-  //     (remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-  //   );
-  //   const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+      if (product.auction?.status === "Upcoming") {
+        const startDate = new Date(product.auction.startAt);
+        setTimeLeft(`Starts at ${startDate.toLocaleString()}`);
+        return;
+      }
 
-  //   if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-  //   if (hours > 0) return `${hours}h ${minutes}m`;
-  //   return `${minutes}m`;
-  // };
+      // Ongoing
+      const now = new Date().getTime();
+      const endTime = new Date(product.auction?.endAt ?? "").getTime();
+      const remaining = endTime - now;
 
-  // Check if auction has ended (for future implementation)
-  // const isAuctionEnded = () => {
-  //   if (!product.remainingTime) return true;
-  //   return product.remainingTime.getTime() <= Date.now();
-  // };
+      if (remaining <= 0) {
+        setTimeLeft("Ended");
+        return;
+      }
 
+      const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+      );
+      const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      } else if (hours > 0) {
+        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      } else if (minutes > 0) {
+        setTimeLeft(`${minutes}m ${seconds}s`);
+      } else {
+        setTimeLeft(`${seconds}s`);
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000); // update every minute
+
+    return () => clearInterval(interval);
+  }, [product.auction]);
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow relative">
       {/* Sold Out Overlay - Will be used when isSoldOut is implemented */}
@@ -74,7 +98,9 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
         </h3>
 
         {/* Artist Name */}
-        <p className="text-gray-600">by {product.artist?.name || "Unknown Artist"}</p>
+        <p className="text-gray-600">
+          by {product.artist?.name || "Unknown Artist"}
+        </p>
 
         {/* Category Badge */}
         <div className="flex gap-2">
@@ -101,7 +127,10 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
             <div className="flex justify-between items-center">
               <span className="text-gray-700">Starting Bid</span>
               <span className="text-[#1447E6] font-semibold">
-                ${typeof product.startingBidPrice === "number" ? product.startingBidPrice.toFixed(2) : ""}
+                $
+                {typeof product.auction?.currentPrice === "number"
+                  ? product.auction.currentPrice?.toFixed(2)
+                  : ""}
               </span>
             </div>
             {/* Future implementation when auction is live:
@@ -132,7 +161,7 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
         {!product.isSold && (
           <div className="flex items-center gap-2 text-[#F54900]">
             <Clock size={18} />
-            {/* <span className="font-medium">{getRemainingTime()}</span> */}
+            <span className="font-medium">{timeLeft}</span>
           </div>
         )}
         {/* Future auction ended state:

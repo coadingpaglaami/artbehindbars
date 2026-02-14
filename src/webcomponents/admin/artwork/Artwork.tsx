@@ -15,17 +15,22 @@ import { ArtWorkTableView } from "./ArtWorkTableView";
 import { ArtWorkImageView } from "./ArtWorkImageView";
 import { ArtWorkDialogue } from "./ArtWorkDialogue";
 import { Pagination } from "@/webcomponents/reusable";
-import { useGetArtworks, useGetArtists, useDeleteArtworkMutation } from "@/api/gallary";
+import {
+  useGetArtworks,
+  useGetArtists,
+  useDeleteArtworkMutation,
+} from "@/api/gallary";
 import { Category } from "@/types/gallery.types";
 import { toast } from "sonner";
 
 export const Artwork = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
+  const [selectedCategory, setSelectedCategory] = useState<Category | "all">(
+    "all",
+  );
   const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
- 
 
   const itemsPerPage = viewMode === "grid" ? 9 : 10;
 
@@ -49,20 +54,19 @@ export const Artwork = () => {
   });
 
   // Delete mutation with object destructuring
-  const { mutate: deleteArtwork, isPending: isDeleting } = useDeleteArtworkMutation();
+  const { mutate: deleteArtwork, isPending: isDeleting } =
+    useDeleteArtworkMutation();
 
   const handleDelete = (artworkId: string) => {
-  
-      deleteArtwork(artworkId, {
-        onSuccess: () => {
-          toast.success("Artwork deleted successfully");
-          refetchArtworks();
-        },
-        onError: (error) => {
-          toast.error(`Failed to delete artwork: ${error.message}`);
-        },
-      });
-   
+    deleteArtwork(artworkId, {
+      onSuccess: () => {
+        toast.success("Artwork deleted successfully");
+        refetchArtworks();
+      },
+      onError: (error) => {
+        toast.error(`Failed to delete artwork: ${error.message}`);
+      },
+    });
   };
 
   const handlePageChange = (page: number) => {
@@ -79,7 +83,7 @@ export const Artwork = () => {
   // Get unique artists from fetched data
   const uniqueArtists = useMemo(() => {
     if (!artistsData?.data) return [];
-    return artistsData.data.map(artist => artist.name);
+    return artistsData.data.map((artist) => artist.name);
   }, [artistsData]);
 
   return (
@@ -176,7 +180,8 @@ export const Artwork = () => {
       {/* Error State */}
       {isArtworksError && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-          Error loading artworks: {artworksError?.message || "Something went wrong"}
+          Error loading artworks:{" "}
+          {artworksError?.message || "Something went wrong"}
         </div>
       )}
 
