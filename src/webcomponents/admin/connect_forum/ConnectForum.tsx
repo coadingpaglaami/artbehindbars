@@ -6,10 +6,12 @@ import { ForumPost } from "@/interface/admin/forum";
 import { AdminHeading } from "@/webcomponents/reusable";
 import { ForumData } from "./ForumData";
 import { Pagination } from "@/webcomponents/reusable";
+import { CategoryOrState } from "./CategoryOrState";
 
 export const ConnectForum = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+   const [activeTab, setActiveTab] = useState<'categories' | 'states'>('categories');
 
   const forumData: ForumPost[] = generatePostData(50);
 
@@ -41,6 +43,41 @@ export const ConnectForum = () => {
         heading="CONNECT Forum Moderation"
         subheading="Review community discussions and handle reported content."
       />
+      <div className="bg-white rounded-lg shadow p-6">
+      
+      {/* Tabs */}
+      <div className="flex gap-4 mb-6 border-b">
+        <button
+          onClick={() => setActiveTab('categories')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            activeTab === 'categories'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Categories
+        </button>
+        <button
+          onClick={() => setActiveTab('states')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            activeTab === 'states'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          States
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="bg-white rounded-lg shadow p-6">
+        {activeTab === 'categories' ? (
+          <CategoryOrState type="category" />
+        ) : (
+          <CategoryOrState type="state" />
+        )}
+      </div>
+    </div>
 
       {/* Forum Posts */}
       <ForumData
