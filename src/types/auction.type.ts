@@ -131,3 +131,30 @@ export interface UserAuctionHistoryItemDto {
   secondsRemaining: number;
 }
 
+// order.type.ts
+
+export interface Buyer {
+  id: string;
+  email: string;
+  firstName: string;
+}
+
+export interface Artwork {
+  id: string;
+  title: string;
+  imageUrl: string;
+}
+
+export interface Auction {
+  id: string;
+  currentPrice: number;
+}
+
+export interface OrderResponseDto {
+  id: string;
+  buyer: Buyer;
+  artwork: Artwork;
+  auction: Auction;
+  createdAt: string;
+  updatedAt: string;
+}

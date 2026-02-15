@@ -12,14 +12,15 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";;
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { usePathname, useRouter } from "next/navigation";
-import { isClientAuthenticated } from "@/lib/auth-client";
+import { isClientAuthenticated } from "@/lib/auth-client"; // Add getClientUserId
+import { NotificationBell } from "./NotificationBell";
 
 export const NavBar = () => {
   const activeLink = usePathname();
@@ -31,7 +32,6 @@ export const NavBar = () => {
 
   const navLinks: { label: string; link: string }[] = [
     { label: "Home", link: "/" },
-
     { label: "Shop Art", link: "/shop_art" },
     { label: "Search Artists", link: "/artists" },
     { label: "Connect", link: "/community" },
@@ -113,8 +113,11 @@ export const NavBar = () => {
           ))}
         </nav>
 
-        {/* Login Button and Mobile Menu */}
+        {/* Login Button, Notification Bell, and Mobile Menu */}
         <div className="flex items-center space-x-4">
+          {/* Notification Bell - Only show when authenticated and userId exists */}
+          {isAuthenticated && <NotificationBell />}
+
           {isAuthenticated ? (
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
@@ -127,7 +130,7 @@ export const NavBar = () => {
                   <Link
                     key={item.name}
                     href={item.link}
-                    onClick={()=>setOpen(false)}
+                    onClick={() => setOpen(false)}
                     className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md"
                   >
                     <item.icon size={18} />

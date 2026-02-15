@@ -79,7 +79,7 @@ export function proxy(req: NextRequest) {
 
   /* ---------------- GUEST ONLY ---------------- */
   if (GUEST_ONLY_ROUTES.some((route) => pathname.startsWith(route)) && isAuth) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   /* ---------------- AUTH ONLY ---------------- */

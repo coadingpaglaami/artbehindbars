@@ -74,6 +74,8 @@ export interface ForgetPasswordResponseDto {
 }
 
 export interface OTPResponseDto {
+  accessToken?: string;
+  refreshToken?: string;
   email: string;
   otpType: OtpType;
   verified: boolean;

@@ -12,6 +12,7 @@ export const SuccessMessage = () => {
 
   const handleRedirect = () => {
     // router.push(redirectPath);
+    router.push("/");
     // or router.replace(redirectPath) if you don't want back button history
   };
 
@@ -38,14 +39,11 @@ export const SuccessMessage = () => {
           {/* Optional description */}
 
           {/* Home button */}
-          <Button
-            onClick={handleRedirect}
-            className="w-full "
-          >
+          <Button onClick={handleRedirect} className="w-full ">
             {"Go to home"}
           </Button>
         </CardContent>
       </Card>
     </div>
   );
-}
+};

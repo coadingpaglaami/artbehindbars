@@ -10,6 +10,7 @@ import {
   PaginationQueryDto,
   GetAuctionsQueryDto,
   UserAuctionHistoryItemDto,
+  OrderResponseDto,
 } from "@/types/auction.type";
 
 /* ============================================================
@@ -104,5 +105,10 @@ export const getMyAuctionHistory = async (
     PaginatedResponseDto<UserAuctionHistoryItemDto>
   >("/auction/my/history", { params });
 
+  return data;
+};
+
+export const getOrderByAuctionId = async (auctionId: string): Promise<OrderResponseDto> => {
+  const { data } = await axios.get<OrderResponseDto>(`/auction/${auctionId}/order`);
   return data;
 };

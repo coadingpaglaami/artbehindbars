@@ -25,6 +25,7 @@ import {
   getVerificationEmail,
   getOtpType,
   clearVerificationData,
+  setTokens,
 } from "@/lib/cookies";
 import { useSignupEmailVerifyMutation } from "@/api/auth/query";
 
@@ -45,9 +46,9 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
   const [countdown, setCountdown] = useState(initialCountdown);
   const [canResend, setCanResend] = useState(false);
   const [email, setEmail] = useState<string>("");
-  const [otpType, setOtpTypeState] = useState<"signup" | "resetPassword" | null>(
-    null
-  );
+  const [otpType, setOtpTypeState] = useState<
+    "signup" | "resetPassword" | null
+  >(null);
 
   const { mutate: verifyMutate, isPending: isVerifying } =
     useSignupEmailVerifyMutation();
@@ -99,6 +100,13 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
       },
       {
         onSuccess: (response) => {
+          setTokens(
+            response.accessToken as string,
+            response.refreshToken as string,
+          );
+
+          router.push("/success");
+
           clearVerificationData();
 
           if (otpType === "resetPassword") {
@@ -110,7 +118,7 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
         onError: (error) => {
           setError(error.message || "Invalid verification code");
         },
-      }
+      },
     );
   }
 

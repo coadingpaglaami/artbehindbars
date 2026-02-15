@@ -11,7 +11,9 @@ import {
   PaginationQueryDto,
   GetAuctionsQueryDto,
   UserAuctionHistoryItemDto,
+  OrderResponseDto,
 } from "@/types/auction.type";
+import { getOrderByAuctionId } from "./api";
 
 /* ============================================================
    QUERY KEYS
@@ -102,4 +104,10 @@ export const useMyAuctionHistory = (params: PaginationQueryDto) =>
     queryKey: auctionKeys.myHistory(params),
     queryFn: () => api.getMyAuctionHistory(params),
     staleTime: 1000 * 30, // 30 sec
+  });
+
+  export const useGetOrderByAuctionIdQuery = (orderId: string) =>
+  useQuery<OrderResponseDto, Error>({
+    queryKey: ["orderByAuctionId", orderId],
+    queryFn: () => getOrderByAuctionId(orderId),
   });

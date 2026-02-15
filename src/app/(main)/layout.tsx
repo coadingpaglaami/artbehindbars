@@ -9,7 +9,9 @@ export default function MainLayout({
   return (
     <div className="min-h-screen flex flex-col w-full">
       <nav className="bg-[#FFA66A] h-20 sticky top-0 z-50">
-        <NavBar />
+        <TranstackProvider>
+          <NavBar />
+        </TranstackProvider>
       </nav>
 
       <main className="flex-1 min-h-0 overflow-y-auto  max-w-360 mx-auto w-full">

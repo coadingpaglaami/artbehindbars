@@ -81,7 +81,7 @@ export const BuyOption = ({ product, artworkId }: BuyOptionProps) => {
 
     const payload = {
       sourceId: token,
-      amount: Math.round(totalPrice * 100), // Convert to cents
+      amount: Math.round(totalPrice ), // Convert to cents
       artworkId: artworkId,
       shippingInfo: shippingInfo,
     };

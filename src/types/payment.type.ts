@@ -44,6 +44,7 @@ export interface OrderResponseDto {
   squarePaymentId: string;
   totalAmount: number;
   status: OrderStatus;
+  paymentDueAt: string; // ISO string
 
   shippingFullName: string;
   shippingAddress: string;

@@ -11,13 +11,15 @@ import { useState } from "react";
 import { PasswordInput } from "../reusable";
 import { setVerificationEmail, setOtpType } from "@/lib/cookies";
 import { useSignupMutation } from "@/api/auth/query";
-
+import Link from "next/link";
 
 const signupSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
   email: z.email({ message: "Invalid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" }),
   dateOfBirth: z.string().min(1, { message: "Date of birth is required" }),
 });
 
@@ -48,13 +50,13 @@ export const Signup = () => {
           // Save email and otpType to cookies
           setVerificationEmail(data.email);
           setOtpType("signup");
-          
+
           router.push("/verify");
         },
         onError: (error) => {
           setError(error.message || "Signup failed");
         },
-      }
+      },
     );
   };
 
@@ -69,6 +71,7 @@ export const Signup = () => {
         <div className="flex flex-col gap-2">
           <Label htmlFor="firstName">First Name</Label>
           <Input
+            placeholder="First Name"
             id="firstName"
             {...register("firstName")}
             className={errors.firstName ? "border-red-500" : ""}
@@ -81,6 +84,7 @@ export const Signup = () => {
         <div className="flex flex-col gap-2">
           <Label htmlFor="lastName">Last Name</Label>
           <Input
+            placeholder="Last Name"
             id="lastName"
             {...register("lastName")}
             className={errors.lastName ? "border-red-500" : ""}
@@ -93,6 +97,7 @@ export const Signup = () => {
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">Email</Label>
           <Input
+            placeholder="Email"
             id="email"
             type="email"
             {...register("email")}
@@ -106,6 +111,7 @@ export const Signup = () => {
         <div className="flex flex-col gap-2">
           <Label htmlFor="password">Password</Label>
           <PasswordInput
+            placeholder="Password"
             id="password"
             {...register("password")}
             className={errors.password ? "border-red-500" : ""}
@@ -118,6 +124,7 @@ export const Signup = () => {
         <div className="flex flex-col gap-2">
           <Label htmlFor="dateOfBirth">Date of Birth</Label>
           <Input
+            placeholder="Date of Birth"
             id="dateOfBirth"
             type="date"
             {...register("dateOfBirth")}
@@ -138,6 +145,12 @@ export const Signup = () => {
           {isPending ? "Creating account..." : "Sign up"}
         </Button>
       </form>
+      <p className="mt-6 text-sm text-gray-600">
+        You already have an account?{" "}
+        <Link href="/login" className="font-bold text-black">
+          Login
+        </Link>
+      </p>
     </div>
   );
 };
