@@ -95,7 +95,7 @@ export const useCreateComment = () =>
     }) => api.createComment(postId, payload),
   });
 
-  export const useGetComments = (postId: string) =>
+export const useGetComments = (postId: string) =>
   useQuery({
     queryKey: ["comments", postId],
     queryFn: () => api.getComments(postId),
@@ -215,3 +215,30 @@ export const useInfiniteStates = (limit: number = 10) =>
     },
     initialPageParam: 1,
   });
+
+export const useGetInfiniteUserPosts = (
+  userId: string,
+  params?: PaginationQueryDto & {
+    enabled?: boolean;
+  },
+) => {
+  const { enabled = true, ...queryParams } = params || {};
+
+  return useInfiniteQuery({
+    queryKey: ["posts", "user", userId, "infinite", queryParams],
+    queryFn: ({ pageParam = 1 }) =>
+      api.getUserPosts(userId, {
+        page: pageParam,
+        limit: queryParams.limit || 10,
+        ...queryParams,
+      }),
+    getNextPageParam: (lastPage: PaginatedResponseDto<PostResponse>) => {
+      if (lastPage.meta.page < lastPage.meta.totalPages) {
+        return lastPage.meta.page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+    enabled: !!userId && enabled,
+  });
+};

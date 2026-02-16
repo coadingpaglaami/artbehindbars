@@ -33,6 +33,8 @@ import {
 } from "@/types/post.type";
 import { toast } from "sonner";
 import { useCreatePost } from "@/api/post";
+import { isClientAuthenticated } from "@/lib/auth-client";
+import { usePosts } from "@/context/PostContext";
 
 interface CreatePostProps {
   categories: UseInfiniteQueryResult<
@@ -63,6 +65,7 @@ export const CreatePost = (props: CreatePostProps) => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [video, setVideo] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null); // If you have toast
+  const { refetchPosts } = usePosts();
 
   // Destructure the query results
   const {
@@ -190,6 +193,7 @@ export const CreatePost = (props: CreatePostProps) => {
       },
       {
         onSuccess: () => {
+          refetchPosts();
           toast.success("Post created successfully!");
           form.reset();
           setImages([]);

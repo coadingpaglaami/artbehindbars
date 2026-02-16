@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 "use client";
 
 import { Heart, MessageCircle, MoreVertical } from "lucide-react";
@@ -18,11 +19,14 @@ import { ReportDialog } from "./ReportDialogue";
 import { PostDetailDialog } from "./PostDetailDialogue";
 import { usePosts } from "@/context/PostContext";
 import { toast } from "sonner";
+import { isClientAuthenticated } from "@/lib/auth-client";
+
 
 export const CommunityPosts = ({ community }: { community: PostResponse }) => {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [isPostDetailOpen, setIsPostDetailOpen] = useState(false);
   const { refreshPost } = usePosts();
+  const isAuthenticated = isClientAuthenticated();
 
   // Mutations and Queries
   const { mutate: toggleLikeMutate, isPending: isTogglingLike } =
@@ -54,6 +58,12 @@ export const CommunityPosts = ({ community }: { community: PostResponse }) => {
 
   // Handle like toggle
   const handleLike = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    isAuthenticated     ? toggleLike()
+      : toast.error("You need to be logged in to like posts.");
+  };
+
+  const toggleLike = () => {
     toggleLikeMutate(community.id, {
       onSuccess: () => {
         refreshPost(community.id); // Optimistically update UI or refetch
@@ -64,33 +74,119 @@ export const CommunityPosts = ({ community }: { community: PostResponse }) => {
   };
 
   // Render images based on count
-  const renderImages = () => {
-    if (!community.imageUrl || community.imageUrl.length === 0) return null;
+const renderImages = () => {
+  const hasImages = community.imageUrl && community.imageUrl.length > 0;
+  const hasVideo = community.videoUrl;
 
-    const imageCount = community.imageUrl.length;
+  if (!hasImages && !hasVideo) return null;
 
-    // Single image - full width
-    if (imageCount === 1) {
-      return (
+  const imageCount = community.imageUrl?.length || 0;
+
+  // Helper to render video
+  const renderVideo = () => {
+    if (!hasVideo) return null;
+    
+    return (
+      <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+        <video
+          src={community.videoUrl}
+          controls
+          className="w-full h-full object-cover"
+          preload="metadata"
+        >
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    );
+  };
+
+  // Only video, no images
+  if (!hasImages && hasVideo) {
+    return renderVideo();
+  }
+
+  // Single image
+  if (imageCount === 1) {
+    return (
+      <div className="space-y-2">
         <div className="relative w-full aspect-[4/1.3] rounded-lg overflow-hidden">
           <Image
-            src={community.imageUrl[0]}
+            src={hasImages ? (community.imageUrl ?? [])[0] : ""}
             alt="Post image"
             fill
             className="object-cover"
           />
         </div>
-      );
-    }
+        {renderVideo()}
+      </div>
+    );
+  }
 
-    // Multiple images - 2 per row, show first 3 and +more for 4th
+  // Two images
+  if (imageCount === 2) {
     return (
+      <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          {hasImages && community.imageUrl?.map((img, idx) => (
+            <div
+              key={idx}
+              className="relative h-48 rounded-lg overflow-hidden"
+            >
+              <Image
+                src={img}
+                alt={`Post image ${idx + 1}`}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+        {renderVideo()}
+      </div>
+    );
+  }
+
+  // Three images
+  if (imageCount === 3) {
+    return (
+      <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          {(community?.imageUrl ?? []).slice(0, 2).map((img, idx) => (
+            <div
+              key={idx}
+              className="relative h-48 rounded-lg overflow-hidden"
+            >
+              <Image
+                src={img}
+                alt={`Post image ${idx + 1}`}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ))}
+          <div className="relative h-48 rounded-lg overflow-hidden col-span-2">
+            <Image
+              src={hasImages && (community.imageUrl?.length ?? 0) > 2 ? (community.imageUrl?.[2] ?? "") : ""}
+              alt="Post image 3"
+              fill
+              className="object-cover"
+            />
+          </div>
+        </div>
+        {renderVideo()}
+      </div>
+    );
+  }
+
+  // Four or more images
+  return (
+    <div className="space-y-2">
       <div className="grid grid-cols-2 gap-2">
-        {community.imageUrl.slice(0, 3).map((img, idx) => (
+        {(community?.imageUrl ?? []).slice(0, 3).map((img, idx) => (
           <div
             key={idx}
             className={`relative h-48 rounded-lg overflow-hidden ${
-              imageCount === 2 ? "" : idx === 2 ? "col-span-2" : ""
+              idx === 2 ? "col-span-2" : ""
             }`}
           >
             <Image
@@ -104,7 +200,7 @@ export const CommunityPosts = ({ community }: { community: PostResponse }) => {
         {imageCount > 3 && (
           <div className="relative h-48 rounded-lg overflow-hidden">
             <Image
-              src={community.imageUrl[3]}
+              src={hasImages && (community.imageUrl?.length ?? 0) > 3 ? community.imageUrl?.[3] ?? "" : ""}
               alt="Post image 4"
               fill
               className="object-cover"
@@ -117,8 +213,10 @@ export const CommunityPosts = ({ community }: { community: PostResponse }) => {
           </div>
         )}
       </div>
-    );
-  };
+      {renderVideo()}
+    </div>
+  );
+};
 
   const recentComments = commentsData?.slice(0, 2) || [];
   const hasMoreComments = (commentsData?.length || 0) > 2;
@@ -141,19 +239,21 @@ export const CommunityPosts = ({ community }: { community: PostResponse }) => {
           </div>
 
           {/* More Options Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical size={18} className="text-gray-600" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)}>
-                Report Post
-              </DropdownMenuItem>
-              {/* Future options can be added here */}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {isAuthenticated && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical size={18} className="text-gray-600" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)}>
+                  Report Post
+                </DropdownMenuItem>
+                {/* Future options can be added here */}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         {/* Post Title */}
@@ -202,7 +302,7 @@ export const CommunityPosts = ({ community }: { community: PostResponse }) => {
             </span>
           </button>
           <button
-            onClick={() => setIsPostDetailOpen(true)}
+            onClick={() => {isAuthenticated ? setIsPostDetailOpen(true): toast.error("You need to be logged in to view comments.")}}
             className="flex items-center gap-2 cursor-pointer hover:text-blue-500 transition-colors"
           >
             <MessageCircle size={20} />

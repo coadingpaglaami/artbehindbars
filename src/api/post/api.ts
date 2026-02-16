@@ -31,7 +31,9 @@ export const createPost = async (
   images?.forEach((img) => form.append("images", img));
   if (video) form.append("video", video);
 
-  const { data } = await axios.post(POST, form);
+  const { data } = await axios.post(POST, form,{
+    timeout: 60000, // 60 seconds timeout for post creation with media
+  });
   return data;
 };
 
@@ -143,3 +145,11 @@ export const suspendUser = async (userId: string, days: number) => {
   });
   return data;
 };
+
+export const getUserPosts = async (
+  userId: string,
+  params: PaginationQueryDto
+): Promise<PaginatedResponseDto<PostResponse>> => {
+  const { data } = await axios.get(`${POST}/${userId}/user/`, { params });
+  return data;
+}
