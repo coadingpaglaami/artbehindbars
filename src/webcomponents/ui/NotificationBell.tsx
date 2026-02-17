@@ -19,13 +19,26 @@ import { useQueryClient } from "@tanstack/react-query";
 import { NotificationResponseDto } from "@/types/notification.type";
 import { toast } from "sonner";
 
+// Updated enum to match the new types
+enum NotificationType {
+  PAYMENT = "PAYMENT", // Auction or payment related
+  LIKE = "LIKE", // Someone liked your post/artwork
+  COMMENT = "COMMENT", // Comment on your post/artwork
+  ADMIN = "ADMIN", // Admin message, warnings
+  INFO = "INFO", // General info
+  CONNECTION_REQUEST = "CONNECTION_REQUEST", // New connection request
+  CONNECTION_ACCEPTED = "CONNECTION_ACCEPTED", // Connection request accepted
+  WARNING = "WARNING", // Warning about content or behavior
+}
+
+// Update the interface to use the enum
 interface Notification {
   id: string;
   title: string;
   message: string;
   isRead: boolean;
   createdAt: string;
-  type: "PAYMENT" | "LIKE" | "COMMENT" | "ADMIN" | "INFO";
+  type: NotificationType;
 }
 
 export const NotificationBell = () => {
@@ -56,8 +69,35 @@ export const NotificationBell = () => {
     socket.on("notification", (newNotification: Notification) => {
       // Invalidate and refetch notifications
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      toast.success(newNotification.message, {
-        description: newNotification.title,
+
+      // Show toast with appropriate styling based on type
+      const toastMessage = {
+        [NotificationType.PAYMENT]: {
+          icon: "💰",
+          description: "Payment update",
+        },
+        [NotificationType.LIKE]: { icon: "❤️", description: "New like" },
+        [NotificationType.COMMENT]: { icon: "💬", description: "New comment" },
+        [NotificationType.ADMIN]: { icon: "⚠️", description: "Admin message" },
+        [NotificationType.INFO]: { icon: "ℹ️", description: "Information" },
+        [NotificationType.CONNECTION_REQUEST]: {
+          icon: "🤝",
+          description: "Connection request",
+        },
+        [NotificationType.CONNECTION_ACCEPTED]: {
+          icon: "✅",
+          description: "Connection accepted",
+        },
+        [NotificationType.WARNING]: { icon: "⚠️", description: "Warning" },
+      };
+
+      const typeInfo = toastMessage[newNotification.type] || {
+        icon: "🔔",
+        description: "Notification",
+      };
+
+      toast.success(`${typeInfo.icon} ${newNotification.message}`, {
+        description: newNotification.title || typeInfo.description,
       });
 
       // Optional: Show browser notification
@@ -67,10 +107,6 @@ export const NotificationBell = () => {
           icon: "/favicon.ico",
         });
       }
-
-      // Optional: Play sound
-      // const audio = new Audio('/notification-sound.mp3');
-      // audio.play().catch(() => {});
     });
 
     return () => {
@@ -127,11 +163,16 @@ export const NotificationBell = () => {
       }
     }
 
-    // Handle LIKE / COMMENT navigation
-    if (notification.type === "LIKE" || notification.type === "COMMENT") {
-      const artworkIdMatch = notification.message.match(/artwork\/([\w-]+)/);
-      const postIdMatch = notification.message.match(/post\/([\w-]+)/);
+    // Handle navigation based on notification type
+    const artworkIdMatch = notification.message.match(/artwork\/([\w-]+)/);
+    const postIdMatch = notification.message.match(/post\/([\w-]+)/);
+    const profileIdMatch = notification.message.match(/profile\/([\w-]+)/);
 
+    // LIKE / COMMENT navigation
+    if (
+      (notification.type as NotificationType) === NotificationType.LIKE ||
+      (notification.type as NotificationType) === NotificationType.COMMENT
+    ) {
       if (artworkIdMatch) {
         router.push(`/artwork/${artworkIdMatch[1]}`);
         setOpen(false);
@@ -145,7 +186,38 @@ export const NotificationBell = () => {
       }
     }
 
-    // INFO / ADMIN → just mark as read (no navigation)
+    // Connection related navigation
+    if (
+      (notification.type as NotificationType) ===
+        NotificationType.CONNECTION_REQUEST ||
+      (notification.type as NotificationType) ===
+        NotificationType.CONNECTION_ACCEPTED
+    ) {
+      if (profileIdMatch) {
+        router.push(`/profile/${profileIdMatch[1]}`);
+        setOpen(false);
+        return;
+      }
+      // Default to connections page
+      router.push("/my-connection");
+      setOpen(false);
+      return;
+    }
+
+    // Payment navigation
+    if (notification.type === NotificationType.PAYMENT) {
+      const orderIdMatch = notification.message.match(/order\/([\w-]+)/);
+      if (orderIdMatch) {
+        router.push(`/order/${orderIdMatch[1]}`);
+        setOpen(false);
+        return;
+      }
+      router.push("/orders");
+      setOpen(false);
+      return;
+    }
+
+    // INFO / ADMIN / WARNING → just mark as read (no navigation)
   };
 
   // Delete notification
@@ -160,20 +232,51 @@ export const NotificationBell = () => {
   };
 
   // Get notification icon based on type
-  const getNotificationIcon = (type: Notification["type"]) => {
+  const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
-      case "PAYMENT":
+      case NotificationType.PAYMENT:
         return "💰";
-      case "LIKE":
+      case NotificationType.LIKE:
         return "❤️";
-      case "COMMENT":
+      case NotificationType.COMMENT:
         return "💬";
-      case "ADMIN":
+      case NotificationType.ADMIN:
         return "⚠️";
-      case "INFO":
+      case NotificationType.INFO:
         return "ℹ️";
+      case NotificationType.CONNECTION_REQUEST:
+        return "🤝";
+      case NotificationType.CONNECTION_ACCEPTED:
+        return "✅";
+      case NotificationType.WARNING:
+        return "⚠️";
       default:
         return "🔔";
+    }
+  };
+
+  // Get notification color based on type
+  const getNotificationColor = (type: NotificationType, isRead: boolean) => {
+    if (isRead) return "bg-white hover:bg-gray-50";
+
+    switch (type) {
+      case NotificationType.PAYMENT:
+        return "bg-green-50 hover:bg-green-100";
+      case NotificationType.LIKE:
+        return "bg-pink-50 hover:bg-pink-100";
+      case NotificationType.COMMENT:
+        return "bg-blue-50 hover:bg-blue-100";
+      case NotificationType.ADMIN:
+        return "bg-purple-50 hover:bg-purple-100";
+      case NotificationType.WARNING:
+        return "bg-red-50 hover:bg-red-100";
+      case NotificationType.CONNECTION_REQUEST:
+        return "bg-yellow-50 hover:bg-yellow-100";
+      case NotificationType.CONNECTION_ACCEPTED:
+        return "bg-emerald-50 hover:bg-emerald-100";
+      case NotificationType.INFO:
+      default:
+        return "bg-blue-50 hover:bg-blue-100";
     }
   };
 
@@ -227,7 +330,10 @@ export const NotificationBell = () => {
                 key={notification.id}
                 className={cn(
                   "p-4 border-b hover:bg-gray-50 transition-colors relative group",
-                  !notification.isRead && "bg-blue-50 hover:bg-blue-100",
+                  getNotificationColor(
+                    notification.type as NotificationType,
+                    notification.isRead,
+                  ),
                 )}
               >
                 <div
@@ -236,7 +342,9 @@ export const NotificationBell = () => {
                 >
                   <div className="flex gap-3">
                     <div className="text-2xl shrink-0">
-                      {getNotificationIcon(notification.type)}
+                      {getNotificationIcon(
+                        notification.type as NotificationType,
+                      )}
                     </div>
                     <div className="flex-1 min-w-0 pr-6">
                       <div className="flex items-start justify-between gap-2">

@@ -79,3 +79,15 @@ export const useGetMyBoughtArtworks = () =>
     queryKey: ["getMyBoughtArtworks"],
     queryFn: api.getMyBoughtArtworks,
   });
+
+  export const useGetMyBillingHistory = () =>
+  useQuery({
+    queryKey: ["getMyBillingHistory"],
+    queryFn: api.getMyBillingHistory,
+  });
+
+  export const useContactUsMutation = () =>
+  useMutation({
+    mutationKey: ["contactUs"],
+    mutationFn: api.contactUs,
+  });

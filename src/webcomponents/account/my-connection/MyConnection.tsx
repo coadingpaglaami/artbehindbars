@@ -23,6 +23,7 @@ import {
   ConnectionUser,
 } from "@/types/connection.type";
 import { AccountProfile } from "@/types/account.type";
+import { toast } from "sonner";
 
 // Define types for the API responses
 
@@ -48,6 +49,7 @@ export const MyConnection = () => {
     error: connectionsError,
     fetchNextPage: fetchNextConnections,
     hasNextPage: hasMoreConnections,
+    refetch: refetchConn,
     isFetchingNextPage: isFetchingMoreConnections,
   } = useGetMyConnectionsInfinite();
 
@@ -183,6 +185,7 @@ export const MyConnection = () => {
   const handleBlock = async (userId: string) => {
     try {
       await blockUnblockMutation.mutateAsync(userId);
+      toast.success("User has been blocked");
       refetchBlocked();
       refetchIncoming();
       refetchOutgoing();
@@ -194,6 +197,7 @@ export const MyConnection = () => {
   const handleUnblock = async (userId: string) => {
     try {
       await blockUnblockMutation.mutateAsync(userId);
+      toast.success("User has been unblocked");
       refetchBlocked();
     } catch (error) {
       console.error("Failed to unblock user:", error);
@@ -201,8 +205,11 @@ export const MyConnection = () => {
   };
 
   const handleDisconnect = async (connectionId: string) => {
+    console.log(connectionId)
     try {
       await disconnectMutation.mutateAsync(connectionId);
+      toast.success("Connection has been disconnected");
+      refetchConn();
     } catch (error) {
       console.error("Failed to disconnect:", error);
     }

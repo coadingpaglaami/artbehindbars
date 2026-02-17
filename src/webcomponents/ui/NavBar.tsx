@@ -21,6 +21,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { isClientAuthenticated } from "@/lib/auth-client"; // Add getClientUserId
 import { NotificationBell } from "./NotificationBell";
+import { clearTokens } from "@/lib/cookies";
 
 export const NavBar = () => {
   const activeLink = usePathname();
@@ -71,6 +72,10 @@ export const NavBar = () => {
       name: "Logout",
       icon: LogOut,
       link: "/login",
+      action: () => {
+        clearTokens();
+        router.push("/login");
+      },
     },
   ];
 
@@ -130,7 +135,10 @@ export const NavBar = () => {
                   <Link
                     key={item.name}
                     href={item.link}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      if (item.action) item.action();
+                    }}
                     className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md"
                   >
                     <item.icon size={18} />

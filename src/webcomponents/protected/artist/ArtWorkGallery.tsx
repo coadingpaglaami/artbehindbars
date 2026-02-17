@@ -1,5 +1,8 @@
-
-import { ArtistResponseDto, ArtworkResponseDto, PaginatedResponseDto } from "@/types/gallery.types";
+import {
+  ArtistResponseDto,
+  ArtworkResponseDto,
+  PaginatedResponseDto,
+} from "@/types/gallery.types";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -50,10 +53,10 @@ export const ArtWorkGallery = ({ artist, artworks }: ArtWorkGalleryProps) => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Starting Bid</span>
                     <span className="font-bold text-lg text-primary">
-                      ${artwork.startingBidPrice.toFixed(2)}
+                      ${artwork.auction?.currentPrice?.toFixed(2)}
                     </span>
                   </div>
-                  
+
                   {artwork.buyItNowPrice > 0 && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Buy Now</span>

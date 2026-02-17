@@ -5,18 +5,23 @@ import { Socket } from "socket.io-client";
 import { getSocket } from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-import * as api from "@/api/connection/api"; // Adjust path as needed
+import { useGetConnectionStatus, useGetMyRequests } from "@/api/connection";
+import { ClientSub } from "@/lib/auth-client";
 
 type SocketContextType = Socket | null;
 
 const SocketContext = createContext<SocketContextType>(null);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
+  const clientSub = ClientSub();
+  const { refetch } = useGetMyRequests({ page: 1, limit: 10 });
+  const { refetch: refetchConnectionStatus } = useGetConnectionStatus(
+    clientSub as string,
+  );
+  console.log(clientSub)
   const socketRef = useRef<Socket | null>(null);
   const queryClient = useQueryClient();
   console.log(queryClient.getQueryCache().getAll());
-
 
   useEffect(() => {
     const socket = getSocket();
@@ -28,38 +33,26 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
        GLOBAL SOCKET EVENTS
        ========================= */
 
-    socket.on("connection-request", async(data) => {
-      console.log(data,'line 30 soket provider');
+    socket.on("connection-request", async (data) => {
+      console.log(data, "line 30 soket provider");
       toast.success(data.payload);
-
-  await queryClient.prefetchQuery({
-    queryKey: ["getConnectionStatus", data.toUserId], // include userId if needed
-    queryFn: () => api.getConnectionStatus(data.toUserId),
-  });
-
-  await queryClient.prefetchQuery({
-    queryKey: ["myRequests", 1, 10], // default page/limit
-    queryFn: () => api.myRequests({ page: 1, limit: 10 }),
-  });
+      refetch();
+      refetchConnectionStatus();
+      queryClient.invalidateQueries({ queryKey:["notifications"] });
     });
 
     socket.on("connection-accepted", async (data) => {
       toast.success(data.payload);
-
-   await queryClient.prefetchQuery({
-    queryKey: ["getConnectionStatus"],
-  });
-
-  await queryClient.prefetchQuery({
-    queryKey: ["myRequests"],
-  });
+      queryClient.invalidateQueries({ queryKey:["notifications"] });
+      refetch();
+      refetchConnectionStatus();
     });
 
     return () => {
       socket.off("connection-request");
       socket.off("connection-accepted");
     };
-  }, [queryClient]);
+  }, [refetch, refetchConnectionStatus,queryClient]);
 
   return (
     // eslint-disable-next-line react-hooks/refs

@@ -35,6 +35,7 @@ import {
   useVerifyOldEmailMutation,
   useVerifyNewEmailMutation,
 } from "@/api/account"; // Adjust import path
+import { ErrorResponse } from "@/types/error.type";
 
 const emailSchema = z.object({
   currentEmail: z.email("Invalid email address"),
@@ -56,13 +57,7 @@ const passwordSchema = z
     path: ["confirmPassword"],
   });
 
-interface ErrorResponse {
-  response: {
-    data: {
-      message: string;
-    };
-  };
-}
+
 
 export const Security = () => {
   const [isOtpDialogOpen, setIsOtpDialogOpen] = useState(false);

@@ -6,9 +6,10 @@ import {
   VerifyEmailChangeDto,
   AccountProfile,
   GenericMessageResponse,
+  ContactUsDto,
 } from "@/types/account.type";
 import { PaginatedResponseDto, PaginationQueryDto } from "@/types/auction.type";
-import { ArtworkResponseDto, PaginationMetaDto } from "@/types/gallery.types";
+import { BoughtArtwork } from "@/types/gallery.types";
 
 const ACCOUNT = "/account";
 
@@ -122,11 +123,19 @@ export const getMyBlockedUsers = async (
   return data;
 };
 
-export const getMyBoughtArtworks = async (): Promise<{
-  boughtArtworks: ArtworkResponseDto[];
-}> => {
-  const { data } = await axios.get<{ boughtArtworks: ArtworkResponseDto[] }>(
+export const getMyBoughtArtworks = async (): Promise<BoughtArtwork[]> => {
+  const { data } = await axios.get<BoughtArtwork[]>(
     `${ACCOUNT}/mybought-artworks`,
   );
   return data;
+};
+
+export const getMyBillingHistory = async () => {
+  const { data } = await axios.get(`${ACCOUNT}/my-billing-history`);
+  return data;
+};
+
+export const contactUs = async (payload: ContactUsDto) => {
+  const { data } = await axios.post(`/contact-us`, payload);
+  return { data };
 };

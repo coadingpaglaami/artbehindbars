@@ -93,7 +93,6 @@ export interface GetArtworksQueryDto extends PaginationQueryDto {
 /* ---------------- FanMail ---------------- */
 
 export interface CreateFanMailDto {
-  subject?: string;
   message: string;
 }
 
@@ -105,3 +104,27 @@ export interface FanMailQueryDto extends PaginationQueryDto {
   status?: FanMailStatus;
   isArchived?: boolean;
 }
+
+export interface BoughtArtwork {
+  id: string;
+  artworkId: string;
+  artwork: {
+    title: string;
+    imageUrl: string;
+  };
+  auctionId: string;
+  buyerId: string;
+  status: string;
+  totalAmount: number;
+  shippingFullName: string;
+  shippingAddress: string;
+  shippingCity: string;
+  shippingState: string;
+  shippingZip: string;
+  shippingPhone: string;
+  paymentDueAt: string;
+  squarePaymentId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+

@@ -45,3 +45,9 @@ export interface VerifyEmailChangeDto {
 export interface GenericMessageResponse {
   message: string;
 }
+export interface ContactUsDto {
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+}

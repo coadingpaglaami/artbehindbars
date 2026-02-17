@@ -140,6 +140,7 @@ export const ArtistInfo = ({
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         artistName={artist.name}
+        artistId={artist.id}
       />
     </>
   );
