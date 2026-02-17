@@ -6,6 +6,8 @@ import { getSocket } from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import * as api from "@/api/connection/api"; // Adjust path as needed
+
 type SocketContextType = Socket | null;
 
 const SocketContext = createContext<SocketContextType>(null);
@@ -13,6 +15,8 @@ const SocketContext = createContext<SocketContextType>(null);
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const socketRef = useRef<Socket | null>(null);
   const queryClient = useQueryClient();
+  console.log(queryClient.getQueryCache().getAll());
+
 
   useEffect(() => {
     const socket = getSocket();
@@ -24,32 +28,31 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
        GLOBAL SOCKET EVENTS
        ========================= */
 
-    socket.on("connection-request", (data) => {
+    socket.on("connection-request", async(data) => {
+      console.log(data,'line 30 soket provider');
       toast.success(data.payload);
 
-      queryClient.refetchQueries({
-        queryKey: ["getConnectionStatus"],
-        exact: false,
-      });
+  await queryClient.prefetchQuery({
+    queryKey: ["getConnectionStatus", data.toUserId], // include userId if needed
+    queryFn: () => api.getConnectionStatus(data.toUserId),
+  });
 
-      queryClient.refetchQueries({
-        queryKey: ["myRequests"],
-        exact: false,
-      });
+  await queryClient.prefetchQuery({
+    queryKey: ["myRequests", 1, 10], // default page/limit
+    queryFn: () => api.myRequests({ page: 1, limit: 10 }),
+  });
     });
 
-    socket.on("connection-accepted", (data) => {
+    socket.on("connection-accepted", async (data) => {
       toast.success(data.payload);
 
-      queryClient.refetchQueries({
-        queryKey: ["getConnectionStatus"],
-        exact: false,
-      });
+   await queryClient.prefetchQuery({
+    queryKey: ["getConnectionStatus"],
+  });
 
-      queryClient.refetchQueries({
-        queryKey: ["myRequests"],
-        exact: false,
-      });
+  await queryClient.prefetchQuery({
+    queryKey: ["myRequests"],
+  });
     });
 
     return () => {
