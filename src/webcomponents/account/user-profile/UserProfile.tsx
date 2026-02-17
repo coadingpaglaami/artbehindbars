@@ -26,6 +26,9 @@ import {
 } from "@/api/connection";
 import { useGetInfiniteUserPosts } from "@/api/post";
 import { useGetOrCreateChatMutation, useSendMessageMutation } from "@/api/chat";
+import { CommunityPosts } from "@/webcomponents/public";
+import { PostsProvider } from "@/context/PostContext";
+import { SocketProvider } from "@/context/SocketProvider";
 
 interface UserProfileProps {
   profileId: string;
@@ -224,214 +227,219 @@ export const UserProfile = ({ profileId }: UserProfileProps) => {
   };
 
   return (
-    <div className="w-full rounded-xl border bg-white shadow-sm overflow-hidden my-16">
-      {/* Header / Profile info */}
-      <div className="p-6 pb-2 flex gap-5">
-        <div className="shrink-0">
-          <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-gray-600 text-2xl font-semibold shadow-inner border-2 border-white">
-            {user.avatar || user.profilePictureUrl ? (
-              <Image
-                src={user.avatar || user.profilePictureUrl || ""}
-                alt={user.firstName || "User"}
-                width={80}
-                height={80}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span>{getInitials()}</span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold text-gray-900 truncate">
-            {user.firstName && user.lastName
-              ? `${user.firstName} ${user.lastName}`
-              : user.email}
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {user.connectionsCount || 0} connections
-          </p>
-
-          {user.bio && (
-            <p className="mt-3 text-sm text-gray-700 leading-relaxed line-clamp-3">
-              {user.bio}
-            </p>
-          )}
-
-          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-600">
-            {user.location && (
-              <div className="flex gap-2.5 items-center">
-                <MapPin size={16} />
-                {user.location}
-              </div>
-            )}
-            <div className="flex gap-2.5 items-center">
-              <Calendar size={16} />
-              Joined {formatDate(user.createdAt)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="px-6 pb-6 pt-2 flex gap-3 border-t">
-        <Button
-          variant={connectionProps.variant}
-          className="flex-1"
-          onClick={connectionProps.onClick}
-          disabled={
-            connectionProps.disabled ||
-            sendConnectionRequest.isPending ||
-            disconnectConnection.isPending ||
-            isConnectionStatusLoading
-          }
-        >
-          {sendConnectionRequest.isPending || disconnectConnection.isPending ? (
-            <>
-              <Loader2 size={16} className="mr-2 animate-spin" />
-              Loading...
-            </>
-          ) : (
-            connectionProps.text
-          )}
-        </Button>
-
-        <Dialog
-          open={isMessageDialogOpen}
-          onOpenChange={setIsMessageDialogOpen}
-        >
-          <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="flex-1"
-              disabled={getOrCreateChat.isPending}
-            >
-              {getOrCreateChat.isPending ? (
-                <>
-                  <Loader2 size={16} className="mr-2 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                "Message"
-              )}
-            </Button>
-          </DialogTrigger>
-
-          <DialogContent className="sm:max-w-106.25">
-            <DialogHeader>
-              <DialogTitle>
-                Message {user.firstName || user.email.split("@")[0]}
-              </DialogTitle>
-              <DialogDescription>
-                Send a direct message to start a conversation.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="message" className="text-sm font-medium">
-                  Message
-                </label>
-                <Textarea
-                  id="message"
-                  placeholder="Write your message here..."
-                  className="min-h-30"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  disabled={sendMessage.isPending}
+      <div className="w-full rounded-xl border bg-white shadow-sm overflow-hidden my-16">
+        {/* Header / Profile info */}
+        <div className="p-6 pb-2 flex gap-5">
+          <div className="shrink-0">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-gray-600 text-2xl font-semibold shadow-inner border-2 border-white">
+              {user.avatar || user.profilePictureUrl ? (
+                <Image
+                  src={user.avatar || user.profilePictureUrl || ""}
+                  alt={user.firstName || "User"}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
                 />
+              ) : (
+                <span>{getInitials()}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold text-gray-900 truncate">
+              {user.firstName && user.lastName
+                ? `${user.firstName} ${user.lastName}`
+                : user.email}
+            </h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {user.connectionsCount || 0} connections
+            </p>
+
+            {user.bio && (
+              <p className="mt-3 text-sm text-gray-700 leading-relaxed line-clamp-3">
+                {user.bio}
+              </p>
+            )}
+
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-600">
+              {user.location && (
+                <div className="flex gap-2.5 items-center">
+                  <MapPin size={16} />
+                  {user.location}
+                </div>
+              )}
+              <div className="flex gap-2.5 items-center">
+                <Calendar size={16} />
+                Joined {formatDate(user.createdAt)}
               </div>
             </div>
+          </div>
+        </div>
 
-            <DialogFooter>
+        {/* Action buttons */}
+        <div className="px-6 pb-6 pt-2 flex gap-3 border-t">
+          <Button
+            variant={connectionProps.variant}
+            className="flex-1"
+            onClick={connectionProps.onClick}
+            disabled={
+              connectionProps.disabled ||
+              sendConnectionRequest.isPending ||
+              disconnectConnection.isPending ||
+              isConnectionStatusLoading
+            }
+          >
+            {sendConnectionRequest.isPending ||
+            disconnectConnection.isPending ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              connectionProps.text
+            )}
+          </Button>
+
+          <Dialog
+            open={isMessageDialogOpen}
+            onOpenChange={setIsMessageDialogOpen}
+          >
+            <DialogTrigger asChild>
               <Button
                 variant="outline"
-                onClick={() => {
-                  setMessage("");
-                  setIsMessageDialogOpen(false);
-                }}
-                disabled={sendMessage.isPending}
+                className="flex-1"
+                disabled={getOrCreateChat.isPending}
               >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSendMessage}
-                disabled={
-                  !message.trim() ||
-                  sendMessage.isPending ||
-                  getOrCreateChat.isPending
-                }
-              >
-                {sendMessage.isPending ? (
+                {getOrCreateChat.isPending ? (
                   <>
                     <Loader2 size={16} className="mr-2 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  "Send Message"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Recent Activity section - User Posts */}
-      <div className="border-t px-6 py-5">
-        <h2 className="text-base font-semibold text-gray-900 mb-3">
-          Recent Activity
-        </h2>
-
-        {isPostsLoading ? (
-          <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : recentPosts.length > 0 ? (
-          <div className="space-y-4">
-            {recentPosts.map((post) => (
-              <div
-                key={post.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-              >
-                <h3 className="font-medium text-gray-900 mb-2">{post.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {post.content}
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  {new Date(post.createdAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </p>
-              </div>
-            ))}
-
-            {hasNextPage && (
-              <Button
-                variant="ghost"
-                className="w-full text-sm"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage ? (
-                  <>
-                    <Loader2 size={14} className="mr-2 animate-spin" />
                     Loading...
                   </>
                 ) : (
-                  "View more posts"
+                  "Message"
                 )}
               </Button>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500 italic">
-            No recent activity to display
-          </p>
-        )}
+            </DialogTrigger>
+
+            <DialogContent className="sm:max-w-106.25">
+              <DialogHeader>
+                <DialogTitle>
+                  Message {user.firstName || user.email.split("@")[0]}
+                </DialogTitle>
+                <DialogDescription>
+                  Send a direct message to start a conversation.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <label htmlFor="message" className="text-sm font-medium">
+                    Message
+                  </label>
+                  <Textarea
+                    id="message"
+                    placeholder="Write your message here..."
+                    className="min-h-30"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    disabled={sendMessage.isPending}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setMessage("");
+                    setIsMessageDialogOpen(false);
+                  }}
+                  disabled={sendMessage.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={
+                    !message.trim() ||
+                    sendMessage.isPending ||
+                    getOrCreateChat.isPending
+                  }
+                >
+                  {sendMessage.isPending ? (
+                    <>
+                      <Loader2 size={16} className="mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Message"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Recent Activity section - User Posts */}
+        <div className="border-t px-6 py-5">
+          <h2 className="text-base font-semibold text-gray-900 mb-3">
+            Recent Activity
+          </h2>
+
+          {isPostsLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : recentPosts.length > 0 ? (
+            <div className="space-y-4">
+              {recentPosts.map((post) => (
+                // <div
+                //   key={post.id}
+                //   className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                // >
+                //   <h3 className="font-medium text-gray-900 mb-2">{post.title}</h3>
+                //   <p className="text-sm text-gray-600 line-clamp-2">
+                //     {post.content}
+                //   </p>
+                //   <p className="text-xs text-gray-400 mt-2">
+                //     {new Date(post.createdAt).toLocaleDateString("en-US", {
+                //       month: "short",
+                //       day: "numeric",
+                //       year: "numeric",
+                //     })}
+                //   </p>
+                // </div>
+                <PostsProvider key={post.id}>
+                  <CommunityPosts community={post} />
+                </PostsProvider>
+              ))}
+
+              {hasNextPage && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-sm"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? (
+                    <>
+                      <Loader2 size={14} className="mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    "View more posts"
+                  )}
+                </Button>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 italic">
+              No recent activity to display
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+    
   );
 };

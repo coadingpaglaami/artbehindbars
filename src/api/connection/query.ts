@@ -63,10 +63,14 @@ export const useGetConnectionStatus = (userId: string) =>
   useQuery({
     queryKey: ["getConnectionStatus", userId],
     queryFn: () => api.getConnectionStatus(userId),
+    enabled: !!userId,
+    refetchOnWindowFocus: true
   });
+
 
 export const useGetMyRequests = ({ page = 1, limit = 10 }: Pagination) =>
   useQuery({
     queryKey: ["myRequests", page, limit],
     queryFn: () => api.myRequests({ page, limit }),
+    refetchOnWindowFocus: true
   });

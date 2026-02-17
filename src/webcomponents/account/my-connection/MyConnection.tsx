@@ -220,7 +220,6 @@ export const MyConnection = () => {
 
   const handleRejectRequest = async (
     connectionIdOrUserId: string,
-    requestType?: "incoming" | "outgoing",
   ) => {
     try {
       // For outgoing requests, we might need to use a different endpoint
@@ -245,15 +244,8 @@ export const MyConnection = () => {
     return incomingError || outgoingError;
   };
 
-  const getCount = () => {
-    if (activeTab === "connected") return allConnections.length;
-    if (activeTab === "blocked") return blockedUsers.length;
-    return pendingRequests.length;
-  };
-
   const isLoading = getLoadingState();
   const error = getErrorState();
-  const count = getCount();
 
   if (isLoading) {
     return (
@@ -374,13 +366,13 @@ export const MyConnection = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="p-4">
+          {/* <div className="p-4">
             <SearchBar
               placeholder={`Search ${activeTab} connections...`}
               value={search}
               onChange={setSearch}
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Connections List */}
@@ -420,7 +412,6 @@ export const MyConnection = () => {
                         pendingItem.id ||
                           pendingItem?.connectionId ||
                           pendingItem.user.id,
-                        pendingItem.requestType,
                       )
                     }
                     isAcceptPending={acceptMutation.isPending}
@@ -430,19 +421,18 @@ export const MyConnection = () => {
               }
 
               // Handle connected users
-              const connection = item as ConnectionInterface;
-              const otherUser = connection.requester ?? connection.receiver;
-              console.log(connection, 'line 435')
+            const connection = item as unknown as   {connectionId: string; chatId: string ; user: AccountProfile};
+              console.log(connection.user, 'line 435')
 
               return (
                 <Connection
-                  key={connection.id}
+                  key={connection.connectionId}
                   type="connected"
-                  connection={connection}
-                  otherUser={otherUser as AccountProfile}
-                  onMessage={() => handleMessage(otherUser?.chatId)}
-                  onBlock={() => handleBlock(otherUser?.id ?? "")}
-                  onDisconnect={() => handleDisconnect(connection.id)}
+                  connection={connection.connectionId}
+                  otherUser={connection.user }
+                  onMessage={() => handleMessage(connection.chatId)}
+                  onBlock={() => handleBlock(connection.user.id)}
+                  onDisconnect={() => handleDisconnect(connection.connectionId)}
                   isBlockPending={blockUnblockMutation.isPending}
                   isDisconnectPending={disconnectMutation.isPending}
                 />

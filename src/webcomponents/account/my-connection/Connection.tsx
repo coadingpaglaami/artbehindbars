@@ -1,20 +1,21 @@
 import { Connection as ConnectionType } from "@/types/connection.type";
-import { 
-  MessageCircle, 
-  Ban, 
-  X, 
-  Users, 
-  Unlock, 
+import {
+  MessageCircle,
+  Ban,
+  X,
+  Users,
+  Unlock,
   Loader2,
   Check,
   Clock,
-  ArrowRight
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccountProfile } from "@/types/account.type";
+import Image from "next/image";
 
 interface ConnectionProps {
-  connection?: ConnectionType;
+  connection?: ConnectionType | string;
   user?: AccountProfile;
   otherUser?: AccountProfile;
   type: "connected" | "blocked" | "pending";
@@ -33,7 +34,6 @@ interface ConnectionProps {
 }
 
 export const Connection = ({
-  connection,
   user,
   otherUser,
   type,
@@ -51,11 +51,12 @@ export const Connection = ({
   isRejectPending = false,
 }: ConnectionProps) => {
   // For blocked users or pending requests, use the user prop directly
-  // For connected, use otherUser or extract from connectio
-console.log(otherUser,' line 55 ')
-  const displayUser = type === "blocked" || type === "pending"
-    ? user 
-    : (otherUser || connection?.requester || connection?.receiver);
+  // For connected, use otherUser or extract from connection
+  console.log(otherUser, " line 55 ");
+  const displayUser =
+    type === "blocked" || type === "pending"
+      ? user
+      : otherUser 
 
   // Generate initials from name
   const getInitials = (firstName?: string, lastName?: string) => {
@@ -71,8 +72,6 @@ console.log(otherUser,' line 55 ')
   const fullName = getFullName(displayUser?.firstName, displayUser?.lastName);
   const initials = getInitials(displayUser?.firstName, displayUser?.lastName);
   const connectionsCount = displayUser?.connectionsCount ?? 0;
-
-
 
   const getStatusBadge = () => {
     if (type === "pending") {
@@ -104,10 +103,12 @@ console.log(otherUser,' line 55 ')
       <div className="flex items-center gap-3 flex-1">
         {/* Avatar or Initial */}
         {displayUser?.profilePictureUrl ? (
-          <img
+          <Image
             src={displayUser.profilePictureUrl}
             alt={fullName}
             className="w-12 h-12 rounded-full object-cover"
+            width={48}
+            height={48}
           />
         ) : (
           <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-xl font-semibold">
@@ -118,16 +119,12 @@ console.log(otherUser,' line 55 ')
         {/* Name and Connection Count */}
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-xl font-semibold text-gray-900">
-              {fullName}
-            </h3>
+            <h3 className="text-xl font-semibold text-gray-900">{fullName}</h3>
             {getStatusBadge()}
           </div>
           <div className="flex items-center gap-1.5 text-gray-600">
             <Users size={16} />
-            <span className="text-sm">
-              {connectionsCount} connections
-            </span>
+            <span className="text-sm">{connectionsCount} connections</span>
           </div>
         </div>
       </div>
@@ -161,7 +158,9 @@ console.log(otherUser,' line 55 ')
               className="hover:bg-gray-100"
               onClick={onMessage}
               title="Message"
-              disabled={isBlockPending || isDisconnectPending || !displayUser?.id}
+              disabled={
+                isBlockPending || isDisconnectPending || !displayUser?.id
+              }
             >
               <MessageCircle size={20} className="text-green-500" />
             </Button>
@@ -196,7 +195,8 @@ console.log(otherUser,' line 55 ')
           </>
         )}
 
-        {type === "pending" && requestType === "incoming" && (
+        {type === "pending" &&
+          requestType === "incoming" &&
           // Show Accept/Reject for incoming requests (only if connectionId exists)
           connectionId && (
             <>
@@ -229,8 +229,7 @@ console.log(otherUser,' line 55 ')
                 )}
               </Button>
             </>
-          )
-        )}
+          )}
 
         {type === "pending" && requestType === "outgoing" && (
           // Show cancel/withdraw for outgoing requests
