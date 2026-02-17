@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import * as api from "./api";
 import { Pagination } from "@/types/connection.type";
 
@@ -10,10 +10,27 @@ export const useGetIncomingRequests = ({ page = 1, limit = 10 }: Pagination) =>
     queryFn: () => api.getIncomingRequests({ page, limit }),
   });
 
-export const useGetMyConnections = ({ page = 1, limit = 10 }: Pagination) =>
-  useQuery({
-    queryKey: ["getMyConnections", page, limit],
-    queryFn: () => api.getMyConnections({ page, limit }),
+export const useGetMyConnectionsInfinite = (limit: number = 10) =>
+  useInfiniteQuery({
+    queryKey: ["getMyConnections", limit],
+
+    queryFn: ({ pageParam = 1 }) =>
+      api.getMyConnections({
+        page: pageParam,
+        limit,
+      }),
+
+    initialPageParam: 1,
+
+    getNextPageParam: (lastPage) => {
+      const totalPages = Math.ceil(lastPage.total / lastPage.limit);
+
+      if (lastPage.page < totalPages) {
+        return lastPage.page + 1;
+      }
+
+      return undefined; // no more pages
+    },
   });
 
 /* ================= MUTATIONS ================= */
@@ -46,4 +63,10 @@ export const useGetConnectionStatus = (userId: string) =>
   useQuery({
     queryKey: ["getConnectionStatus", userId],
     queryFn: () => api.getConnectionStatus(userId),
+  });
+
+export const useGetMyRequests = ({ page = 1, limit = 10 }: Pagination) =>
+  useQuery({
+    queryKey: ["myRequests", page, limit],
+    queryFn: () => api.myRequests({ page, limit }),
   });

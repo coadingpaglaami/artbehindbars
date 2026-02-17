@@ -5,6 +5,9 @@ export interface ConnectionUser {
   firstName?: string;
   lastName?: string;
   email?: string;
+  connectionsCount?: number;
+  chatId?: string; // Optional chat ID for direct messaging
+  profilePictureUrl?: string;
 }
 
 /* ================= ENUM ================= */

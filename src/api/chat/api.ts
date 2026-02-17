@@ -4,9 +4,9 @@ import {
   GetOrCreateChatResponse,
   SendMessageResponse,
   MarkSeenResponse,
-  GetUserChatsResponseTwo,
 } from "@/types/chat.type";
-
+import { Pagination } from "@/types/connection.type";
+import { ChatResponse } from "@/types/mymessage.type";
 
 /* ================= POST ================= */
 
@@ -37,8 +37,8 @@ export const markChatSeen = async (
 
 /* ================= GET ================= */
 
-export const getUserChats = async (): Promise<GetUserChatsResponseTwo> => {
-  const { data } = await axios.get("/chat");
+export const getUserChats = async (query:Pagination): Promise<ChatResponse> => {
+  const { data } = await axios.get("/chat", { params: query });
   return data;
 };
 

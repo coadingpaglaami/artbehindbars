@@ -7,6 +7,7 @@ import {
   RequestEmailChangeDto,
   VerifyEmailChangeDto,
 } from "@/types/account.type";
+import { PaginationQueryDto } from "@/types/auction.type";
 
 /* ---------- PROFILE ---------- */
 
@@ -67,10 +68,10 @@ export const useGetOtherUserProfile = (userId: string) =>
     queryFn: () => api.getOtherUserProfile(userId),
   });
 
-export const useGetMyBlockedUsers = () =>
+export const useGetMyBlockedUsers = (query: PaginationQueryDto) =>
   useQuery({
-    queryKey: ["getMyBlockedUsers"],
-    queryFn: api.getMyBlockedUsers,
+    queryKey: ["getMyBlockedUsers", query],
+    queryFn: () => api.getMyBlockedUsers(query),
   });
 
 export const useGetMyBoughtArtworks = () =>

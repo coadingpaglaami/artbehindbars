@@ -1,61 +1,288 @@
 "use client";
 
-import { myConnection } from "@/data/connection-data";
 import { HeadingTwo, SearchBar } from "@/webcomponents/reusable";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Connection } from "./Connection";
-import { UserCheck, UserX } from "lucide-react";
+import { UserCheck, UserX, Clock, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useInView } from "react-intersection-observer";
+import {
+  useAcceptConnectionMutation,
+  useDisconnectConnectionMutation,
+  useGetIncomingRequests,
+  useGetMyConnectionsInfinite,
+  useGetMyRequests,
+  useRejectConnectionMutation,
+} from "@/api/connection";
+import {
+  useBlockUnblockUserMutation,
+  useGetMyBlockedUsers,
+} from "@/api/account";
+import {
+  Connection as ConnectionInterface,
+  ConnectionUser,
+} from "@/types/connection.type";
+import { AccountProfile } from "@/types/account.type";
+
+// Define types for the API responses
+
+type PendingItem = {
+  id: string;
+  user: ConnectionUser;
+  requestType: "incoming" | "outgoing";
+  connectionId: string | null;
+};
 
 export const MyConnection = () => {
   const [search, setSearch] = useState("");
   const { push } = useRouter();
-  const [activeTab, setActiveTab] = useState<"connected" | "blocked">(
-    "connected",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "connected" | "blocked" | "pending"
+  >("connected");
+  const { ref, inView } = useInView();
 
-  // Filter connections
-  const connectedUsers = myConnection.filter((conn) => !conn.isBlocked);
-  const blockedUsers = myConnection.filter((conn) => conn.isBlocked);
+  // Fetch connections with infinite scroll
+  const {
+    data: connectionsData,
+    isLoading: isLoadingConnections,
+    error: connectionsError,
+    fetchNextPage: fetchNextConnections,
+    hasNextPage: hasMoreConnections,
+    isFetchingNextPage: isFetchingMoreConnections,
+  } = useGetMyConnectionsInfinite();
+
+  // Fetch incoming requests - returns Connection[]
+  const {
+    data: incomingData,
+    isLoading: isLoadingIncoming,
+    error: incomingError,
+    refetch: refetchIncoming,
+  } = useGetIncomingRequests({ page: 1, limit: 20 });
+  console.log(incomingData, "line 40");
+
+  // Fetch my requests (outgoing) - returns AccountProfile[] directly in data
+  const {
+    data: outgoingData,
+    isLoading: isLoadingOutgoing,
+    error: outgoingError,
+    refetch: refetchOutgoing,
+  } = useGetMyRequests({ page: 1, limit: 20 });
+  console.log(outgoingData, "line 60");
+
+  // Fetch blocked users - returns PaginatedResponse<AccountProfile>
+  const {
+    data: blockedUsersData,
+    isLoading: isLoadingBlocked,
+    error: blockedError,
+    refetch: refetchBlocked,
+  } = useGetMyBlockedUsers({ page: 1, limit: 20 });
+
+  // Mutations
+  const blockUnblockMutation = useBlockUnblockUserMutation();
+  const disconnectMutation = useDisconnectConnectionMutation();
+  const acceptMutation = useAcceptConnectionMutation();
+  const rejectMutation = useRejectConnectionMutation();
+
+  // Flatten connections from all pages
+  const allConnections =
+    connectionsData?.pages.flatMap((page) => page.data) ?? [];
+
+  // Blocked users data - extract from paginated response
+  const blockedUsers = blockedUsersData?.data ?? [];
+
+  // Transform incoming and outgoing requests for pending tab
+  const pendingRequests: PendingItem[] = useMemo(() => {
+    const incoming = incomingData?.data ?? [];
+    const outgoing = outgoingData?.data ?? [];
+
+    const transformedIncoming: PendingItem[] = incoming.map((req) => ({
+      id: req.id,
+      user: req.requester ?? req.receiver!,
+      requestType: "incoming",
+      connectionId: req.id,
+    }));
+
+    const transformedOutgoing: PendingItem[] = outgoing.map((user) => ({
+      id: user.id,
+      user,
+      requestType: "outgoing",
+      connectionId: user.id,
+    }));
+
+    return [...transformedIncoming, ...transformedOutgoing];
+  }, [incomingData, outgoingData]);
+
+  console.log(pendingRequests, "line 96 ");
+
+  // Load more connections when scrolling to bottom
+  useEffect(() => {
+    if (
+      inView &&
+      hasMoreConnections &&
+      !isFetchingMoreConnections &&
+      activeTab === "connected"
+    ) {
+      fetchNextConnections();
+    }
+  }, [
+    inView,
+    hasMoreConnections,
+    isFetchingMoreConnections,
+    fetchNextConnections,
+    activeTab,
+  ]);
 
   // Search filter based on active tab
-  const filteredConnections = useMemo(() => {
-    const dataToFilter =
-      activeTab === "connected" ? connectedUsers : blockedUsers;
+  const filteredData = useMemo(() => {
+    if (!search.trim()) {
+      if (activeTab === "connected") return allConnections;
+      if (activeTab === "blocked") return blockedUsers;
+      return pendingRequests;
+    }
 
-    if (!search.trim()) return dataToFilter;
+    const searchLower = search.toLowerCase();
 
-    return dataToFilter.filter((conn) =>
-      conn.name.toLowerCase().includes(search.toLowerCase()),
+    if (activeTab === "connected") {
+      return allConnections.filter((item: ConnectionInterface) => {
+        const otherUser = item.requester ?? item.receiver;
+        const fullName = otherUser
+          ? `${otherUser.firstName || ""} ${otherUser.lastName || ""}`
+              .trim()
+              .toLowerCase()
+          : "";
+        return fullName.includes(searchLower);
+      });
+    }
+
+    if (activeTab === "blocked") {
+      return blockedUsers.filter((user: AccountProfile) => {
+        const fullName = `${user.firstName || ""} ${user.lastName || ""}`
+          .trim()
+          .toLowerCase();
+        return fullName.includes(searchLower);
+      });
+    }
+
+    // Pending tab
+    return pendingRequests.filter((item) => {
+      const fullName = item
+        ? `${item.user?.firstName || ""} ${item.user?.lastName || ""}`
+            .trim()
+            .toLowerCase()
+        : "";
+      return fullName.includes(searchLower);
+    });
+  }, [search, activeTab, allConnections, blockedUsers, pendingRequests]);
+
+  const handleMessage = (chatId?: string) => {
+    if (chatId) {
+      push(`/chat/${chatId}`);
+    }
+  };
+
+  const handleBlock = async (userId: string) => {
+    try {
+      await blockUnblockMutation.mutateAsync(userId);
+      refetchBlocked();
+      refetchIncoming();
+      refetchOutgoing();
+    } catch (error) {
+      console.error("Failed to block user:", error);
+    }
+  };
+
+  const handleUnblock = async (userId: string) => {
+    try {
+      await blockUnblockMutation.mutateAsync(userId);
+      refetchBlocked();
+    } catch (error) {
+      console.error("Failed to unblock user:", error);
+    }
+  };
+
+  const handleDisconnect = async (connectionId: string) => {
+    try {
+      await disconnectMutation.mutateAsync(connectionId);
+    } catch (error) {
+      console.error("Failed to disconnect:", error);
+    }
+  };
+
+  const handleAcceptRequest = async (connectionId: string) => {
+    try {
+      await acceptMutation.mutateAsync(connectionId);
+      refetchIncoming();
+      refetchOutgoing();
+    } catch (error) {
+      console.error("Failed to accept request:", error);
+    }
+  };
+
+  const handleRejectRequest = async (
+    connectionIdOrUserId: string,
+    requestType?: "incoming" | "outgoing",
+  ) => {
+    try {
+      // For outgoing requests, we might need to use a different endpoint
+      // This assumes reject mutation works with user ID for outgoing requests
+      await rejectMutation.mutateAsync(connectionIdOrUserId);
+      refetchIncoming();
+      refetchOutgoing();
+    } catch (error) {
+      console.error("Failed to reject/cancel request:", error);
+    }
+  };
+
+  const getLoadingState = () => {
+    if (activeTab === "connected") return isLoadingConnections;
+    if (activeTab === "blocked") return isLoadingBlocked;
+    return isLoadingIncoming || isLoadingOutgoing;
+  };
+
+  const getErrorState = () => {
+    if (activeTab === "connected") return connectionsError;
+    if (activeTab === "blocked") return blockedError;
+    return incomingError || outgoingError;
+  };
+
+  const getCount = () => {
+    if (activeTab === "connected") return allConnections.length;
+    if (activeTab === "blocked") return blockedUsers.length;
+    return pendingRequests.length;
+  };
+
+  const isLoading = getLoadingState();
+  const error = getErrorState();
+  const count = getCount();
+
+  if (isLoading) {
+    return (
+      <div className="py-16 px-4 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
-  }, [search, activeTab, connectedUsers, blockedUsers]);
+  }
 
-  const handleMessage = (id: string) => {
-    console.log("Message user:", push(`/chat/${id}`));
-  };
-
-  const handleBlock = (id: string) => {
-    console.log("Block user:", id);
-  };
-
-  const handleUnblock = (id: string) => {
-    console.log("Unblock user:", id);
-  };
-
-  const handleDisconnect = (id: string) => {
-    console.log("Disconnect user:", id);
-  };
+  if (error) {
+    return (
+      <div className="py-16 px-4">
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center">
+          Failed to load {activeTab} connections
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-16 px-4">
-      <div className=" space-y-6">
+      <div className="space-y-6">
         <HeadingTwo
           title="My Connections"
           description="Manage your connections and interactions."
         />
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Connected Card */}
           <div className="bg-white rounded-lg shadow-md p-6 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -63,9 +290,22 @@ export const MyConnection = () => {
             </div>
             <div>
               <div className="text-3xl font-bold text-gray-900">
-                {connectedUsers.length}
+                {allConnections.length}
               </div>
               <div className="text-gray-600">Connected</div>
+            </div>
+          </div>
+
+          {/* Pending Card */}
+          <div className="bg-white rounded-lg shadow-md p-6 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+              <Clock size={24} className="text-yellow-600" />
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-gray-900">
+                {pendingRequests.length}
+              </div>
+              <div className="text-gray-600">Pending</div>
             </div>
           </div>
 
@@ -90,8 +330,14 @@ export const MyConnection = () => {
             <div
               className="absolute bottom-0 h-1 bg-primary transition-all duration-300 ease-in-out"
               style={{
-                width: "50%",
-                transform: `translateX(${activeTab === "connected" ? "0%" : "100%"})`,
+                width: "33.333%",
+                transform: `translateX(${
+                  activeTab === "connected"
+                    ? "0%"
+                    : activeTab === "pending"
+                      ? "100%"
+                      : "200%"
+                })`,
               }}
             />
 
@@ -103,7 +349,17 @@ export const MyConnection = () => {
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              Connected ({connectedUsers.length})
+              Connected ({allConnections.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("pending")}
+              className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
+                activeTab === "pending"
+                  ? "text-primary bg-blue-50"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              Pending ({pendingRequests.length})
             </button>
             <button
               onClick={() => setActiveTab("blocked")}
@@ -129,18 +385,69 @@ export const MyConnection = () => {
 
         {/* Connections List */}
         <div className="space-y-3">
-          {filteredConnections.length > 0 ? (
-            filteredConnections.map((connection) => (
-              <Connection
-                key={connection.id}
-                connection={connection}
-                isBlockedTab={activeTab === "blocked"}
-                onMessage={() => handleMessage(connection.id)}
-                onBlock={() => handleBlock(connection.id)}
-                onUnblock={() => handleUnblock(connection.id)}
-                onDisconnect={() => handleDisconnect(connection.id)}
-              />
-            ))
+          {filteredData.length > 0 ? (
+            filteredData.map((item) => {
+              // Handle blocked users
+              if (activeTab === "blocked") {
+                const blockedUser = item as AccountProfile;
+                return (
+                  <Connection
+                    key={blockedUser.id}
+                    type="blocked"
+                    user={blockedUser}
+                    onUnblock={() => handleUnblock(blockedUser.id)}
+                    isBlockPending={blockUnblockMutation.isPending}
+                  />
+                );
+              }
+
+              // Handle pending requests
+              if (activeTab === "pending") {
+                const pendingItem = item as PendingItem;
+                console.log(pendingItem, "line 366");
+                return (
+                  <Connection
+                    key={`${pendingItem.user.id}-${pendingItem.id}`}
+                    type="pending"
+                    user={pendingItem.user as AccountProfile}
+                    requestType={pendingItem.requestType}
+                    connectionId={pendingItem.id}
+                    onAcceptRequest={() =>
+                      pendingItem.id && handleAcceptRequest(pendingItem.id)
+                    }
+                    onRejectRequest={() =>
+                      handleRejectRequest(
+                        pendingItem.id ||
+                          pendingItem?.connectionId ||
+                          pendingItem.user.id,
+                        pendingItem.requestType,
+                      )
+                    }
+                    isAcceptPending={acceptMutation.isPending}
+                    isRejectPending={rejectMutation.isPending}
+                  />
+                );
+              }
+
+              // Handle connected users
+              const connection = item as ConnectionInterface;
+              const otherUser = connection.requester ?? connection.receiver;
+              console.log(connection, 'line 435')
+
+              return (
+                <Connection
+                  key={connection.id}
+                  type="connected"
+                  connection={connection}
+                  otherUser={otherUser as AccountProfile}
+                  onMessage={() => handleMessage(otherUser?.chatId)}
+                  onBlock={() => handleBlock(otherUser?.id ?? "")}
+                  onDisconnect={() => handleDisconnect(connection.id)}
+                  isBlockPending={blockUnblockMutation.isPending}
+                  isDisconnectPending={disconnectMutation.isPending}
+                />
+              );
+            })
           ) : (
             <div className="bg-white rounded-lg shadow-md p-12 text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -151,6 +458,15 @@ export const MyConnection = () => {
                   ? "Try adjusting your search criteria"
                   : `You don't have any ${activeTab} connections yet`}
               </p>
+            </div>
+          )}
+
+          {/* Infinite scroll loader for connections tab */}
+          {activeTab === "connected" && hasMoreConnections && (
+            <div ref={ref} className="flex justify-center py-4">
+              {isFetchingMoreConnections && (
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              )}
             </div>
           )}
         </div>

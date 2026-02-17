@@ -7,7 +7,8 @@ import {
   AccountProfile,
   GenericMessageResponse,
 } from "@/types/account.type";
-import { ArtworkResponseDto } from "@/types/gallery.types";
+import { PaginatedResponseDto, PaginationQueryDto } from "@/types/auction.type";
+import { ArtworkResponseDto, PaginationMetaDto } from "@/types/gallery.types";
 
 const ACCOUNT = "/account";
 
@@ -111,11 +112,12 @@ export const getOtherUserProfile = async (
   return data;
 };
 
-export const getMyBlockedUsers = async (): Promise<{
-  blockedUsers: AccountProfile[];
-}> => {
-  const { data } = await axios.get<{ blockedUsers: AccountProfile[] }>(
+export const getMyBlockedUsers = async (
+  query: PaginationQueryDto,
+): Promise<PaginatedResponseDto<AccountProfile>> => {
+  const { data } = await axios.get<PaginatedResponseDto<AccountProfile>>(
     `${ACCOUNT}/my-blocked-users`,
+    { params: query },
   );
   return data;
 };

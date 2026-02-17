@@ -1,38 +1,40 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { useGetUserChats } from "@/api/chat";
+import { Loader2 } from "lucide-react"; // Adjust import path as needed
+import { useInView } from "react-intersection-observer";
+import { useEffect } from "react";
+import { useGetInfiniteUserChats } from "@/api/chat";
+import { Chat } from "@/types/mymessage.type";
 
 // Response interface based on actual API response
-export interface ChatListItem {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  lastMessage: {
-    id: string;
-    chatId: string;
-    senderId: string;
-    content: string;
-    createdAt: string;
-    updatedAt: string;
-  } | null;
-  otherUser: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  unreadCount: number;
-}
 
 export const ThreadList = () => {
   const router = useRouter();
   const params = useParams<{ chatId?: string }>();
+  const { ref, inView } = useInView();
 
   const selectedChatId = params?.chatId;
 
-  // Fetch chats
-  const { data: chats, isLoading, error } = useGetUserChats();
+  // Fetch chats with infinite query
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetInfiniteUserChats();
+
+  // Load more when scrolling to the bottom
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Flatten all pages of chats
+  const allChats = data?.pages.flatMap(page => page.data) ?? [];
 
   const getInitials = (firstName: string, lastName: string) => {
     if (!firstName && !lastName) return "?";
@@ -44,11 +46,11 @@ export const ThreadList = () => {
     return `${firstName || ""} ${lastName || ""}`.trim();
   };
 
-  const getLastMessage = (chat: ChatListItem) => {
-    if (!chat.lastMessage) return "No messages yet";
-    return chat.lastMessage.content.length > 40
-      ? chat.lastMessage.content.slice(0, 40) + "..."
-      : chat.lastMessage.content;
+  const getLastMessage = (chat:Chat) => {
+    if (!chat.messages[0]) return "No messages yet";
+    return chat.messages[0].content.length > 40
+      ? chat.messages[0].content.slice(0, 40) + "..."
+      : chat.messages[0].content;
   };
 
   const formatTime = (dateString: string) => {
@@ -81,7 +83,7 @@ export const ThreadList = () => {
     );
   }
 
-  if (!chats || chats.unreadCount === 0) {
+  if (!allChats || allChats.length === 0) {
     return (
       <div className="md:w-80 w-16 bg-white border-r flex items-center justify-center p-4">
         <p className="text-gray-500 text-sm text-center">
@@ -93,7 +95,7 @@ export const ThreadList = () => {
 
   return (
     <div className="md:w-80 w-16 bg-white border-r overflow-y-auto">
-      {chats.map((chat) => {
+      {allChats.map((chat) => {
         const hasUnread = chat.unreadCount > 0;
         const isActive = selectedChatId === chat.id;
         const fullName = getFullName(
@@ -126,9 +128,9 @@ export const ThreadList = () => {
                     {fullName}
                   </h3>
                   <div className="flex items-center gap-2">
-                    {chat.lastMessage && (
+                    {chat.messages[0] && (
                       <span className="text-xs text-gray-400">
-                        {formatTime(chat.lastMessage.createdAt)}
+                        {formatTime(chat.messages[0].createdAt)}
                       </span>
                     )}
                     {hasUnread && (
@@ -156,6 +158,15 @@ export const ThreadList = () => {
           </div>
         );
       })}
+      
+      {/* Loader for next page */}
+      {hasNextPage && (
+        <div ref={ref} className="flex justify-center py-4">
+          {isFetchingNextPage && (
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          )}
+        </div>
+      )}
     </div>
   );
 };

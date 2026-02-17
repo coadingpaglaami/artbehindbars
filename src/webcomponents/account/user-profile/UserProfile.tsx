@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGetOtherUserProfile } from "@/api/account";
 import {
+  useAcceptConnectionMutation,
   useDisconnectConnectionMutation,
   useGetConnectionStatus,
   useSendConnectionRequestMutation,
@@ -57,6 +58,9 @@ export const UserProfile = ({ profileId }: UserProfileProps) => {
     hasNextPage,
     isFetchingNextPage,
   } = useGetInfiniteUserPosts(profileId, { limit: 3 }); // Limit to 3 for recent activity
+
+  const { mutate: acceptConnection, isPending: isAcceptingConnection } =
+    useAcceptConnectionMutation();
 
   // Mutations
   const sendConnectionRequest = useSendConnectionRequestMutation();
@@ -134,9 +138,7 @@ export const UserProfile = ({ profileId }: UserProfileProps) => {
   const handleAccept = async () => {
     try {
       // This would be a different mutation for accepting
-      await sendConnectionRequest.mutateAsync({
-        receiverId: profileId,
-      });
+      acceptConnection(connectionData?.connectionId || "");
       toast.success("Connection accepted!");
       refetchConnectionStatus();
     } catch (error: unknown) {
@@ -248,7 +250,7 @@ export const UserProfile = ({ profileId }: UserProfileProps) => {
               : user.email}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {user.connectionCount || 0} connections
+            {user.connectionsCount || 0} connections
           </p>
 
           {user.bio && (

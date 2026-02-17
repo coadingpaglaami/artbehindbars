@@ -39,3 +39,9 @@ export function isClientAuthenticated(): boolean {
   const now = Math.floor(Date.now() / 1000);
   return payload.exp > now;
 }
+
+
+  export function ClientSub(): string | null {
+    const payload = decodeClientToken();
+    return payload?.sub ?? null;
+  }

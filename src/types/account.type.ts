@@ -1,5 +1,6 @@
 /* ================= PROFILE ================= */
 
+
 export interface AccountProfile {
   id: string;
   email: string;
@@ -12,7 +13,7 @@ export interface AccountProfile {
   createdAt: string;
   updatedAt: string;
   avatar?: string | null;
-  connectionCount: number;
+  connectionsCount: number; // Optional list of connections for the user
 }
 
 /* ================= DTOs ================= */

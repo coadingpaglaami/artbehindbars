@@ -1,4 +1,6 @@
 import axios from "@/lib/axios";
+import { AccountProfile } from "@/types/account.type";
+import { PaginatedResponseDto } from "@/types/auction.type";
 import {
   CreateConnectionPayload,
   PaginatedConnectionResponse,
@@ -49,6 +51,13 @@ export const getIncomingRequests = async (
   return data;
 };
 
+export const myRequests = async (
+  params: Pagination,
+): Promise<PaginatedResponseDto<AccountProfile>> => {
+  const { data } = await axios.get("/connections/my-requests", { params });
+  return data;
+};
+
 export const getMyConnections = async (
   params: Pagination,
 ): Promise<PaginatedConnectionResponse> => {
@@ -58,7 +67,7 @@ export const getMyConnections = async (
 
 export const getConnectionStatus = async (
   userId: string,
-): Promise<{ direction: string; status: string, connectionId?: string }> => {
+): Promise<{ direction: string; status: string; connectionId?: string }> => {
   const { data } = await axios.get(`/connections/${userId}/status`);
   return data;
 };
