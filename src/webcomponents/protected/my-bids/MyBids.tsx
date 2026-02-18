@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react"; // Adjust path
+import { useState, useMemo, useEffect } from "react"; // Adjust path
 import { UserAuctionHistoryItemDto, UserBidStatus } from "@/types/auction.type"; // Adjust path
 import { MyBidsHistory } from "./MyBidsHistory";
 import { BidsHistoryCard } from "./BidsHistoryCard";
 import { Pagination } from "@/webcomponents/reusable";
 import { useMyAuctionHistory } from "@/api/auction";
+import { getSocket } from "@/lib/socket";
 
 type FilterTab = "all" | "winning" | "outbid" | "completed";
 
@@ -32,9 +33,25 @@ export const MyBids = () => {
 
   // Always fetch full list for stats derivation (or add a dedicated stats endpoint later)
   const { data: allData } = useMyAuctionHistory({ page: 1, limit: 10 });
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !allData?.meta.total) return;
+
+    // Join all auction rooms
+    allData.data.forEach((bid) => {
+      socket.emit("joinAuction", bid.auctionId);
+    });
+
+    return () => {
+      // Leave rooms on unmount
+      allData.data.forEach((bid) => {
+        socket.emit("leaveAuction", bid.auctionId);
+      });
+    };
+  }, [allData]);
 
   // Paginated fetch for current tab
-  const { data, isLoading, isError,refetch } = useMyAuctionHistory({
+  const { data, isLoading, isError, refetch } = useMyAuctionHistory({
     page: currentPage,
     limit: ITEMS_PER_PAGE,
   });
@@ -43,10 +60,7 @@ export const MyBids = () => {
     () => allData?.data ?? [],
     [allData],
   );
-  const items = useMemo(
-    () => data?.data ?? [],
-    [data],
-  );
+  const items = useMemo(() => data?.data ?? [], [data]);
 
   // Client-side filter by tab
   const filteredItems = useMemo(() => {

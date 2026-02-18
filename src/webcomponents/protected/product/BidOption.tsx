@@ -22,9 +22,11 @@ export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [commitmentAccepted, setCommitmentAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentPrice, setCurrentPrice] = useState(
-    product.auction?.currentPrice || 0,
-  );
+  // const [currentPrice, setCurrentPrice] = useState(
+  //   product.auction?.currentPrice || 0,
+  // );
+  const currentPrice = product.auction?.currentPrice || 0;
+
   console.log(product);
 
   // Fetch bids for this auction
@@ -49,30 +51,30 @@ export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
     };
   }, [product.auction?.id]);
 
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
+  // useEffect(() => {
+  //   const socket = getSocket();
+  //   if (!socket) return;
 
-    const handleNewBid = (data: PlaceBidDto & { firstName?: string; lastName?: string }) => {
-      if (data.auctionId !== product.auction?.id) return;
+  //   const handleNewBid = (data: PlaceBidDto & { firstName?: string; lastName?: string }) => {
+  //     if (data.auctionId !== product.auction?.id) return;
 
-      setCurrentPrice(data.bidPrice);
-      refetchArtwork(); // update artwork details (if needed)
-      refetchBids(); // optional for now
+  //     setCurrentPrice(data.bidPrice);
+  //     refetchArtwork(); // update artwork details (if needed)
+  //     refetchBids(); // optional for now
 
-      const bidderName = data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : `User ${data.auctionId || 'Unknown'}`;
-      toast.success(`New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`, {
-        position: "top-right",
-        duration: 5000,
-      });
-    };
+  //     const bidderName = data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : `User ${data.auctionId || 'Unknown'}`;
+  //     toast.success(`New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`, {
+  //       position: "top-right",
+  //       duration: 5000,
+  //     });
+  //   };
 
-    socket.on("auction:newBid", handleNewBid);
+  //   socket.on("auction:newBid", handleNewBid);
 
-    return () => {
-      socket.off("auction:newBid", handleNewBid);
-    };
-  }, [product.auction?.id]);
+  //   return () => {
+  //     socket.off("auction:newBid", handleNewBid);
+  //   };
+  // }, [product.auction?.id]);
 
   const currentBid = currentPrice;
   if (currentBid == null) {

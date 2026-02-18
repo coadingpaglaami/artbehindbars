@@ -20,8 +20,7 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
     isLoading,
     isError,
     error,
- refetch,
-    
+    refetch,
   } = useGetArtworkById(productId);
 
   if (isLoading) {

@@ -1,4 +1,3 @@
-import { SocketProvider } from "@/context/SocketProvider";
 import { UserProfile } from "@/webcomponents/account";
 
 interface UserProfileProps {
@@ -12,9 +11,5 @@ export default async function UserProfilePage({ params }: UserProfileProps) {
 
   console.log(userId);
 
-  return (
-    <SocketProvider>
-      <UserProfile profileId={userId} />
-    </SocketProvider>
-  );
+  return <UserProfile profileId={userId} />;
 }

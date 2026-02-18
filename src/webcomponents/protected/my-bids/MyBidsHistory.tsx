@@ -12,13 +12,11 @@ import {
 } from "@/components/ui/popover";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  PlaceBidDto,
   UserAuctionHistoryItemDto,
   UserBidStatus,
 } from "@/types/auction.type"; // Adjust path
 import { usePlaceBidMutation } from "@/api/auction";
-import { getSocket } from "@/lib/socket";
-import { toast } from "sonner";
+
 
 interface MyBidsHistoryProps {
   bid: UserAuctionHistoryItemDto;
@@ -31,7 +29,7 @@ export const MyBidsHistory = ({ bid, refetch }: MyBidsHistoryProps) => {
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(bid.secondsRemaining);
-  const [liveHighestBid, setLiveHighestBid] = useState(bid.highestBid);
+  // const [liveHighestBid, setLiveHighestBid] = useState(bid.highestBid);
 
   const {
     mutate: placeBid,
@@ -58,46 +56,48 @@ export const MyBidsHistory = ({ bid, refetch }: MyBidsHistoryProps) => {
     return () => clearInterval(timer);
   }, [bid.secondsRemaining, bid.auctionStatus]);
 
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket || !bid.auctionId) return;
+  // useEffect(() => {
+  //   const socket = getSocket();
+  //   if (!socket || !bid.auctionId) return;
 
-    socket.emit("joinAuction", bid.auctionId);
+  //   socket.emit("joinAuction", bid.auctionId);
 
-    const handleNewBid = (
-      data: PlaceBidDto & { firstName?: string; lastName?: string },
-    ) => {
-      if (data.auctionId !== bid.auctionId) return;
+  //   const handleNewBid = (
+  //     data: PlaceBidDto & { firstName?: string; lastName?: string },
+  //   ) => {
+  //     if (data.auctionId !== bid.auctionId) return;
 
-      setLiveHighestBid(data.bidPrice);
-      // Optionally update artwork details if needed
-      // refetchArtwork(); // update artwork details (if needed)
-      // refetchBids(); // optional for now
+  //     setLiveHighestBid(data.bidPrice);
+  //     // Optionally update artwork details if needed
+  //     // refetchArtwork(); // update artwork details (if needed)
+  //     // refetchBids(); // optional for now
 
-      const bidderName =
-        data.firstName && data.lastName
-          ? `${data.firstName} ${data.lastName}`
-          : `User ${data.auctionId || "Unknown"}`;
-      toast.success(
-        `New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`,
-        {
-          position: "top-right",
-          duration: 5000,
-        },
-      );
+  //     const bidderName =
+  //       data.firstName && data.lastName
+  //         ? `${data.firstName} ${data.lastName}`
+  //         : `User ${data.auctionId || "Unknown"}`;
+  //     toast.success(
+  //       `New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`,
+  //       {
+  //         position: "top-right",
+  //         duration: 5000,
+  //       },
+  //     );
       
-      queryClient.invalidateQueries({
-        queryKey: ["auctions", "myHistory", "artwork", bid.artworkId],
-      });
-      refetch?.(); // Trigger parent list refresh
-    };
-    socket.on("auction:newBid", handleNewBid);
+  //     queryClient.invalidateQueries({
+  //       queryKey: ["auctions", "myHistory", "artwork", bid.artworkId],
+  //     });
+  //     refetch?.(); // Trigger parent list refresh
+  //   };
+  //   socket.on("auction:newBid", handleNewBid);
 
-    return () => {
-      socket.emit("leaveAuction", bid.auctionId);
-      socket.off("auction:newBid", handleNewBid);
-    };
-  }, [bid.auctionId, queryClient]);
+  //   return () => {
+  //     socket.emit("leaveAuction", bid.auctionId);
+  //     socket.off("auction:newBid", handleNewBid);
+  //   };
+  // }, [bid.auctionId, queryClient]);
+
+ 
 
   const formatCountdown = (secs: number): string => {
     if (secs <= 0) return "Ended";
@@ -326,7 +326,7 @@ export const MyBidsHistory = ({ bid, refetch }: MyBidsHistoryProps) => {
                         </h4>
                         <p className="text-xs text-muted-foreground">
                           Current highest bid:{" "}
-                          <strong>${liveHighestBid.toFixed(2)}</strong>
+                          <strong>${bid.highestBid?.toFixed(2)}</strong>
                         </p>
                       </div>
                       <div className="flex gap-2 flex-wrap">

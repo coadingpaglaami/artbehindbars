@@ -1,4 +1,3 @@
-import SocketQueryProvider from "@/context/QueryClientProvider";
 import { Footer, NavBar } from "@/webcomponents/ui";
 
 export default function MainLayout({
@@ -7,7 +6,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SocketQueryProvider>
+
       <div className="min-h-screen flex flex-col w-full">
 
         <nav className="bg-[#FFA66A] h-20 sticky top-0 z-50">
@@ -23,6 +22,5 @@ export default function MainLayout({
         </footer>
 
       </div>
-    </SocketQueryProvider>
   );
 }

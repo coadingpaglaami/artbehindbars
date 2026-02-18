@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./global.css";
 import { Toaster } from "sonner";
+import SocketQueryProvider from "@/context/QueryClientProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,8 +32,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
-        {children}
-        <Toaster />
+        <SocketQueryProvider>
+          {children} <Toaster />
+        </SocketQueryProvider>
       </body>
     </html>
   );

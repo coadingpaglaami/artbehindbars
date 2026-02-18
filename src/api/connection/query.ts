@@ -21,6 +21,8 @@ export const useGetMyConnectionsInfinite = (limit: number = 10) =>
       }),
 
     initialPageParam: 1,
+    refetchOnMount: true,
+    staleTime: 0,
 
     getNextPageParam: (lastPage) => {
       const totalPages = Math.ceil(lastPage.total / lastPage.limit);
@@ -64,6 +66,7 @@ export const useGetConnectionStatus = (userId: string) =>
     queryKey: ["getConnectionStatus", userId],
     queryFn: () => api.getConnectionStatus(userId),
     enabled: !!userId,
+    refetchOnMount: true,
     refetchOnWindowFocus: true
   });
 

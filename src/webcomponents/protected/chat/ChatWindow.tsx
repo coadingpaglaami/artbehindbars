@@ -16,12 +16,12 @@ interface ChatWindowProps {
 }
 
 export const ChatWindow = ({ chatId }: ChatWindowProps) => {
-  console.log(chatId,'line 19 ChatWindow.tsx')
+  console.log(chatId, "line 19 ChatWindow.tsx");
   const [newMessage, setNewMessage] = useState("");
   const queryClient = useQueryClient();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { data: messages = [],refetch } = useGetMessagesQuery(chatId);
+  const { data: messages = [], refetch } = useGetMessagesQuery(chatId);
   const sendMessage = useSendMessageMutation();
   const markSeen = useMarkChatSeenMutation();
   const userId = ClientSub(); // Assuming token contains user ID in 'sub' claim
@@ -33,41 +33,46 @@ export const ChatWindow = ({ chatId }: ChatWindowProps) => {
   /* =========================
      SOCKET LISTENERS
   ==========================*/
+  // useEffect(() => {
+  //   const socket = getSocket();
+  //   if (!socket) return;
+
+  //   socket.on("new_message", (message) => {
+  //     if (message.chatId !== chatId) return;
+
+  //     queryClient.setQueryData(
+  //       ["getMessages", chatId],
+  //       (old: Message[] = []) => [...old, message],
+  //     );
+
+  //     // mark as seen automatically
+
+  //     markSeen.mutate(chatId);
+  //   });
+
+  //   socket.on("message_seen", ({ messageId, seenAt }) => {
+  //     queryClient.setQueryData(["getMessages", chatId], (old: Message[] = []) =>
+  //       old.map((msg) =>
+  //         msg.id === messageId
+  //           ? {
+  //               ...msg,
+  //               statuses: [{ seenAt }],
+  //             }
+  //           : msg,
+  //       ),
+  //     );
+  //   });
+
+  //   return () => {
+  //     socket.off("new_message");
+  //     socket.off("message_seen");
+  //   };
+  // }, [chatId, queryClient, markSeen]);
   useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
+    if (!chatId) return;
 
-    socket.on("new_message", (message) => {
-      if (message.chatId !== chatId) return;
-
-      queryClient.setQueryData(
-        ["getMessages", chatId],
-        (old: Message[] = []) => [...old, message],
-      );
-
-      // mark as seen automatically
-
-      markSeen.mutate(chatId);
-    });
-
-    socket.on("message_seen", ({ messageId, seenAt }) => {
-      queryClient.setQueryData(["getMessages", chatId], (old: Message[] = []) =>
-        old.map((msg) =>
-          msg.id === messageId
-            ? {
-                ...msg,
-                statuses: [{ seenAt }],
-              }
-            : msg,
-        ),
-      );
-    });
-
-    return () => {
-      socket.off("new_message");
-      socket.off("message_seen");
-    };
-  }, [chatId, queryClient, markSeen]);
+    markSeen.mutate(chatId);
+  }, [chatId]);
 
   /* =========================
      AUTO SCROLL
@@ -98,14 +103,17 @@ export const ChatWindow = ({ chatId }: ChatWindowProps) => {
     ]);
 
     try {
-      await sendMessage.mutateAsync({
-        chatId,
-        content: newMessage,
-      },{
-        onSuccess:()=>{
-          refetch();
-        }
-      });
+      await sendMessage.mutateAsync(
+        {
+          chatId,
+          content: newMessage,
+        },
+        {
+          onSuccess: () => {
+            refetch();
+          },
+        },
+      );
     } catch (err) {
       // rollback if needed
       queryClient.invalidateQueries({ queryKey: ["getMessages", chatId] });
