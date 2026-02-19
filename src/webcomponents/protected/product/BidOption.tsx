@@ -30,11 +30,10 @@ export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
   console.log(product);
 
   // Fetch bids for this auction
-  const {
-    data: bidsData,
-    isLoading: isBidsLoading,
-    refetch: refetchBids,
-  } = useGetAuctionBids(product.auction?.id as string, { page: 1, limit: 10 });
+  const { data: bidsData, isLoading: isBidsLoading } = useGetAuctionBids(
+    product.auction?.id as string,
+    { page: 1, limit: 10 },
+  );
 
   // Place bid mutation
   const { mutate: placeBidMutate, isPending: isPlacingBid } =
@@ -78,12 +77,12 @@ export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
 
   const currentBid = currentPrice;
   if (currentBid == null) {
-  return (
-    <div className="flex justify-center items-center py-20">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  );
-}
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   const minimumBid = currentPrice * 1.05;
 
   const quickBidOptions = [
@@ -161,7 +160,7 @@ export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
         <div className="flex justify-between items-center">
           <span style={{ color: "#1447E6" }}>Current Bid:</span>
           <span className="font-bold text-xl" style={{ color: "#1447E6" }}>
-            ${currentBid.toFixed(2)}
+            ${bidsData?.data[0]?.bidPrice.toFixed(2) || currentBid.toFixed(2)}
           </span>
         </div>
       </div>
@@ -289,27 +288,27 @@ export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
           <div className="space-y-3">
             {bidsData?.data && bidsData.data.length > 0 ? (
               [...bidsData.data]
-  .sort((a, b) => b.bidPrice - a.bidPrice)
-  .map((bid, idx) => (
-                <div
-                  key={idx}
-                  className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0"
-                >
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {bid.firstName && bid.lastName
-                        ? `${bid.firstName} ${bid.lastName}`
-                        : `User ${bid.userId.slice(0, 8)}`}
+                .sort((a, b) => b.bidPrice - a.bidPrice)
+                .map((bid, idx) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0"
+                  >
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {bid.firstName && bid.lastName
+                          ? `${bid.firstName} ${bid.lastName}`
+                          : `User ${bid.userId.slice(0, 8)}`}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {formatDateTime(bid.createdAt.toString())}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-600">
-                      {formatDateTime(bid.createdAt.toString())}
+                    <div className="font-semibold" style={{ color: "#1447E6" }}>
+                      ${bid.bidPrice.toFixed(2)}
                     </div>
                   </div>
-                  <div className="font-semibold" style={{ color: "#1447E6" }}>
-                    ${bid.bidPrice.toFixed(2)}
-                  </div>
-                </div>
-              ))
+                ))
             ) : (
               <p className="text-gray-500 text-sm">
                 No bids yet. Be the first to bid!

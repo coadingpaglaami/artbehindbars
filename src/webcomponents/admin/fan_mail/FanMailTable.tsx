@@ -1,13 +1,23 @@
-import { FanMailInterface } from "@/interface/admin";
+import { FormattedFanMail } from "@/types/fanmail.type";
 import { ChevronRight } from "lucide-react";
+
+interface FanMailTableProps {
+  messages: FormattedFanMail[];
+  onMessageClick: (message: FormattedFanMail) => void;
+}
 
 export const FanMailTable = ({
   messages,
   onMessageClick,
-}: {
-  messages: FanMailInterface[];
-  onMessageClick: (message: FanMailInterface) => void;
-}) => {
+}: FanMailTableProps) => {
+  if (messages.length === 0) {
+    return (
+      <div className="w-full py-12 text-center text-gray-500">
+        No messages found
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       {messages.map((message) => (

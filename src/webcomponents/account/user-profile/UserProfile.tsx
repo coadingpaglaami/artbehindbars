@@ -28,7 +28,6 @@ import { useGetInfiniteUserPosts } from "@/api/post";
 import { useGetOrCreateChatMutation, useSendMessageMutation } from "@/api/chat";
 import { CommunityPosts } from "@/webcomponents/public";
 import { PostsProvider } from "@/context/PostContext";
-import { SocketProvider } from "@/context/SocketProvider";
 
 interface UserProfileProps {
   profileId: string;

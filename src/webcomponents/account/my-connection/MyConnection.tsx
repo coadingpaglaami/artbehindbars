@@ -25,6 +25,18 @@ import {
 } from "@/types/connection.type";
 import { AccountProfile } from "@/types/account.type";
 import { toast } from "sonner";
+import { useGetOrCreateChatMutation, useSendMessageMutation } from "@/api/chat";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 // Define types for the API responses
 
@@ -37,6 +49,13 @@ type PendingItem = {
 
 export const MyConnection = () => {
   const [search, setSearch] = useState("");
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [message, setMessage] = useState("");
+
   const { push } = useRouter();
   const [activeTab, setActiveTab] = useState<
     "connected" | "blocked" | "pending"
@@ -85,6 +104,10 @@ export const MyConnection = () => {
   const disconnectMutation = useDisconnectConnectionMutation();
   const acceptMutation = useAcceptConnectionMutation();
   const rejectMutation = useRejectConnectionMutation();
+  const { mutate: chatMutate, isPending: isChatPending } =
+    useGetOrCreateChatMutation();
+  const { mutate: sendMessageMutate, isPending: isSendingMessage } =
+    useSendMessageMutation();
 
   // Flatten connections from all pages
   const allConnections =
@@ -177,16 +200,50 @@ export const MyConnection = () => {
     });
   }, [search, activeTab, allConnections, blockedUsers, pendingRequests]);
 
-  const handleMessage = (chatId?: string) => {
+  // const handleMessage = (chatId?: string) => {
+  //   if (chatId) {
+  //     push(`/chat/${chatId}`);
+  //   }
+  // };
+
+  const handleMessage = (userId: string, userName: string, chatId?: string) => {
     if (chatId) {
       push(`/chat/${chatId}`);
+      return;
     }
+    // No chat exists — open dialog to send first message
+    setSelectedUser({ id: userId, name: userName });
+    setIsMessageDialogOpen(true);
+  };
+
+  // Add this handler:
+  const handleSendMessage = () => {
+    if (!selectedUser || !message.trim()) return;
+
+    chatMutate(selectedUser.id, {
+      onSuccess: (chat) => {
+        sendMessageMutate(
+          { chatId: chat.id, content: message.trim() },
+          {
+            onSuccess: () => {
+              toast.success("Message sent!");
+              setMessage("");
+              setIsMessageDialogOpen(false);
+              push(`/chat/${chat.id}`);
+            },
+            onError: () => toast.error("Failed to send message"),
+          },
+        );
+      },
+      onError: () => toast.error("Failed to open chat"),
+    });
   };
 
   const handleBlock = async (userId: string) => {
     try {
       await blockUnblockMutation.mutateAsync(userId);
       toast.success("User has been blocked");
+      refetchConn();
       refetchBlocked();
       refetchIncoming();
       refetchOutgoing();
@@ -199,6 +256,7 @@ export const MyConnection = () => {
     try {
       await blockUnblockMutation.mutateAsync(userId);
       toast.success("User has been unblocked");
+      refetchConn();
       refetchBlocked();
     } catch (error) {
       console.error("Failed to unblock user:", error);
@@ -206,7 +264,7 @@ export const MyConnection = () => {
   };
 
   const handleDisconnect = async (connectionId: string) => {
-    console.log(connectionId)
+    console.log(connectionId);
     try {
       await disconnectMutation.mutateAsync(connectionId);
       toast.success("Connection has been disconnected");
@@ -226,9 +284,7 @@ export const MyConnection = () => {
     }
   };
 
-  const handleRejectRequest = async (
-    connectionIdOrUserId: string,
-  ) => {
+  const handleRejectRequest = async (connectionIdOrUserId: string) => {
     try {
       // For outgoing requests, we might need to use a different endpoint
       // This assumes reject mutation works with user ID for outgoing requests
@@ -429,16 +485,27 @@ export const MyConnection = () => {
               }
 
               // Handle connected users
-            const connection = item as unknown as   {connectionId: string; chatId: string ; user: AccountProfile};
-              console.log(connection.user, 'line 435')
+              const connection = item as unknown as {
+                connectionId: string;
+                chatId: string;
+                user: AccountProfile;
+              };
+              console.log(connection.user, "line 435");
 
               return (
                 <Connection
                   key={connection.connectionId}
                   type="connected"
                   connection={connection.connectionId}
-                  otherUser={connection.user }
-                  onMessage={() => handleMessage(connection.chatId)}
+                  otherUser={connection.user}
+                  // onMessage={() => handleMessage(connection.chatId)}
+                  onMessage={() =>
+                    handleMessage(
+                      connection.user.id,
+                      `${connection.user.firstName ?? ""} ${connection.user.lastName ?? ""}`.trim(),
+                      connection.chatId, // if chatId exists, navigate directly
+                    )
+                  }
                   onBlock={() => handleBlock(connection.user.id)}
                   onDisconnect={() => handleDisconnect(connection.connectionId)}
                   isBlockPending={blockUnblockMutation.isPending}
@@ -469,6 +536,58 @@ export const MyConnection = () => {
           )}
         </div>
       </div>
+      <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
+        <DialogContent className="sm:max-w-106.25">
+          <DialogHeader>
+            <DialogTitle>Message {selectedUser?.name || "User"}</DialogTitle>
+            <DialogDescription>
+              Send a direct message to start a conversation.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="message" className="text-sm font-medium">
+                Message
+              </label>
+              <Textarea
+                id="message"
+                placeholder="Write your message here..."
+                className="min-h-30"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                disabled={isSendingMessage || isChatPending}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setMessage("");
+                setIsMessageDialogOpen(false);
+              }}
+              disabled={isSendingMessage || isChatPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendMessage}
+              disabled={!message.trim() || isSendingMessage || isChatPending}
+            >
+              {isSendingMessage || isChatPending ? (
+                <>
+                  <Loader2 size={16} className="mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Message"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

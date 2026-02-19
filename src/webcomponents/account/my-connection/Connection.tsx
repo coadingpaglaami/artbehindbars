@@ -54,9 +54,7 @@ export const Connection = ({
   // For connected, use otherUser or extract from connection
   console.log(otherUser, " line 55 ");
   const displayUser =
-    type === "blocked" || type === "pending"
-      ? user
-      : otherUser 
+    type === "blocked" || type === "pending" ? user : otherUser;
 
   // Generate initials from name
   const getInitials = (firstName?: string, lastName?: string) => {

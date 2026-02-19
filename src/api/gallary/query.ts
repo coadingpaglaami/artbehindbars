@@ -155,7 +155,7 @@ export const useMyFanMails = (params: PaginationQueryDto) =>
 
 /* ---------- Fan Mail (Admin) ---------- */
 
-export const useAdminFanMails = (params: FanMailQueryDto) =>
+export const useGetAdminFanMails = (params: FanMailQueryDto) =>
   useQuery({
     queryKey: ["adminFanMails", params],
     queryFn: () => adminGetFanMails(params),
@@ -168,14 +168,14 @@ export const useAdminFanMail = (id: string) =>
     enabled: !!id,
   });
 
-export const useReplyFanMail = () =>
+export const useReplyFanMailMutation = () =>
   useMutation({
     mutationKey: ["replyFanMail"],
     mutationFn: ({ id, payload }: { id: string; payload: ReplyFanMailDto }) =>
       adminReplyFanMail(id, payload),
   });
 
-export const useArchiveFanMail = () =>
+export const useArchiveFanMailMutation = () =>
   useMutation({
     mutationKey: ["archiveFanMail"],
     mutationFn: (id: string) => archiveFanMail(id),

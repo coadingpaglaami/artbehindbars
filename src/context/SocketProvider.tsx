@@ -6,7 +6,6 @@ import { getSocket } from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Message } from "@/types/chat.type";
-import { int } from "zod";
 import {
   AuctionBidDto,
   PaginatedResponseDto,
@@ -16,7 +15,9 @@ import {
 type SocketContextType = Socket | null;
 
 interface SocketData {
-  payload: string;
+  payload: {
+    [key: string]: unknown;
+  };
 }
 
 const SocketContext = createContext<SocketContextType>(null);
@@ -33,7 +34,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     ==========================*/
 
     const handleConnectionRequest = (data: SocketData) => {
-      toast.success(data.payload);
+      toast.success(data.payload.message as string);
+      console.log(data.payload);
 
       queryClient.invalidateQueries({
         predicate: (query) =>
@@ -48,7 +50,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
 
     const handleConnectionAccepted = (data: SocketData) => {
-      toast.success(data.payload);
+      toast.success(data.payload.message as string);
 
       queryClient.invalidateQueries({
         predicate: (query) =>
@@ -91,28 +93,78 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       );
     };
 
+    // const handleAuctionNewBid = (
+    //   data: PlaceBidDto & { firstName?: string; lastName?: string },
+    //   socket: SocketData,
+    // ) => {
+    //   toast.success(socket.payload.message as string);
+
+    //   // ✅ Invalidate auction list queries
+    //   queryClient.invalidateQueries({
+    //     predicate: (query) => query.queryKey[0] === "auctions",
+    //   });
+
+    //   // ✅ Invalidate artwork related queries
+    //   queryClient.invalidateQueries({
+    //     predicate: (query) => query.queryKey[0] === "artwork",
+    //   });
+
+    //   // ✅ Invalidate MY AUCTION HISTORY (this will refetch useMyAuctionHistory)
+    //   queryClient.invalidateQueries({
+    //     predicate: (query) =>
+    //       query.queryKey[0] === "auction" && query.queryKey[1] === "my-history",
+    //   });
+
+    //   // ✅ Optimistically update bid list cache
+    //   const bidQueries = queryClient.getQueryCache().findAll({
+    //     predicate: (q) =>
+    //       q.queryKey[0] === "auction" &&
+    //       q.queryKey[1] === "bids" &&
+    //       q.queryKey[2] === data.auctionId,
+    //   });
+
+    //   bidQueries.forEach((query) => {
+    //     queryClient.setQueryData(
+    //       query.queryKey,
+    //       (old: PaginatedResponseDto<AuctionBidDto>) => {
+    //         if (!old) return old;
+
+    //         return {
+    //           ...old,
+    //           data: [data, ...old.data],
+    //         };
+    //       },
+    //     );
+    //   });
+    // };
     const handleAuctionNewBid = (
-      data: PlaceBidDto & { firstName?: string; lastName?: string },
+      data: PlaceBidDto & {
+        firstName?: string;
+        lastName?: string;
+        message?: string;
+      },
     ) => {
-      const bidderName =
-        data.firstName && data.lastName
-          ? `${data.firstName} ${data.lastName}`
-          : "Someone";
+      if (data?.message) {
+        toast.success(data.message);
+      }
 
-      toast.success(
-        `New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`,
-      );
-
-      // Invalidate all relevant auction queries
+      // ✅ Invalidate auction list
       queryClient.invalidateQueries({
         predicate: (query) => query.queryKey[0] === "auctions",
       });
 
-      // If you have specific artwork-based queries:
+      // ✅ Invalidate artwork
       queryClient.invalidateQueries({
         predicate: (query) => query.queryKey[0] === "artwork",
       });
 
+      // ✅ Invalidate MY AUCTION HISTORY
+      queryClient.invalidateQueries({
+        queryKey: ["auction", "my-history"],
+        exact: false,
+      });
+
+      // ✅ Optimistic update for bids list
       const bidQueries = queryClient.getQueryCache().findAll({
         predicate: (q) =>
           q.queryKey[0] === "auction" &&

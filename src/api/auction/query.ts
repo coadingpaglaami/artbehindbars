@@ -25,7 +25,8 @@ export const auctionKeys = {
   detail: (id: string) => ["auction", "detail", id] as const,
   bids: (id: string, params?: unknown) =>
     ["auction", "bids", id, params] as const,
-  myHistory: (params?: unknown) => ["auction", "my-history", params] as const,
+  myHistory: (params?: { page?: number; limit?: number }) =>
+    ["auction", "my-history", params?.page ?? 1, params?.limit ?? 10] as const,
 };
 
 /* ============================================================
@@ -106,7 +107,7 @@ export const useMyAuctionHistory = (params: PaginationQueryDto) =>
     staleTime: 1000 * 30, // 30 sec
   });
 
-  export const useGetOrderByAuctionIdQuery = (orderId: string) =>
+export const useGetOrderByAuctionIdQuery = (orderId: string) =>
   useQuery<OrderResponseDto, Error>({
     queryKey: ["orderByAuctionId", orderId],
     queryFn: () => getOrderByAuctionId(orderId),

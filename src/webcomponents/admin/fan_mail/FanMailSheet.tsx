@@ -2,21 +2,44 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { FanMailInterface } from "@/interface/admin"
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { FormattedFanMail } from "@/types/fanmail.type";
+
+interface FanMailSheetProps {
+  message: FormattedFanMail | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onArchive: (messageId: string) => void;
+  onReply: (messageId: string, replyMessage: string) => void;
+  isArchiving?: boolean;
+  isReplying?: boolean;
+}
 
 export const FanMailSheet = ({ 
   message, 
   open, 
-  onOpenChange 
-}: { 
-  message: FanMailInterface | null, 
-  open: boolean, 
-  onOpenChange: (open: boolean) => void 
-}) => {
+  onOpenChange,
+  onArchive,
+  onReply,
+  isArchiving = false,
+  isReplying = false
+}: FanMailSheetProps) => {
   const [replyText, setReplyText] = useState('');
 
   if (!message) return null;
+
+  const handleReply = () => {
+    if (replyText.trim()) {
+      onReply(message.messageId, replyText);
+    }
+  };
+
+  const handleArchive = () => {
+    onArchive(message.messageId);
+  };
+
+  const isPending = isArchiving || isReplying;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -63,16 +86,19 @@ export const FanMailSheet = ({
             <p className="text-sm text-gray-900 whitespace-pre-wrap">{message.body}</p>
           </div>
 
-          {/* Reply */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Reply</label>
-            <Textarea 
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Type your reply here..."
-              className="min-h-30"
-            />
-          </div>
+          {/* Reply - Only show for non-archived messages */}
+          {!message.isArchived && message.status !== "Replied" && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Reply</label>
+              <Textarea 
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Type your reply here..."
+                className="min-h-30"
+                disabled={isPending}
+              />
+            </div>
+          )}
 
           {/* Disclaimer */}
           <div className="bg-[#FFFBEB] p-4 rounded-lg">
@@ -86,9 +112,60 @@ export const FanMailSheet = ({
 
           {/* Action Buttons */}
           <div className="flex gap-3">
-            <Button className="flex-1">Reply</Button>
-            <Button variant="outline" className="flex-1">Archive</Button>
+            {!message.isArchived && message.status !== "Replied" && (
+              <Button 
+                className="flex-1" 
+                onClick={handleReply}
+                disabled={isPending || !replyText.trim()}
+              >
+                {isReplying ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Reply"
+                )}
+              </Button>
+            )}
+            
+            {!message.isArchived && (
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={handleArchive}
+                disabled={isPending}
+              >
+                {isArchiving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Archiving...
+                  </>
+                ) : (
+                  "Archive"
+                )}
+              </Button>
+            )}
+
+            {message.isArchived && (
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => onOpenChange(false)}
+              >
+                Close
+              </Button>
+            )}
           </div>
+
+          {/* Show message if already replied */}
+          {message.status === "Replied" && !message.isArchived && (
+            <div className="bg-green-50 p-4 rounded-lg">
+              <p className="text-sm text-green-700">
+                This message has been replied to and forwarded to the artist.
+              </p>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

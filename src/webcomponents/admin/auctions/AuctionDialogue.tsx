@@ -196,7 +196,7 @@ export const AuctionDialogue = ({
                 <h4 className="font-semibold text-gray-900 mb-3">
                   Bid History
                 </h4>
-                <div className="bg-white rounded-lg border overflow-hidden">
+                <div className="bg-white rounded-lg border overflow-y-auto max-h-72">
                   <table className="w-full">
                     <thead style={{ backgroundColor: "#F8FAFC" }}>
                       <tr className="border-b" style={{ borderColor: "#E2E8F0" }}>
