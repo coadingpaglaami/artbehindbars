@@ -18,6 +18,7 @@ import {
   getArtistById,
   getArtworkById,
   getArtistArtwork,
+  markFanMailAsRead,
 } from "./api";
 
 import {
@@ -147,10 +148,16 @@ export const useSendFanMail = () =>
     }) => sendFanMail(artistId, payload),
   });
 
-export const useMyFanMails = (params: PaginationQueryDto) =>
+export const useGetMyFanMails = (params: PaginationQueryDto) =>
   useQuery({
     queryKey: ["myFanMails", params],
     queryFn: () => getMyFanMails(params),
+  });
+
+export const useMarkFanMailAsReadMutation = () =>
+  useMutation({
+    mutationKey: ["markFanMailAsRead"],
+    mutationFn: (id: string) => markFanMailAsRead(id),
   });
 
 /* ---------- Fan Mail (Admin) ---------- */

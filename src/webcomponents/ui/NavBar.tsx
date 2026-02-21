@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { usePathname, useRouter } from "next/navigation";
-import { isClientAuthenticated } from "@/lib/auth-client"; // Add getClientUserId
+import { ClientRole, isClientAuthenticated } from "@/lib/auth-client"; // Add getClientUserId
 import { NotificationBell } from "./NotificationBell";
 import { clearTokens } from "@/lib/cookies";
 
@@ -30,6 +30,8 @@ export const NavBar = () => {
   const [open, setOpen] = useState(false);
   const isAuthenticated = isClientAuthenticated();
   console.log(isAuthenticated);
+  const userRole = ClientRole();
+  console.log(userRole);
 
   const navLinks: { label: string; link: string }[] = [
     { label: "Home", link: "/" },
@@ -63,11 +65,11 @@ export const NavBar = () => {
       icon: Settings,
       link: "/edit_profile",
     },
-    {
+    ...(userRole === "ADMIN" ? [{
       name: "Admin Panel",
       icon: UserCogIcon,
       link: "/admin/overview",
-    },
+    }] : []),
     {
       name: "Logout",
       icon: LogOut,
@@ -77,7 +79,7 @@ export const NavBar = () => {
         router.push("/login");
       },
     },
-  ];
+  ].filter(Boolean);
 
   return (
     <div className=" h-full lg:px-6 px-4 max-w-360 mx-auto w-full">

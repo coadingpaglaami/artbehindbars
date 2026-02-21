@@ -45,3 +45,8 @@ export function isClientAuthenticated(): boolean {
     const payload = decodeClientToken();
     return payload?.sub ?? null;
   }
+
+export function ClientRole(): 'USER' | 'ADMIN' | null {
+  const payload = decodeClientToken();
+  return payload?.role ?? null;
+}

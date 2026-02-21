@@ -105,7 +105,7 @@ export const ArtistTable = ({
 
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                      10 Artworks
+                      {artist._count.artworks > 1 ? `${artist._count.artworks} Artworks` : `${artist._count.artworks} Artwork`}
                     </span>
                   </td>
 

@@ -4,7 +4,6 @@ import { AuctionDetailsResponseDto, AuctionResponseDto } from "./auction.type";
 
 export type Category = "Religious" | "Non_Religious";
 
-export type FanMailStatus = "PENDING" | "REPLIED";
 
 /* ---------------- Pagination ---------------- */
 
@@ -45,6 +44,7 @@ export interface ArtistResponseDto extends ArtistRequestDto {
   id: string;
   createdAt: string;
   image: string;
+  _count: { artworks: number };
   
 }
 
@@ -128,3 +128,20 @@ export interface BoughtArtwork {
   updatedAt: string;
 }
 
+export type FanMailStatus = "PENDING" | "REPLIED" | "CLOSED";
+
+export interface FanMailArtist {
+  id: string;
+  name: string;
+}
+
+export interface FanMail {
+  id: string;
+  subject: string | null;
+  message: string;
+  status: FanMailStatus;
+  isReadBySender: boolean;
+  createdAt: string;
+  artist: FanMailArtist;
+  uiStatus: string;
+}

@@ -12,6 +12,7 @@ import {
   ReplyFanMailDto,
   FanMailQueryDto,
   GetArtistsQueryDto,
+  FanMail,
 } from "@/types/gallery.types";
 
 /* ---------------- Artist ---------------- */
@@ -178,8 +179,13 @@ export const sendFanMail = async (
   return data;
 };
 
-export const getMyFanMails = async (params: PaginationQueryDto) => {
+export const getMyFanMails = async (params: PaginationQueryDto):Promise<{unreadCount: number} & PaginatedResponseDto<FanMail>> => {
   const { data } = await axios.get("/fan_mail/my", { params });
+  return data;
+};
+
+export const markFanMailAsRead = async (id: string) => {
+  const { data } = await axios.patch(`/read-fan-mail/${id}`);
   return data;
 };
 
