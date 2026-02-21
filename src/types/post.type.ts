@@ -136,3 +136,20 @@ export interface GetPostQueryDto extends PaginationQueryDto {
 export interface AdminGetPostsQueryDto extends PaginationQueryDto {
   minReports?: number;
 }
+
+
+interface Report {
+  userFirstName: string;
+  message: string;
+  reason: string;
+}
+
+export interface ReportedPost {
+  postId: string;
+  title: string;
+  content: string;
+  userName: string;
+  userId: string;
+  reportCount: number;
+  reports: Report[];
+}

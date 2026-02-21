@@ -10,6 +10,7 @@ import {
   GetPostQueryDto,
   AdminGetPostsQueryDto,
   PostResponse,
+  ReportedPost,
 } from "@/types/post.type";
 import { PaginatedResponseDto } from "@/types/auction.type";
 
@@ -170,23 +171,29 @@ export const useDeleteCategory = () =>
 
 /* -------- ADMIN -------- */
 
-export const useReportedPosts = (params: AdminGetPostsQueryDto) =>
+export const useGetReportedPosts = (params: AdminGetPostsQueryDto) =>
   useQuery({
     queryKey: ["reportedPosts", params],
     queryFn: () => api.getReportedPosts(params),
   });
 
-export const useAdminDeletePost = () =>
+export const useAdminDeletePostMutation = () =>
   useMutation({
     mutationKey: ["adminDeletePost"],
     mutationFn: (postId: string) => api.adminDeletePost(postId),
   });
 
-export const useSuspendUser = () =>
+export const useSuspendUserMutation = () =>
   useMutation({
     mutationKey: ["suspendUser"],
     mutationFn: ({ userId, days }: { userId: string; days: number }) =>
       api.suspendUser(userId, days),
+  });
+
+export const useUnSuspendUserMutation = () =>
+  useMutation({
+    mutationKey: ["unSuspendUser"],
+    mutationFn: (userId: string) => api.unSuspendUser(userId),
   });
 
 export const useInfiniteCategories = (limit: number = 10) =>
@@ -242,3 +249,10 @@ export const useGetInfiniteUserPosts = (
     enabled: !!userId && enabled,
   });
 };
+
+export const useWarnUserMutation = () =>
+  useMutation({
+    mutationKey: ["warnUser"],
+    mutationFn: ({ userId, reason }: { userId: string; reason: string }) =>
+      api.warnUser(userId, reason),
+  });

@@ -1,16 +1,27 @@
 "use client";
 
-import { Member } from "@/interface/admin";
-import { Shield, Ban, UserX } from "lucide-react";
+import { UserX, UserCheck } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { UserActivity } from "@/types/progress.type";
+import { Button } from "@/components/ui/button";
 
 interface MemberTableProps {
-  members: Member[];
-  onSuspend: (memberId: string) => void;
-  onBan: (memberId: string) => void;
+  members: UserActivity[];
+  onSuspend: (memberId: string, userName?: string) => void;
+  onUnSuspend: (memberId: string, userName?: string) => void;
+  isSuspendLoading?: boolean;
+  isUnSuspendLoading?: boolean;
+  isFetching?: boolean;
 }
 
-export const MemberTable = ({ members, onSuspend, onBan }: MemberTableProps) => {
+export const MemberTable = ({ 
+  members, 
+  onSuspend, 
+  onUnSuspend,
+  isSuspendLoading,
+  isUnSuspendLoading,
+  isFetching
+}: MemberTableProps) => {
   const getInitial = (name: string) => {
     return name.charAt(0).toUpperCase();
   };
@@ -75,9 +86,11 @@ export const MemberTable = ({ members, onSuspend, onBan }: MemberTableProps) => 
           <tbody>
             {members.map((member) => {
               const statusStyle = getStatusStyle(member.status);
+              const isSuspended = member.status === "Suspended";
+              
               return (
                 <tr
-                  key={member.memberId}
+                  key={member.id}
                   className="border-b hover:bg-gray-50 transition-colors"
                   style={{ borderColor: "#E2E8F0" }}
                 >
@@ -102,21 +115,21 @@ export const MemberTable = ({ members, onSuspend, onBan }: MemberTableProps) => 
 
                   {/* Joined */}
                   <td className="px-6 py-4 text-gray-700">
-                    {formatDate(member.joinedDate)}
+                    {formatDate(member.createdAt)}
                   </td>
 
                   {/* Activity Score */}
                   <td className="px-6 py-4">
-                    <div className="space-y-1 min-w-[120px]">
+                    <div className="space-y-1 min-w-30">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-gray-700">
-                          {member.activityScore}
+                          {member.score}
                         </span>
                         <span className="text-xs text-gray-500">/ 100</span>
                       </div>
                       <Progress
-                        value={member.activityScore}
-                        className="h-2 **:data-[slot=progress-indicator]:bg-blue-600"
+                        value={member.score}
+                        className="h-2 [&>div]:bg-blue-600"
                         style={{ backgroundColor: "#E0E7FF" }}
                       />
                     </div>
@@ -138,23 +151,28 @@ export const MemberTable = ({ members, onSuspend, onBan }: MemberTableProps) => 
                   {/* Actions */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      {member.status !== "Suspended" && (
-                        <button
-                          onClick={() => onSuspend(member.memberId)}
-                          className="p-2 hover:bg-orange-50 rounded-lg transition-colors"
-                          title="Suspend"
+                      {!isSuspended ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onSuspend(member.id, member.name)}
+                          disabled={isSuspendLoading}
+                          className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                         >
-                          <UserX size={18} className="text-orange-600" />
-                        </button>
-                      )}
-                      {member.status !== "Banned" && (
-                        <button
-                          onClick={() => onBan(member.memberId)}
-                          className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Ban"
+                          <UserX size={18} className="mr-2" />
+                          Suspend
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onUnSuspend(member.id, member.name)}
+                          disabled={isUnSuspendLoading}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
                         >
-                          <Ban size={18} className="text-red-600" />
-                        </button>
+                          <UserCheck size={18} className="mr-2" />
+                          Unsuspend
+                        </Button>
                       )}
                     </div>
                   </td>

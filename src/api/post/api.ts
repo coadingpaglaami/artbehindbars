@@ -146,10 +146,23 @@ export const suspendUser = async (userId: string, days: number) => {
   return data;
 };
 
+export const unSuspendUser = async (userId: string) => {
+  const { data } = await axios.post(`${POST}/admin/users/${userId}/unsuspend`);
+  return data;
+};
+
 export const getUserPosts = async (
   userId: string,
   params: PaginationQueryDto
 ): Promise<PaginatedResponseDto<PostResponse>> => {
   const { data } = await axios.get(`${POST}/${userId}/user/`, { params });
+  return data;
+}
+
+export const warnUser = async (userId: string, reason: string) => {
+  const { data } = await axios.post(`${POST}/warn-user`, {
+    userId,
+    reason,
+  });
   return data;
 }
