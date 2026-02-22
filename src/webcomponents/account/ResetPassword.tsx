@@ -26,6 +26,10 @@ import {
 import { Loader2 } from "lucide-react";
 import { PasswordInput } from "../reusable";
 import { useRouter } from "next/navigation";
+import { useResetPasswordMutation } from "@/api/auth";
+import { clearVerificationData, getVerificationEmail } from "@/lib/cookies";
+import { toast } from "sonner";
+import { clear } from "console";
 
 // ──────────────────────────────────────────────
 // Zod Schema
@@ -54,7 +58,10 @@ type FormValues = z.infer<typeof formSchema>;
 export const ResetPasswordForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const { mutate: resetPasswordMutate, isPending: isResetting } =
+    useResetPasswordMutation();
   const { push } = useRouter();
+  const email = getVerificationEmail();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -89,8 +96,28 @@ export const ResetPasswordForm = () => {
     // } finally {
     //   setIsLoading(false);
     // }
-    push("/success");
-    
+
+    resetPasswordMutate(
+      {
+        password: values.newPassword,
+        confirmPassword: values.confirmPassword,
+        email: email as string, // or get from context/state
+
+        // token, // pass to API if needed
+      },
+      {
+        onSuccess: () => {
+          toast.success("Password reset successfully!");
+          clearVerificationData();
+          push("/success");
+        },
+        onError: (error) => {
+          setServerError(
+            error.message || "Failed to reset password. Please try again.",
+          );
+        },
+      },
+    );
   }
 
   return (
@@ -174,4 +201,4 @@ export const ResetPasswordForm = () => {
       </Card>
     </div>
   );
-}
+};

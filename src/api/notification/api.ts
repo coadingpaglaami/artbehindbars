@@ -17,8 +17,8 @@ export const markNotificationAsRead = async (id: string): Promise<NotificationRe
 };
 
 /* -------- Mark All Notifications as Read -------- */
-export const markAllNotificationsAsRead = async (userId: string): Promise<NotificationResponseDto[]> => {
-  const { data } = await axios.patch<NotificationResponseDto[]>(`/${NOTIFICATIONS}/read/all`, { userId });
+export const markAllNotificationsAsRead = async (): Promise<NotificationResponseDto[]> => {
+  const { data } = await axios.patch<NotificationResponseDto[]>(`/${NOTIFICATIONS}/read/all`);
   return data;
 };
 

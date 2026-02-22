@@ -4,34 +4,88 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { AccountProfile, UpdateProfileDto } from "@/types/account.type";
 
 const personalInfoSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
   lastName: z.string().min(2, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number is required"),
-  jobTitle: z.string().min(2, "Job title is required"),
-  department: z.string().min(2, "Department is required"),
-  bio: z.string().max(500, "Bio must not exceed 500 characters"),
+  email: z.email("Invalid email address"),
+  location: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  bio: z.string().max(500, "Bio must not exceed 500 characters").optional(),
 });
 
-export const PersonalInfo = () => {
+interface PersonalInfoProps {
+  profileData?: AccountProfile;
+  onUpdateProfile: (data: { payload: UpdateProfileDto; image?: File | null | undefined }) => void;
+  isUpdating?: boolean;
+}
+
+export const PersonalInfo = ({ 
+  profileData, 
+  onUpdateProfile, 
+  isUpdating = false 
+}: PersonalInfoProps) => {
   const form = useForm<z.infer<typeof personalInfoSchema>>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
       email: "",
-      phone: "",
-      jobTitle: "",
-      department: "",
+      location: "",
+      dateOfBirth: "",
       bio: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof personalInfoSchema>) => {
-    console.log(values);
+  // Set form values when profile data is loaded
+  useEffect(() => {
+    if (profileData) {
+      form.reset({
+        firstName: profileData.firstName || "",
+        lastName: profileData.lastName || "",
+        email: profileData.email || "",
+        location: profileData.location || "",
+        dateOfBirth: profileData.dateOfBirth 
+          ? new Date(profileData.dateOfBirth).toISOString().split('T')[0]
+          : "",
+        bio: profileData.bio || "",
+      });
+    }
+  }, [profileData, form]);
+
+  const onSubmit = async (values: z.infer<typeof personalInfoSchema>) => {
+    // Only include changed fields
+    const payload: UpdateProfileDto = {};
+    
+    if (values.firstName !== profileData?.firstName) {
+      payload.firstName = values.firstName;
+    }
+    if (values.lastName !== profileData?.lastName) {
+      payload.lastName = values.lastName;
+    }
+    if (values.bio !== profileData?.bio) {
+      payload.bio = values.bio;
+    }
+    if (values.location !== profileData?.location) {
+      payload.location = values.location;
+    }
+    
+    const dateChanged = values.dateOfBirth !== profileData?.dateOfBirth?.split('T')[0];
+    if (dateChanged) {
+      payload.dateOfBirth = values.dateOfBirth ? new Date(values.dateOfBirth).toISOString() : undefined;
+    }
+
+    // Check if anything changed
+    if (Object.keys(payload).length === 0) {
+      toast.info("No changes to save");
+      return;
+    }
+
+     onUpdateProfile({ payload });
   };
 
   return (
@@ -55,8 +109,9 @@ export const PersonalInfo = () => {
             <input
               type="text"
               {...form.register("firstName")}
-              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors"
+              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors w-full"
               placeholder="Enter first name"
+              disabled={isUpdating}
             />
             {form.formState.errors.firstName && (
               <span className="text-sm text-red-600">
@@ -72,8 +127,9 @@ export const PersonalInfo = () => {
             <input
               type="text"
               {...form.register("lastName")}
-              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors"
+              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors w-full"
               placeholder="Enter last name"
+              disabled={isUpdating}
             />
             {form.formState.errors.lastName && (
               <span className="text-sm text-red-600">
@@ -83,7 +139,7 @@ export const PersonalInfo = () => {
           </div>
         </div>
 
-        {/* Email and Phone */}
+        {/* Email (Read Only) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">
@@ -92,8 +148,9 @@ export const PersonalInfo = () => {
             <input
               type="email"
               {...form.register("email")}
-              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors"
+              className="px-0 py-2 border-0 border-b border-gray-300 bg-gray-50 cursor-not-allowed w-full"
               placeholder="Enter email address"
+              disabled
             />
             {form.formState.errors.email && (
               <span className="text-sm text-red-600">
@@ -102,59 +159,35 @@ export const PersonalInfo = () => {
             )}
           </div>
 
+          {/* Location (replaces phone) */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">
-              Phone Number
+              Location
             </label>
             <input
-              type="tel"
-              {...form.register("phone")}
-              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors"
-              placeholder="Enter phone number"
+              type="text"
+              {...form.register("location")}
+              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors w-full"
+              placeholder="City, State, Country"
+              disabled={isUpdating}
             />
-            {form.formState.errors.phone && (
-              <span className="text-sm text-red-600">
-                {form.formState.errors.phone.message}
-              </span>
-            )}
           </div>
         </div>
 
-        {/* Job Title and Department */}
+        {/* Date of Birth (replaces job title and department) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">
-              Job Title
+              Date of Birth
             </label>
             <input
-              type="text"
-              {...form.register("jobTitle")}
-              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors"
-              placeholder="Enter job title"
+              type="date"
+              {...form.register("dateOfBirth")}
+              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors w-full"
+              disabled={isUpdating}
             />
-            {form.formState.errors.jobTitle && (
-              <span className="text-sm text-red-600">
-                {form.formState.errors.jobTitle.message}
-              </span>
-            )}
           </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">
-              Department
-            </label>
-            <input
-              type="text"
-              {...form.register("department")}
-              className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none transition-colors"
-              placeholder="Enter department"
-            />
-            {form.formState.errors.department && (
-              <span className="text-sm text-red-600">
-                {form.formState.errors.department.message}
-              </span>
-            )}
-          </div>
+          <div className="md:block hidden"></div> {/* Empty div for grid alignment */}
         </div>
 
         {/* Bio */}
@@ -162,8 +195,9 @@ export const PersonalInfo = () => {
           <label className="text-sm font-medium text-gray-700">Bio</label>
           <textarea
             {...form.register("bio")}
-            className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none resize-none transition-colors min-h-24"
+            className="px-0 py-2 border-0 border-b border-gray-300 focus:border-blue-600 focus:ring-0 outline-none resize-none transition-colors min-h-24 w-full"
             placeholder="Brief description for your profile"
+            disabled={isUpdating}
           />
           <p className="text-xs text-gray-500">
             Brief description for your profile
@@ -177,9 +211,22 @@ export const PersonalInfo = () => {
 
         {/* Submit Button */}
         <div className="flex justify-end">
-          <Button type="submit" className="bg-primary text-white">
-            <Save size={18} className="mr-2" />
-            Save Changes
+          <Button 
+            type="submit" 
+            className="bg-primary text-white"
+            disabled={isUpdating}
+          >
+            {isUpdating ? (
+              <>
+                <Loader2 size={18} className="mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={18} className="mr-2" />
+                Save Changes
+              </>
+            )}
           </Button>
         </div>
       </form>

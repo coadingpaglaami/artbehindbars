@@ -44,11 +44,11 @@ const NAVIGATION_GROUPS = [
   {
     title: "System",
     items: [
-      {
-        label: "Access Control",
-        href: "/admin/access_control",
-        icon: ShieldCheck,
-      },
+      // {
+      //   label: "Access Control",
+      //   href: "/admin/access_control",
+      //   icon: ShieldCheck,
+      // },
       { label: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },

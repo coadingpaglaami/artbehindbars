@@ -27,7 +27,10 @@ import {
   clearVerificationData,
   setTokens,
 } from "@/lib/cookies";
-import { useSignupEmailVerifyMutation } from "@/api/auth/query";
+import {
+  useForgetEmailVerifyMutation,
+  useSignupEmailVerifyMutation,
+} from "@/api/auth";
 
 const formSchema = z.object({
   otp: z.string().length(6, { message: "Please enter a 6-digit code" }),
@@ -52,6 +55,8 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
 
   const { mutate: verifyMutate, isPending: isVerifying } =
     useSignupEmailVerifyMutation();
+  const { mutate: forgetVerifyMutate, isPending: isForgetVerifying } =
+    useForgetEmailVerifyMutation();
 
   // Load email and otpType from cookies
   useEffect(() => {
@@ -91,35 +96,44 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
   // Submit Handler
   async function onSubmit(values: FormValues) {
     if (!email || !otpType) return;
-
-    verifyMutate(
-      {
-        email,
-        otp: values.otp,
-        otpType,
-      },
-      {
-        onSuccess: (response) => {
-          setTokens(
-            response.accessToken as string,
-            response.refreshToken as string,
-          );
-
-          router.push("/success");
-
-          clearVerificationData();
-
-          if (otpType === "resetPassword") {
-            router.push("/reset-password");
-          } else {
+    if (otpType === "signup") {
+      verifyMutate(
+        {
+          email,
+          otp: values.otp,
+          otpType,
+        },
+        {
+          onSuccess: (response) => {
+            setTokens(
+              response.accessToken as string,
+              response.refreshToken as string,
+            );
             router.push("/success");
-          }
+            clearVerificationData();
+          },
+          onError: (error) => {
+            setError(error.message || "Invalid verification code");
+          },
         },
-        onError: (error) => {
-          setError(error.message || "Invalid verification code");
+      );
+    } else if (otpType === "resetPassword") {
+      forgetVerifyMutate(
+        {
+          email,
+          otp: values.otp,
+          otpType,
         },
-      },
-    );
+        {
+          onSuccess: () => {
+            router.push("/reset-password");
+          },
+          onError: (error) => {
+            setError(error.message || "Invalid verification code");
+          },
+        },
+      );
+    }
   }
 
   // Resend Handler

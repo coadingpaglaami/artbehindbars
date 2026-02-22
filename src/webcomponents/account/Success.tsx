@@ -12,7 +12,7 @@ export const SuccessMessage = () => {
 
   const handleRedirect = () => {
     // router.push(redirectPath);
-    router.push("/");
+    router.push("/login");
     // or router.replace(redirectPath) if you don't want back button history
   };
 
