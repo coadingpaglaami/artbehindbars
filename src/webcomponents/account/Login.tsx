@@ -30,8 +30,6 @@ export const Login = () => {
   const { mutate: signinMutate, isPending: isSigningIn } = useSigninMutation();
   const { mutate: forgotPasswordMutate, isPending: isForgotPasswordPending } =
     useForgetPasswordMutation();
-  const { mutate: googleLoginMutate, isPending: isGoogleLoginPending } =
-    useGoogleLogin();
 
   const {
     register,
@@ -109,9 +107,9 @@ export const Login = () => {
         variant="outline"
         className="w-full max-w-xs mb-6"
         onClick={() => {
-          window.location.href = "http://localhost:4900/auth/google";
+          window.location.href =
+            process.env.NEXT_PUBLIC_API_URL + "/auth/google"; // Redirect to backend Google OAuth endpoint
         }}
-        disabled={isGoogleLoginPending}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
