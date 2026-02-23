@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -61,7 +61,13 @@ export const ResetPasswordForm = () => {
   const { mutate: resetPasswordMutate, isPending: isResetting } =
     useResetPasswordMutation();
   const { push } = useRouter();
-  const email = getVerificationEmail();
+  const [email, setEmail] = useState<string | undefined>();
+
+  useEffect(() => {
+    const storedEmail = getVerificationEmail();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEmail(storedEmail);
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -72,7 +78,7 @@ export const ResetPasswordForm = () => {
     mode: "onChange",
   });
 
-  const isFormValid = form.formState.isValid && !isLoading;
+  const isFormValid = form.formState.isValid && !isResetting;
 
   async function handleSubmit(values: FormValues) {
     // setServerError(null);
@@ -149,7 +155,7 @@ export const ResetPasswordForm = () => {
                       <PasswordInput
                         placeholder="Enter new password"
                         {...field}
-                        disabled={isLoading}
+                        disabled={isResetting}
                       />
                     </FormControl>
                     <FormDescription className="text-xs">
@@ -171,7 +177,7 @@ export const ResetPasswordForm = () => {
                       <PasswordInput
                         placeholder="Confirm password"
                         {...field}
-                        disabled={isLoading}
+                        disabled={isResetting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -190,10 +196,10 @@ export const ResetPasswordForm = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={!isFormValid || isLoading}
+                disabled={!isFormValid || isResetting}
               >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLoading ? "Updating..." : "Confirm password"}
+                {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isResetting ? "Updating..." : "Confirm password"}
               </Button>
             </form>
           </Form>

@@ -80,14 +80,20 @@ export const useGetMyBoughtArtworks = () =>
     queryFn: api.getMyBoughtArtworks,
   });
 
-  export const useGetMyBillingHistory = () =>
+export const useGetMyBillingHistory = () =>
   useQuery({
     queryKey: ["getMyBillingHistory"],
     queryFn: api.getMyBillingHistory,
   });
 
-  export const useContactUsMutation = () =>
+export const useContactUsMutation = () =>
   useMutation({
     mutationKey: ["contactUs"],
     mutationFn: api.contactUs,
+  });
+
+export const useGoogleLogin = () =>
+  useMutation({
+    mutationKey: ["googleLogin"],
+    mutationFn: api.googleLogin,
   });

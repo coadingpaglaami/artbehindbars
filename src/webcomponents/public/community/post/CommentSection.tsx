@@ -22,7 +22,7 @@ export const CommentSection = ({
   const [newComment, setNewComment] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
-    const { refreshPost } = usePosts();
+    const { refreshPost,refetchPosts } = usePosts();
 
 
   const { mutate: createCommentMutate, isPending: isCreatingComment } =
@@ -54,6 +54,7 @@ export const CommentSection = ({
       {
         onSuccess: () => {
           setNewComment("");
+          refetchPosts();
           refreshPost(postId);
         },
       }
@@ -72,7 +73,7 @@ export const CommentSection = ({
         onSuccess: () => {
           setReplyContent("");
           setReplyTo(null);
-          refreshPost(postId);
+          refetchPosts();
         },
       }
     );

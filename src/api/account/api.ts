@@ -139,3 +139,8 @@ export const contactUs = async (payload: ContactUsDto) => {
   const { data } = await axios.post(`/contact-us`, payload);
   return { data };
 };
+
+export const googleLogin = async () => {
+  const { data } = await axios.get(`/auth/google`);
+  return data;
+}

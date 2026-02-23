@@ -13,10 +13,10 @@ import { useState } from "react";
 import { PasswordInput } from "../reusable";
 import { setTokens, setVerificationEmail, setOtpType } from "@/lib/cookies";
 import { useForgetPasswordMutation, useSigninMutation } from "@/api/auth";
-
+import { useGoogleLogin } from "@/api/account";
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
+  email: z.email({ message: "Invalid email address" }),
   password: z.string().min(1, { message: "Password is required" }),
   remember: z.boolean().optional(),
 });
@@ -30,6 +30,8 @@ export const Login = () => {
   const { mutate: signinMutate, isPending: isSigningIn } = useSigninMutation();
   const { mutate: forgotPasswordMutate, isPending: isForgotPasswordPending } =
     useForgetPasswordMutation();
+  const { mutate: googleLoginMutate, isPending: isGoogleLoginPending } =
+    useGoogleLogin();
 
   const {
     register,
@@ -71,7 +73,7 @@ export const Login = () => {
         onError: (error) => {
           setError(error.message || "Invalid email or password");
         },
-      }
+      },
     );
   };
 
@@ -82,25 +84,35 @@ export const Login = () => {
 
     const email = getValues("email");
 
-    forgotPasswordMutate({email}, {
-      onSuccess: () => {
-        // Save email and otpType to cookies
-        setVerificationEmail(email);
-        setOtpType("resetPassword");
+    forgotPasswordMutate(
+      { email },
+      {
+        onSuccess: () => {
+          // Save email and otpType to cookies
+          setVerificationEmail(email);
+          setOtpType("resetPassword");
 
-        router.push("/verify");
+          router.push("/verify");
+        },
+        onError: (error) => {
+          setError(error.message || "Failed to send reset code");
+        },
       },
-      onError: (error) => {
-        setError(error.message || "Failed to send reset code");
-      },
-    });
+    );
   };
 
   return (
     <div className="flex flex-col items-center">
       <h1 className="text-2xl font-bold mb-8">Welcome to your account</h1>
 
-      <Button variant="outline" className="w-full max-w-xs mb-6">
+      <Button
+        variant="outline"
+        className="w-full max-w-xs mb-6"
+        onClick={() => {
+          window.location.href = "http://localhost:4900/auth/google";
+        }}
+        disabled={isGoogleLoginPending}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           x="0px"
@@ -161,7 +173,9 @@ export const Login = () => {
             className={errors.password ? "border-red-500" : ""}
           />
           {errors.password && (
-            <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
+            <p className="text-sm text-red-500 mt-1">
+              {errors.password.message}
+            </p>
           )}
         </div>
 
