@@ -11,13 +11,14 @@ import {
   PaginatedResponseDto,
   PlaceBidDto,
 } from "@/types/auction.type";
+import { NotificationResponseDto } from "@/types/notification.type";
+import { handleSocketNotification } from "@/lib/socketnoficationhandler";
 
 type SocketContextType = Socket | null;
 
 interface SocketData {
-  payload: {
     [key: string]: unknown;
-  };
+ 
 }
 
 const SocketContext = createContext<SocketContextType>(null);
@@ -34,7 +35,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     ==========================*/
 
     const handleConnectionRequest = (data: SocketData) => {
-      toast.success(data.payload.message as string);
+      toast.success(data.payload as string);
       console.log(data.payload);
 
       queryClient.invalidateQueries({
@@ -50,7 +51,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
 
     const handleConnectionAccepted = (data: SocketData) => {
-      toast.success(data.payload.message as string);
+      toast.success(data.payload as string);
 
       queryClient.invalidateQueries({
         predicate: (query) =>
@@ -93,50 +94,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       );
     };
 
-    // const handleAuctionNewBid = (
-    //   data: PlaceBidDto & { firstName?: string; lastName?: string },
-    //   socket: SocketData,
-    // ) => {
-    //   toast.success(socket.payload.message as string);
-
-    //   // ✅ Invalidate auction list queries
-    //   queryClient.invalidateQueries({
-    //     predicate: (query) => query.queryKey[0] === "auctions",
-    //   });
-
-    //   // ✅ Invalidate artwork related queries
-    //   queryClient.invalidateQueries({
-    //     predicate: (query) => query.queryKey[0] === "artwork",
-    //   });
-
-    //   // ✅ Invalidate MY AUCTION HISTORY (this will refetch useMyAuctionHistory)
-    //   queryClient.invalidateQueries({
-    //     predicate: (query) =>
-    //       query.queryKey[0] === "auction" && query.queryKey[1] === "my-history",
-    //   });
-
-    //   // ✅ Optimistically update bid list cache
-    //   const bidQueries = queryClient.getQueryCache().findAll({
-    //     predicate: (q) =>
-    //       q.queryKey[0] === "auction" &&
-    //       q.queryKey[1] === "bids" &&
-    //       q.queryKey[2] === data.auctionId,
-    //   });
-
-    //   bidQueries.forEach((query) => {
-    //     queryClient.setQueryData(
-    //       query.queryKey,
-    //       (old: PaginatedResponseDto<AuctionBidDto>) => {
-    //         if (!old) return old;
-
-    //         return {
-    //           ...old,
-    //           data: [data, ...old.data],
-    //         };
-    //       },
-    //     );
-    //   });
-    // };
     const handleAuctionNewBid = (
       data: PlaceBidDto & {
         firstName?: string;
@@ -187,6 +144,11 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       });
     };
 
+    // Notification events are handled in the Notification component to allow for more granular cache updates and to avoid unnecessary invalidations of unrelated queries.
+    // add notifiation work here only
+    const handleNotification = (data: NotificationResponseDto) => {
+      handleSocketNotification(data, queryClient);
+    };
     /* =========================
        ATTACH LISTENERS
     ==========================*/
@@ -196,6 +158,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     socket.on("new_message", handleNewMessage);
     socket.on("message_seen", handleMessageSeen);
     socket.on("auction:newBid", handleAuctionNewBid);
+    socket.on("notification", handleNotification);
 
     /* =========================
        CLEANUP
@@ -207,6 +170,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       socket.off("new_message", handleNewMessage);
       socket.off("message_seen", handleMessageSeen);
       socket.off("auction:newBid", handleAuctionNewBid);
+      socket.off("notification", handleNotification);
     };
   }, [socket, queryClient]);
 

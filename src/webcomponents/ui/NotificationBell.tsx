@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/popover";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { getSocket } from "@/lib/socket"; // Adjust path as needed
 import {
   useGetNotificationsQuery,
   useMarkNotificationAsReadMutation,
@@ -17,7 +16,6 @@ import {
 } from "@/api/notification"; // Adjust path as needed
 import { useQueryClient } from "@tanstack/react-query";
 import { NotificationResponseDto } from "@/types/notification.type";
-import { toast } from "sonner";
 
 // Updated enum to match the new types
 enum NotificationType {
@@ -32,14 +30,6 @@ enum NotificationType {
 }
 
 // Update the interface to use the enum
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-  type: NotificationType;
-}
 
 export const NotificationBell = () => {
   const [open, setOpen] = useState(false);
@@ -61,58 +51,7 @@ export const NotificationBell = () => {
   }, [pathname]);
 
   // Setup Socket.IO for real-time notifications
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
 
-    // Listen for new notifications
-    socket.on("notification", (newNotification: Notification) => {
-      // Invalidate and refetch notifications
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-
-      // Show toast with appropriate styling based on type
-      const toastMessage = {
-        [NotificationType.PAYMENT]: {
-          icon: "💰",
-          description: "Payment update",
-        },
-        [NotificationType.LIKE]: { icon: "❤️", description: "New like" },
-        [NotificationType.COMMENT]: { icon: "💬", description: "New comment" },
-        [NotificationType.ADMIN]: { icon: "⚠️", description: "Admin message" },
-        [NotificationType.INFO]: { icon: "ℹ️", description: "Information" },
-        [NotificationType.CONNECTION_REQUEST]: {
-          icon: "🤝",
-          description: "Connection request",
-        },
-        [NotificationType.CONNECTION_ACCEPTED]: {
-          icon: "✅",
-          description: "Connection accepted",
-        },
-        [NotificationType.WARNING]: { icon: "⚠️", description: "Warning" },
-      };
-
-      const typeInfo = toastMessage[newNotification.type] || {
-        icon: "🔔",
-        description: "Notification",
-      };
-
-      toast.success(`${typeInfo.icon} ${newNotification.message}`, {
-        description: newNotification.title || typeInfo.description,
-      });
-
-      // Optional: Show browser notification
-      if (Notification && Notification.permission === "granted") {
-        new Notification(newNotification.title, {
-          body: newNotification.message,
-          icon: "/favicon.ico",
-        });
-      }
-    });
-
-    return () => {
-      socket.off("notification");
-    };
-  }, [queryClient]);
 
   // Request browser notification permission on mount
   useEffect(() => {
@@ -352,7 +291,7 @@ export const NotificationBell = () => {
                           {notification.title}
                         </h4>
                         {!notification.isRead && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
+                          <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1" />
                         )}
                       </div>
                       <p className="text-sm text-gray-600 mt-1 line-clamp-2">
