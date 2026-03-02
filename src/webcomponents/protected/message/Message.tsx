@@ -1,23 +1,42 @@
+// Message.tsx
 "use client";
 
-import { messagesdata } from "@/data/messagedata";
 import { HeadingTwo } from "@/webcomponents/reusable";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MessageDialog } from "./MessageDialog";
-import { Message as MessageType } from "@/interface/message";
+import { useGetMyFanMails, useMarkFanMailAsReadMutation } from "@/api/gallary";
+import { Loader2 } from "lucide-react";
+import { FanMail } from "@/types/gallery.types";
 
 export const Message = () => {
   const { push } = useRouter();
-  const [selectedMessage, setSelectedMessage] = useState<MessageType | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<FanMail | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const {
+    data: response,
+    isLoading,
+    error,
+    refetch,
+  } = useGetMyFanMails({ page: 1, limit: 10 });
+  const { mutate: markAsRead } = useMarkFanMailAsReadMutation();
 
-  const unreadCount = messagesdata.filter((msg) => !msg.isRead).length;
+  const messages = response?.data || [];
+  const unreadCount = response?.unreadCount || 0;
 
-  const handleMessageClick = (message: MessageType) => {
+  const handleMessageClick = async (message: FanMail) => {
     setSelectedMessage(message);
     setIsDialogOpen(true);
+
+    // Mark as read when opened
+    if (!message.isReadBySender) {
+      markAsRead(message.id, {
+        onSuccess: () => {
+          refetch();
+        },
+      });
+    }
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -42,6 +61,77 @@ export const Message = () => {
     }
   };
 
+  const getStatusBadge = (status: string, isRead: boolean) => {
+    if (status === "PENDING") {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          Not Replied
+        </span>
+      );
+    }
+
+    if (status === "REPLIED") {
+      return (
+        <span
+          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            isRead ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
+          }`}
+        >
+          {isRead ? "Replied (Read)" : "Replied (Unread)"}
+        </span>
+      );
+    }
+
+    if (status === "CLOSED") {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          Closed
+        </span>
+      );
+    }
+
+    return null;
+  };
+
+  if (isLoading) {
+    return (
+      <>
+        <button
+          onClick={() => push("/artists")}
+          className="text-gray-400 hover:text-gray-600 flex items-center gap-2.5 p-2.5 transition-colors"
+        >
+          <ArrowLeft size={16} /> Back
+        </button>
+        <div className="py-16 px-4 flex justify-center items-center min-h-100">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-gray-500">Loading messages...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <button
+          onClick={() => push("/artists")}
+          className="text-gray-400 hover:text-gray-600 flex items-center gap-2.5 p-2.5 transition-colors"
+        >
+          <ArrowLeft size={16} /> Back
+        </button>
+        <div className="py-16 px-4">
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-center">
+              Failed to load messages. Please try again.
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <button
@@ -52,7 +142,7 @@ export const Message = () => {
       </button>
 
       <div className="py-16 px-4">
-        <div className=" space-y-6">
+        <div className="space-y-6">
           <HeadingTwo
             title="Messages"
             description="Connect with other members of the community"
@@ -63,31 +153,33 @@ export const Message = () => {
             {/* Inbox Header */}
             <div className="p-4 border-b border-gray-300">
               <h3 className="text-xl font-semibold text-gray-900">
-                Inbox ({unreadCount})
+                Inbox ({unreadCount} unread)
               </h3>
             </div>
 
             {/* Messages List */}
             <div className="divide-y divide-gray-200">
-              {messagesdata.length > 0 ? (
-                messagesdata.map((message, idx) => (
+              {messages.length > 0 ? (
+                messages.map((message) => (
                   <div
-                    key={idx}
+                    key={message.id}
                     onClick={() => handleMessageClick(message)}
                     className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 ${
-                      !message.isRead
-                        ? "border border-[#E5E5E5]"
+                      !message.isReadBySender
+                        ? "border-l-4 border-blue-500"
                         : ""
                     }`}
                     style={{
-                      backgroundColor: !message.isRead ? "#EFF6FF" : "white",
+                      backgroundColor: !message.isReadBySender
+                        ? "#EFF6FF"
+                        : "white",
                     }}
                   >
                     <div className="flex gap-4">
                       {/* Sender Avatar */}
                       <div className="shrink-0">
                         <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-lg font-semibold">
-                          {message.senderName.charAt(0).toUpperCase()}
+                          {message.artist.name.charAt(0).toUpperCase()}
                         </div>
                       </div>
 
@@ -95,30 +187,42 @@ export const Message = () => {
                       <div className="flex-1 min-w-0">
                         {/* Sender Name and Timestamp */}
                         <div className="flex justify-between items-start gap-2 mb-1">
-                          <h4
-                            className={`text-xl ${
-                              !message.isRead ? "font-bold" : "font-semibold"
-                            } text-gray-900 truncate`}
-                          >
-                            {message.senderName}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4
+                              className={`text-xl ${
+                                !message.isReadBySender
+                                  ? "font-bold"
+                                  : "font-semibold"
+                              } text-gray-900 truncate`}
+                            >
+                              {message.artist.name}
+                            </h4>
+                            {getStatusBadge(
+                              message.status,
+                              !message.isReadBySender,
+                            )}
+                          </div>
                           <span className="text-sm text-gray-500 whitespace-nowrap">
-                            {formatTimestamp(message.timestamp)}
+                            {formatTimestamp(message.createdAt)}
                           </span>
                         </div>
 
                         {/* Subject */}
-                        <h5
-                          className={`text-lg ${
-                            !message.isRead ? "font-bold" : "font-medium"
-                          } text-gray-800 mb-1 truncate`}
-                        >
-                          {message.subject}
-                        </h5>
+                        {message.subject && (
+                          <h5
+                            className={`text-lg ${
+                              !message.isReadBySender
+                                ? "font-bold"
+                                : "font-medium"
+                            } text-gray-800 mb-1 truncate`}
+                          >
+                            {message.subject}
+                          </h5>
+                        )}
 
                         {/* Message Body Preview */}
                         <p className="text-gray-600 text-sm line-clamp-2">
-                          {message.messageBody}
+                          {message.message}
                         </p>
                       </div>
                     </div>

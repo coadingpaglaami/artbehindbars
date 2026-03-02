@@ -3,7 +3,7 @@ export interface ProductProps {
   prouductPhoto: string;
   productArtist: string;
   productTitle: string;
-  productCategory: "Religious" | "Non Religious";
+  productCategory: "Religious" | "Non_Religious";
   productPrice: number;
   auctionPrice?: number;
   remainingTime?: Date;

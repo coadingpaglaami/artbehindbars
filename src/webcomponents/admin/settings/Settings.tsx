@@ -31,7 +31,7 @@ export const Settings = () => {
         heading="Settings"
         subheading="Manage general site configuration and admin preferences."
       />
-      <GeneralConfiguration onSave={handleGeneralSave} />
+      {/* <GeneralConfiguration onSave={handleGeneralSave} /> */}
       <EmailNotifications onSave={handleEmailSave} />
     </div>
   );

@@ -1,60 +1,156 @@
 "use client";
 
-import { MessageThread } from "@/interface/messagethread";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getSocket } from "@/lib/socket";
+import { ClientSub } from "@/lib/auth-client";
+import {
+  useGetMessagesQuery,
+  useMarkChatSeenMutation,
+  useSendMessageMutation,
+} from "@/api/chat";
+import { Message } from "@/types/chat.type";
 
 interface ChatWindowProps {
-  thread: MessageThread;
+  chatId: string;
 }
 
-export const ChatWindow = ({ thread }: ChatWindowProps) => {
+export const ChatWindow = ({ chatId }: ChatWindowProps) => {
+  console.log(chatId, "line 19 ChatWindow.tsx");
   const [newMessage, setNewMessage] = useState("");
+  const queryClient = useQueryClient();
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
+  const { data: messages = [], refetch } = useGetMessagesQuery(chatId);
+  const sendMessage = useSendMessageMutation();
+  const markSeen = useMarkChatSeenMutation();
+  const userId = ClientSub(); // Assuming token contains user ID in 'sub' claim
 
-  const handleSend = (e: React.FormEvent) => {
+  /* =========================
+     GET CURRENT USER ID
+  ==========================*/
+
+  /* =========================
+     SOCKET LISTENERS
+  ==========================*/
+  // useEffect(() => {
+  //   const socket = getSocket();
+  //   if (!socket) return;
+
+  //   socket.on("new_message", (message) => {
+  //     if (message.chatId !== chatId) return;
+
+  //     queryClient.setQueryData(
+  //       ["getMessages", chatId],
+  //       (old: Message[] = []) => [...old, message],
+  //     );
+
+  //     // mark as seen automatically
+
+  //     markSeen.mutate(chatId);
+  //   });
+
+  //   socket.on("message_seen", ({ messageId, seenAt }) => {
+  //     queryClient.setQueryData(["getMessages", chatId], (old: Message[] = []) =>
+  //       old.map((msg) =>
+  //         msg.id === messageId
+  //           ? {
+  //               ...msg,
+  //               statuses: [{ seenAt }],
+  //             }
+  //           : msg,
+  //       ),
+  //     );
+  //   });
+
+  //   return () => {
+  //     socket.off("new_message");
+  //     socket.off("message_seen");
+  //   };
+  // }, [chatId, queryClient, markSeen]);
+  useEffect(() => {
+    if (!chatId) return;
+
+    markSeen.mutate(chatId);
+  }, [chatId]);
+
+  /* =========================
+     AUTO SCROLL
+  ==========================*/
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  /* =========================
+     SEND MESSAGE
+  ==========================*/
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    console.log("Send message:", newMessage);
+    const tempId = crypto.randomUUID();
+    const optimisticMessage = {
+      id: tempId,
+      chatId,
+      content: newMessage,
+      createdAt: new Date().toISOString(),
+    };
+
+    // optimistic UI
+    queryClient.setQueryData(["getMessages", chatId], (old: Message[] = []) => [
+      ...old,
+      optimisticMessage,
+    ]);
+
+    try {
+      await sendMessage.mutateAsync(
+        {
+          chatId,
+          content: newMessage,
+        },
+        {
+          onSuccess: () => {
+            refetch();
+          },
+        },
+      );
+    } catch (err) {
+      // rollback if needed
+      queryClient.invalidateQueries({ queryKey: ["getMessages", chatId] });
+    }
+
     setNewMessage("");
   };
 
+  /* =========================
+     UI
+  ==========================*/
   return (
     <div className="flex-1 flex flex-col bg-gray-50 h-[90%]">
-      {/* Header */}
-      <div className="bg-white p-4 border-b flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
-          {getInitials(thread.otherPerson)}
-        </div>
-        <h3 className="text-lg font-semibold">{thread.otherPerson}</h3>
-      </div>
-
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {thread.messages.map((message) => {
-          const isUser = message.from === "user";
+        {messages.map((message) => {
           return (
             <div
-              key={message.messageId}
-              className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+              key={message.id}
+              className={`flex ${message.senderId === userId ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-xs lg:max-w-md rounded-lg p-3 ${
-                  isUser ? "bg-blue-600 text-white" : "bg-white border"
+                  message.senderId === userId
+                    ? "bg-blue-600 text-white"
+                    : "bg-white border text-gray-800"
                 }`}
               >
-                <p className="text-sm">{message.body}</p>
-                <p className="text-xs mt-1 opacity-70">{message.timestamp}</p>
+                <p className="text-sm">{message.content}</p>
+                <p className="text-xs mt-1 opacity-70 float-end">
+                  {new Date(message.createdAt).toLocaleTimeString()}
+                </p>
               </div>
             </div>
           );
         })}
+        <div ref={bottomRef} />
       </div>
 
       {/* Input */}
@@ -65,7 +161,13 @@ export const ChatWindow = ({ thread }: ChatWindowProps) => {
           placeholder="Type a message..."
           className="flex-1 border rounded-lg px-4 py-2"
         />
-        <button className="bg-blue-600 text-white px-6 rounded-lg">Send</button>
+        <button
+          type="submit"
+          disabled={sendMessage.isPending}
+          className="bg-blue-600 text-white px-6 rounded-lg"
+        >
+          Send
+        </button>
       </form>
     </div>
   );

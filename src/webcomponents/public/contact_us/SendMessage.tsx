@@ -14,13 +14,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
 
 const formSchema = z.object({
-  fullName: z
+  name: z
     .string()
     .min(2, { message: "Full name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  email: z.email({ message: "Please enter a valid email address" }),
   subject: z
     .string()
     .min(5, { message: "Subject must be at least 5 characters" }),
@@ -29,11 +29,16 @@ const formSchema = z.object({
     .min(10, { message: "Message must be at least 10 characters" }),
 });
 
-export const SendMessage = () => {
+interface SendMessageProps {
+  handleSubmit: (data: z.infer<typeof formSchema>) => void;
+  isSubmitting: boolean;
+}
+
+export const SendMessage = ({ handleSubmit, isSubmitting }: SendMessageProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
+      name: "",
       email: "",
       subject: "",
       message: "",
@@ -41,8 +46,9 @@ export const SendMessage = () => {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    // Handle form submission logic here, e.g., call an API to send the message
     // Handle form submission
+    handleSubmit(values);
   };
 
   return (
@@ -57,7 +63,7 @@ export const SendMessage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="fullName"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
@@ -123,9 +129,18 @@ export const SendMessage = () => {
           />
 
           {/* Submit Button */}
-          <Button type="submit" className="bg-primary text-white">
-            <MessageCircle size={18} className="mr-2" />
-            Send Message
+          <Button type="submit" className="bg-primary text-white" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <MessageCircle size={18} className="mr-2" />
+                Send Message
+              </>
+            )}
           </Button>
         </form>
       </Form>

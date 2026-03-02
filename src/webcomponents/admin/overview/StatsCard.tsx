@@ -4,17 +4,24 @@ import { TrendingDown, TrendingUp } from "lucide-react";
 interface StatCardProps {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   iconColor: string; // e.g., "bg-blue-500"
-    title: string;
-    value: string | number;
-    trend: 'up' | 'down';
-    trendValue: string; // e.g., "+5.4%" or "-3.2%"
+  title: string;
+  value: string | number;
+  trend: "up" | "down" | "same" | string;
+  trendValue: string; // e.g., "+5.4%" or "-3.2%"
 }
 
-export const StatCard = ({ icon: Icon, iconColor, title, value, trend, trendValue }: StatCardProps  ) => {
-  const isPositive = trend === 'up';
-  
+export const StatCard = ({
+  icon: Icon,
+  iconColor,
+  title,
+  value,
+  trend,
+  trendValue,
+}: StatCardProps) => {
+  const isPositive = trend === "up";
+
   return (
-    <Card >
+    <Card>
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className={`p-3 rounded-lg ${iconColor}`}>
@@ -26,7 +33,7 @@ export const StatCard = ({ icon: Icon, iconColor, title, value, trend, trendValu
             ) : (
               <TrendingDown className="w-4 h-4 text-red-500" />
             )}
-            <span className={isPositive ? 'text-green-500' : 'text-red-500'}>
+            <span className={isPositive ? "text-green-500" : "text-red-500"}>
               {trendValue}
             </span>
           </div>

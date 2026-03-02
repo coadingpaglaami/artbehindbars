@@ -1,7 +1,9 @@
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export const CommunityDiscussion = () => {
+  const router = useRouter();
   return (
     <div className="bg-white rounded-lg shadow-md p-8 flex flex-col items-center gap-4 text-center">
       {/* Lock Icon */}
@@ -18,7 +20,7 @@ export const CommunityDiscussion = () => {
       </p>
       
       {/* Primary Button */}
-      <Button className="bg-primary text-white">
+      <Button className="bg-primary text-white" onClick={() => router.push("/login")}>
         Login to Continue
       </Button>
     </div>

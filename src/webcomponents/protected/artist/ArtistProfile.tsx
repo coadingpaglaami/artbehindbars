@@ -1,16 +1,37 @@
 "use client";
 
-import { artistData } from "@/data/artistdata";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ArtistInfo } from "./ArtistInfo";
 import { ArtWorkGallery } from "./ArtWorkGallery";
+import { useGetArtistArtwork, useGetArtistById } from "@/api/gallary";
+import { ArtistResponseDto, ArtworkResponseDto, PaginatedResponseDto } from "@/types/gallery.types";
+
 
 export const ArtistProfile = ({ artistId }: { artistId: string }) => {
   const { push } = useRouter();
-  const artist = artistData.find((artist) => artist.artistId === artistId);
+  const {data,isLoading} =useGetArtistById(artistId)
+  const { data:artwork, isError } = useGetArtistArtwork(artistId, {
+    page: 1,
+    limit: 100,
+  });
 
-  if (!artist) {
+
+
+  // Loading State
+  if (isLoading) {
+    return (
+      <div className="py-16 px-4">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-gray-600">Loading artist profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (isError || !data) {
     return (
       <div className="py-16 px-4">
         <div className="text-center">
@@ -32,6 +53,9 @@ export const ArtistProfile = ({ artistId }: { artistId: string }) => {
     );
   }
 
+  const artist = data;
+
+
   return (
     <div className="px-4">
       <div className="">
@@ -44,10 +68,10 @@ export const ArtistProfile = ({ artistId }: { artistId: string }) => {
 
         <div className="py-16 flex flex-col gap-12">
           {/* Artist Info Section */}
-          <ArtistInfo artist={artist} />
+          <ArtistInfo artist={data as ArtistResponseDto } artworkCount={artwork?.meta.total} />
 
           {/* Artwork Gallery Section */}
-          <ArtWorkGallery artist={artist} />
+          <ArtWorkGallery artist={artist as ArtistResponseDto} artworks={artwork as unknown as PaginatedResponseDto<ArtworkResponseDto>} />
         </div>
       </div>
     </div>

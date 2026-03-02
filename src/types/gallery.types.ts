@@ -1,0 +1,147 @@
+/* ---------------- Enums ---------------- */
+
+import { AuctionDetailsResponseDto, AuctionResponseDto } from "./auction.type";
+
+export type Category = "Religious" | "Non_Religious";
+
+
+/* ---------------- Pagination ---------------- */
+
+export interface PaginationQueryDto {
+  page?: number;
+  limit?: number;
+}
+
+export interface GetArtistsQueryDto extends PaginationQueryDto {
+  searchTerm?: string;
+}
+
+export interface PaginationMetaDto {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponseDto<T> {
+  data: T[];
+  meta: PaginationMetaDto;
+}
+
+/* ---------------- Artist ---------------- */
+
+export interface ArtistRequestDto {
+  name: string;
+  facilityName: string;
+  lifeSentence: string;
+  inmateId: string;
+  maxReleaseDate: string; // ISO date
+  minReleaseDate: string; // ISO date
+  state: string;
+}
+
+export interface ArtistResponseDto extends ArtistRequestDto {
+  id: string;
+  createdAt: string;
+  image: string;
+  _count: { artworks: number };
+  
+}
+
+/* ---------------- Artwork ---------------- */
+
+export interface ArtWorkUploadRequestDto {
+  artistId: string;
+  title: string;
+  isAnonymous?: boolean;
+  category: Category;
+  buyItNowPrice: number | string;
+}
+
+export interface ArtWorkUploadResponseDto extends ArtWorkUploadRequestDto {
+  id: string;
+  createdAt: string;
+  imageUrl: string;
+  isSold: boolean;
+  auction:AuctionResponseDto;
+}
+
+export interface ArtworkArtistDto {
+  name: string;
+}
+
+export interface ArtworkResponseDto {
+  id: string;
+  title: string;
+  isAnonymous: boolean;
+  category: Category;
+  buyItNowPrice: number;
+  startingBidPrice: number;
+  createdAt: string;
+  imageUrl: string;
+  artist: ArtworkArtistDto | null;
+  isSold: boolean;
+  auction: AuctionDetailsResponseDto | null;
+}
+
+/* ---------------- Artwork Query ---------------- */
+
+export interface GetArtworksQueryDto extends PaginationQueryDto {
+  category?: Category;
+}
+
+/* ---------------- FanMail ---------------- */
+
+export interface CreateFanMailDto {
+  message: string;
+}
+
+export interface ReplyFanMailDto {
+  message: string;
+}
+
+export interface FanMailQueryDto extends PaginationQueryDto {
+  status?: FanMailStatus;
+  isArchived?: boolean;
+}
+
+export interface BoughtArtwork {
+  id: string;
+  artworkId: string;
+  artwork: {
+    title: string;
+    imageUrl: string;
+  };
+  auctionId: string;
+  buyerId: string;
+  status: string;
+  totalAmount: number;
+  shippingFullName: string;
+  shippingAddress: string;
+  shippingCity: string;
+  shippingState: string;
+  shippingZip: string;
+  shippingPhone: string;
+  paymentDueAt: string;
+  squarePaymentId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type FanMailStatus = "PENDING" | "REPLIED" | "CLOSED";
+
+export interface FanMailArtist {
+  id: string;
+  name: string;
+}
+
+export interface FanMail {
+  id: string;
+  subject: string | null;
+  message: string;
+  status: FanMailStatus;
+  isReadBySender: boolean;
+  createdAt: string;
+  artist: FanMailArtist;
+  uiStatus: string;
+}

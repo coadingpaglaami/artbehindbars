@@ -1,4 +1,5 @@
 'use client';
+import { useGetArtworks } from "@/api/gallary";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -7,35 +8,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProductProps } from "@/interface/product";
-import { products } from "@/lib/data";
+import { ArtworkResponseDto, Category } from "@/types/gallery.types";
 import { Product } from "@/webcomponents/reusable";
 import { Filter } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export const FeaturedArtwork = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedAvailability, setSelectedAvailability] =
-    useState<string>("all");
-  const categories = Array.from(
-    new Set(products.map((item) => item.productCategory))
-  );
-  const filteredProducts = useMemo<ProductProps[]>(() => {
-    return products.filter((product) => {
+ const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
+  const [selectedAvailability, setSelectedAvailability] = useState<string>("all");
+  const {
+      data: artworksData,
+      isLoading,
+      isError,
+      error,
+    } = useGetArtworks({
+      page: 1,
+      limit: 8,
+      category: selectedCategory === "all" ? undefined : selectedCategory,
+    });
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  const categories = useMemo<Category[]>(() => {
+    if (!artworksData?.data) return [];
+    
+    const uniqueCategories = new Set<Category>();
+    artworksData.data.forEach((artwork) => {
+      uniqueCategories.add(artwork.category);
+    });
+    
+    return Array.from(uniqueCategories);
+  }, [artworksData?.data]);
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  const filteredProducts = useMemo<ArtworkResponseDto[]>(() => {
+    if (!artworksData?.data) return [];
+    return artworksData.data.filter((product) => {
       // 1️⃣ Category filter
       const categoryMatch =
         selectedCategory === "all" ||
-        product.productCategory === selectedCategory;
+        product.category === selectedCategory;
 
       // 2️⃣ Availability filter
       const availabilityMatch =
         selectedAvailability === "all" ||
-        (selectedAvailability === "Available" && !product.isSoldOut) ||
-        (selectedAvailability === "Sold" && product.isSoldOut);
+        (selectedAvailability === "Available" && !product.isSold) ||
+        (selectedAvailability === "Sold" && product.isSold);
 
       return categoryMatch && availabilityMatch;
     });
-  }, [selectedCategory, selectedAvailability]);
+  }, [artworksData?.data, selectedCategory, selectedAvailability]);
   console.log(categories);
 
   return (
@@ -55,7 +74,7 @@ export const FeaturedArtwork = () => {
         <div className="flex flex-col md:flex-row gap-2.5">
           <div className="flex flex-col gap-2 flex-1">
             <Label htmlFor="email">Categories</Label>
-            <Select defaultValue="all" onValueChange={setSelectedCategory}>
+            <Select defaultValue="all" onValueChange={setSelectedCategory as unknown as (value: string) => void}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
@@ -96,7 +115,7 @@ export const FeaturedArtwork = () => {
       <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-5">
         {filteredProducts.map((product) => (
           <Product
-            key={product.productId}
+            key={product.id}
             product={product}
             buttonText={["Make a Bid"]}
           />

@@ -1,28 +1,60 @@
+// UploadSection.tsx
 "use client";
 
-import { useState } from "react";
-import { Camera, Upload, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Camera, Upload, Trash2, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { toast } from "sonner";
+import { AccountProfile, UpdateProfileDto } from "@/types/account.type";
 
 interface UploadSectionProps {
-  userName?: string;
+  profileData?: AccountProfile;
+  onUpdateProfile: (data: { payload: UpdateProfileDto; image?: File | null }) => void;
+  isUpdating?: boolean;
 }
 
-export const UploadSection = ({ userName = "Admin User" }: UploadSectionProps) => {
+export const UploadSection = ({
+  profileData,
+  onUpdateProfile,
+  isUpdating = false,
+}: UploadSectionProps) => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [originalAvatar, setOriginalAvatar] = useState<string | null>(null);
+  const [pendingRemove, setPendingRemove] = useState(false);
+
+  // Set initial image from profile data
+  useEffect(() => {
+    if (profileData?.avatar || profileData?.profilePictureUrl) {
+      const avatarUrl = profileData.avatar || profileData.profilePictureUrl || null;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setProfileImage(avatarUrl);
+      setOriginalAvatar(avatarUrl);
+    }
+  }, [profileData]);
 
   const getInitials = () => {
-    const names = userName.split(" ");
-    if (names.length >= 2) {
-      return `${names[0].charAt(0)}${names[1].charAt(0)}`.toUpperCase();
+    if (profileData?.firstName && profileData?.lastName) {
+      return `${profileData.firstName.charAt(0)}${profileData.lastName.charAt(0)}`.toUpperCase();
     }
-    return userName.charAt(0).toUpperCase();
+    if (profileData?.firstName) {
+      return profileData.firstName.charAt(0).toUpperCase();
+    }
+    return "A";
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+
+      setProfileImageFile(file);
+      setPendingRemove(false);
+
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -35,7 +67,22 @@ export const UploadSection = ({ userName = "Admin User" }: UploadSectionProps) =
 
   const handleRemove = () => {
     setProfileImage(null);
+    setProfileImageFile(null);
+    setPendingRemove(true);
   };
+
+  const handleSave = () => {
+    if (pendingRemove) {
+      onUpdateProfile({ payload: { avatar: null }, image: null });
+    } else {
+      onUpdateProfile({
+        payload: {},
+        image: profileImageFile || undefined,
+      });
+    }
+  };
+
+  const hasChanges = profileImageFile !== null || pendingRemove;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -77,23 +124,49 @@ export const UploadSection = ({ userName = "Admin User" }: UploadSectionProps) =
             onChange={handleImageUpload}
             className="hidden"
             id="profile-image-upload"
+            disabled={isUpdating}
+            onClick={(e) => ((e.target as HTMLInputElement).value = "")}
           />
           <label htmlFor="profile-image-upload">
-            <Button variant="outline" className="cursor-pointer" asChild>
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              asChild
+              disabled={isUpdating}
+            >
               <span>
                 <Upload size={16} className="mr-2" />
                 Upload new photo
               </span>
             </Button>
           </label>
-          <Button
-            variant="ghost"
-            onClick={handleRemove}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            <Trash2 size={16} className="mr-2" />
-            Remove
-          </Button>
+
+          {profileImage && !pendingRemove && (
+            <Button
+              variant="ghost"
+              onClick={handleRemove}
+              disabled={isUpdating}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 size={16} className="mr-2" />
+              Remove
+            </Button>
+          )}
+
+          {hasChanges && (
+            <Button
+              onClick={handleSave}
+              disabled={isUpdating}
+              className="bg-gray-900 text-white hover:bg-gray-700"
+            >
+              {isUpdating ? (
+                <Loader2 size={16} className="mr-2 animate-spin" />
+              ) : (
+                <Save size={16} className="mr-2" />
+              )}
+              {isUpdating ? "Saving..." : "Save"}
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -11,28 +11,56 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, AlertCircle } from "lucide-react";
+import { MessageCircle, AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useSendFanMail } from "@/api/gallary";
+import { ErrorResponse } from "@/types/error.type";
 
 interface ArtistDialogProps {
   isOpen: boolean;
   onClose: () => void;
   artistName: string;
+  artistId: string; // Make it required
 }
 
 export const ArtistDialog = ({
   isOpen,
   onClose,
   artistName,
+  artistId,
 }: ArtistDialogProps) => {
   const [message, setMessage] = useState("");
   const maxLength = 300;
+  const { mutate: sendFanMail, isPending } = useSendFanMail();
 
   const handleSubmit = () => {
-    if (message.trim()) {
-      console.log("Message submitted:", message);
-      setMessage("");
-      onClose();
-    }
+    if (!message.trim() || !artistId) return;
+
+    sendFanMail(
+      {
+        artistId,
+        payload: { message: message.trim() },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Fan mail sent successfully!", {
+            description:
+              "Your message will be reviewed before being forwarded to the artist.",
+            duration: 5000,
+          });
+          setMessage("");
+          onClose();
+        },
+        onError: (error: unknown) => {
+          toast.error("Failed to send fan mail", {
+            description:
+              (error as ErrorResponse).response?.data?.message ||
+              "Please try again later.",
+            duration: 5000,
+          });
+        },
+      },
+    );
   };
 
   const importantPoints = [
@@ -44,11 +72,12 @@ export const ArtistDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-150">
         <DialogHeader>
           <DialogTitle className="text-2xl">Send Fan Mail</DialogTitle>
           <DialogDescription>
-            To: <span className="font-semibold text-gray-900">{artistName}</span>
+            To:{" "}
+            <span className="font-semibold text-gray-900">{artistName}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -96,6 +125,7 @@ export const ArtistDialog = ({
                 }
               }}
               className="min-h-32"
+              disabled={isPending}
             />
             <p className="text-sm text-gray-500 mt-1 text-right">
               {message.length}/{maxLength} characters
@@ -104,15 +134,22 @@ export const ArtistDialog = ({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isPending}>
             Cancel
           </Button>
           <Button
             className="bg-primary text-white"
             onClick={handleSubmit}
-            disabled={!message.trim()}
+            disabled={!message.trim() || isPending}
           >
-            Submit for Review
+            {isPending ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              "Submit for Review"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

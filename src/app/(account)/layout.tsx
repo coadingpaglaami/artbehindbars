@@ -1,3 +1,4 @@
+import TranstackProvider from "@/provider/TranstackProvider";
 import Image from "next/image";
 
 export default function AccountLayout({
@@ -14,7 +15,7 @@ export default function AccountLayout({
         height={48}
         className="mb-6"
       />
-      {children}
+      <TranstackProvider>{children}</TranstackProvider>
     </div>
   );
 }

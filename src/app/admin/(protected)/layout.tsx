@@ -1,3 +1,4 @@
+import TranstackProvider from "@/provider/TranstackProvider";
 import { Navbar, Sidebar } from "@/webcomponents/admin";
 
 export default async function AdminLayOut({
@@ -20,7 +21,9 @@ export default async function AdminLayOut({
 
         {/* This is the only part that scrolls */}
         <main className="flex-1 overflow-y-auto">
-          <div className="py-6 max-md:px-4 lg:px-8 px-4">{children}</div>
+          <div className="py-6 max-md:px-4 lg:px-8 px-4">
+            <TranstackProvider>{children}</TranstackProvider>
+          </div>
         </main>
       </div>
     </div>

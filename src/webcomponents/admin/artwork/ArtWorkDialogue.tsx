@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -21,25 +21,55 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, Check } from "lucide-react";
+import { Upload, Check, X } from "lucide-react";
 import Image from "next/image";
-import { Artwork } from "@/interface/admin";
+import {
+  useUploadArtwork,
+  useUpdateArtworkMutation,
+  useGetArtists,
+} from "@/api/gallary";
+import { ArtworkResponseDto, Category } from "@/types/gallery.types";
+import { toast } from "sonner";
+import { useCreateAuction } from "@/api/auction";
+import { AuctionTimingStep, AuctionTimingStepRef } from "./AuctionTimingStep";
+import { AuctionResponseDto } from "@/types/auction.type";
 
-const artworkSchema = z.object({
-  image: z.string().optional(),
-  artist: z.string().optional(),
+export const artworkSchema = z.object({
+  image: z.instanceof(File).optional().nullable(),
+  artistId: z.string().optional(),
   artworkTitle: z.string().min(2, "Title is required"),
-  category: z.enum(["Religious", "Non Religious"]),
-  buyNowPrice: z.number().min(1, "Buy now price is required"),
-  startingAuctionPrice: z.number().min(1, "Starting auction price is required"),
+  category: z.enum(["Religious", "Non_Religious"]),
+  buyNowPrice: z.number().min(1, "Buy now price must be at least 1"),
+  isAnonymous: z.boolean().optional(),
+  // Step 5 - Auction fields (only used in add mode)
+  auctionStartDate: z.date().optional().nullable(),
+  auctionEndDate: z.date().optional().nullable(),
 });
+
+const ADD_STEPS = [
+  { number: 1, label: "Image" },
+  { number: 2, label: "Artist" },
+  { number: 3, label: "Details" },
+  { number: 4, label: "Pricing" },
+  { number: 5, label: "Auction" }, // add mode only
+];
+
+const EDIT_STEPS = [
+  { number: 1, label: "Image" },
+  { number: 2, label: "Artist" },
+  { number: 3, label: "Details" },
+  { number: 4, label: "Pricing" },
+];
+
+type FormValues = z.infer<typeof artworkSchema>;
 
 interface ArtWorkDialogueProps {
   isOpen: boolean;
   onClose: () => void;
-  artwork?: Artwork | null;
+  artwork?: ArtworkResponseDto | null;
   mode: "add" | "edit";
   allArtists?: string[];
+  onSuccess?: () => void;
 }
 
 export const ArtWorkDialogue = ({
@@ -47,90 +77,252 @@ export const ArtWorkDialogue = ({
   onClose,
   artwork,
   mode,
-  allArtists = [],
+  onSuccess,
 }: ArtWorkDialogueProps) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [hasNewImage, setHasNewImage] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createdArtworkId, setCreatedArtworkId] = useState<string | null>(null); // NEW
 
-  const form = useForm<z.infer<typeof artworkSchema>>({
+  const steps = mode === "add" ? ADD_STEPS : EDIT_STEPS;
+  const auctionStepRef = useRef<AuctionTimingStepRef>(null);
+
+  // Fetch artists with object destructuring
+  const { data: artistsData } = useGetArtists({ page: 1, limit: 10 });
+
+  // Mutations with object destructuring
+  const { mutate: uploadArtwork, isPending: isUploading } = useUploadArtwork();
+  const { mutate: updateArtwork, isPending: isUpdating } =
+    useUpdateArtworkMutation();
+  const { mutate: createAuction, isPending: isCreatingAuction } =
+    useCreateAuction(); // NEW
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(artworkSchema),
     defaultValues: {
-      image: "",
-      artist: "",
+      image: null,
+      artistId: "",
       artworkTitle: "",
       category: "Religious",
       buyNowPrice: 0,
-      startingAuctionPrice: 0,
+      isAnonymous: false,
     },
   });
+
+  const isAnonymous = form.watch("isAnonymous");
 
   useEffect(() => {
     if (artwork && mode === "edit") {
       form.reset({
-        image: artwork.artworkImage,
-        artist: artwork.artist,
-        artworkTitle: artwork.artworkTitle,
-        category: artwork.category,
-        buyNowPrice: artwork.price,
-        startingAuctionPrice: artwork.price * 0.7,
+        image: null,
+        artistId: artwork.artist?.name || "",
+        artworkTitle: artwork.title,
+        category: artwork.category as Category,
+        buyNowPrice: artwork.buyItNowPrice,
+        isAnonymous: artwork.isAnonymous,
       });
-      setUploadedImage(artwork.artworkImage);
-      setIsAnonymous(artwork.artist === "Anonymous");
+
+      if (artwork.imageUrl) {
+        setExistingImageUrl(artwork.imageUrl);
+        setImagePreview(artwork.imageUrl);
+      }
+      setHasNewImage(false);
     } else {
       form.reset({
-        image: "",
-        artist: "",
+        image: null,
+        artistId: "",
         artworkTitle: "",
         category: "Religious",
         buyNowPrice: 0,
-        startingAuctionPrice: 0,
+        isAnonymous: false,
       });
-      setUploadedImage(null);
-      setIsAnonymous(false);
+      setImagePreview(null);
+      setExistingImageUrl(null);
+      setHasNewImage(false);
     }
     setCurrentStep(1);
+    setError(null);
   }, [artwork, mode, form, isOpen]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.size <= 10 * 1024 * 1024) {
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError("Please upload an image file");
+        return;
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError("Image size must be less than 10MB");
+        return;
+      }
+
+      form.setValue("image", file);
+      setHasNewImage(true);
+
+      // Create preview
       const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setUploadedImage(event.target.result as string);
-          form.setValue("image", event.target.result as string);
-        }
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-    } else {
-      alert("File size must be less than 10MB");
+      setError(null);
     }
   };
 
-  const onSubmit = (values: z.infer<typeof artworkSchema>) => {
-    console.log(mode === "add" ? "Creating artwork:" : "Updating artwork:", values);
-    onClose();
+  const removeImage = () => {
+    form.setValue("image", null);
+    setImagePreview(null);
+    setHasNewImage(false);
+
+    // If in edit mode, restore existing image
+    if (mode === "edit" && existingImageUrl) {
+      setImagePreview(existingImageUrl);
+    }
+  };
+
+  const onSubmit = (values: FormValues) => {
+    setError(null);
+
+    if (mode === "add") {
+      if (!values.image) {
+        setError("Artwork image is required");
+        return;
+      }
+
+      if (!Boolean(values.isAnonymous) && !values.artistId) {
+        setError("Please select an artist or post anonymously");
+        return;
+      }
+
+      const selectedArtist = artistsData?.data.find(
+        (artist) => artist.name === values.artistId,
+      );
+
+      const payload = {
+        artistId: Boolean(values.isAnonymous) ? "" : selectedArtist?.id || "",
+        title: values.artworkTitle,
+        isAnonymous: Boolean(values.isAnonymous),
+        category: values.category,
+        buyItNowPrice: Number(values.buyNowPrice) || 0,
+      };
+
+      uploadArtwork(
+        { payload, image: values.image },
+        {
+          onSuccess: (response) => {
+            // ✅ NEW: Store artwork ID and advance to step 5
+            setCreatedArtworkId(response.id);
+            setCurrentStep(5);
+          },
+          onError: (error) => {
+            setError(error.message || "Failed to upload artwork");
+          },
+        },
+      );
+    } else {
+      // Edit mode
+      if (!artwork?.id) {
+        setError("Artwork ID is missing");
+        return;
+      }
+
+      // Find artist ID from name
+      const selectedArtist = artistsData?.data.find(
+        (artist) => artist.name === values.artistId,
+      );
+
+      const payload = {
+        artistId: Boolean(values.isAnonymous) ? "" : selectedArtist?.id || "",
+        title: values.artworkTitle,
+        isAnonymous: Boolean(values.isAnonymous),
+        category: values.category,
+        buyItNowPrice: values.buyNowPrice || 0,
+      };
+
+      updateArtwork(
+        {
+          id: artwork.id,
+          artwork: payload,
+          artworkImage: hasNewImage ? values.image || undefined : undefined,
+        },
+        {
+          onSuccess: () => {
+            form.reset();
+            setImagePreview(null);
+            setExistingImageUrl(null);
+            setHasNewImage(false);
+            toast.success("Artwork updated successfully");
+            onClose();
+            onSuccess?.();
+          },
+          onError: (error) => {
+            setError(error.message || "Failed to update artwork");
+          },
+        },
+      );
+    }
+  };
+
+  const handleAuctionSubmit = (auctionPayload: {
+    artworkId: string;
+    startAt: string;
+    endAt: string;
+  }) => {
+    createAuction(auctionPayload, {
+      onSuccess: (auctionResponse) => {
+        toast.success(
+          `Auction scheduled for "${auctionResponse.artworkTitle}"!`,
+        );
+        handleClose();
+        onSuccess?.();
+      },
+      onError: (error) => {
+        setError(error.message || "Failed to create auction");
+      },
+    });
   };
 
   const handleNext = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
-    else form.handleSubmit(onSubmit)();
+    // Step 5 is handled by AuctionTimingStep's own submit button
+    // Step 4 in add mode → triggers form submit which moves to step 5
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    } else if (currentStep === 4) {
+      form.handleSubmit(onSubmit)(); // Submits artwork, then sets step 5 on success
+    }
+    // Step 5 has its own submit button — handleNext not called
   };
 
   const handleBack = () => {
+    // Prevent going back once artwork is uploaded (step 5)
+    if (currentStep === 5) return;
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
+  const handleClose = () => {
+    form.reset();
+    setImagePreview(null);
+    setExistingImageUrl(null);
+    setHasNewImage(false);
+    setCurrentStep(1);
+    setError(null);
+    setCreatedArtworkId(null); // NEW
+    onClose();
+  };
+  const handleAuctionSkip = () => {
+    toast.success("Artwork uploaded successfully");
+    handleClose();
+    onSuccess?.();
+  };
 
-  const steps = [
-    { number: 1, label: "Image" },
-    { number: 2, label: "Artist" },
-    { number: 3, label: "Details" },
-    { number: 4, label: "Pricing" },
-  ];
+  const isPending = isUploading || isUpdating;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-175">
         <DialogHeader className="border-b pb-4">
           <DialogTitle className="text-2xl font-semibold">
@@ -174,6 +366,48 @@ export const ArtWorkDialogue = ({
           {/* Step 1: Image Upload */}
           {currentStep === 1 && (
             <div className="flex flex-col items-center justify-center">
+              {imagePreview ? (
+                <div className="relative w-64 h-auto aspect-square border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+                  <Image
+                    src={imagePreview}
+                    alt="Preview"
+                    fill
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                  {mode === "edit" && !hasNewImage && (
+                    <div className="absolute bottom-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                      Existing Image
+                    </div>
+                  )}
+                  {hasNewImage && (
+                    <div className="absolute bottom-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                      New Image
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <label
+                  htmlFor="artwork-upload"
+                  className="w-full h-64 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 transition-colors p-8"
+                >
+                  <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+                    <Upload size={32} className="text-blue-600" />
+                  </div>
+                  <p className="text-gray-900 font-medium mb-1">
+                    Drop image here or click to upload
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Supports JPG, PNG, WEBP up to 10MB
+                  </p>
+                </label>
+              )}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -181,37 +415,21 @@ export const ArtWorkDialogue = ({
                 className="hidden"
                 id="artwork-upload"
               />
-              <label
-                htmlFor="artwork-upload"
-                className={`w-full ${
-                  uploadedImage ? "aspect-square" : "h-64"
-                } border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 transition-colors ${
-                  uploadedImage ? "p-0" : "p-8"
-                }`}
-              >
-                {uploadedImage ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={uploadedImage}
-                      alt="Preview"
-                      fill
-                      className="object-cover rounded-lg"
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
-                      <Upload size={32} className="text-blue-600" />
-                    </div>
-                    <p className="text-gray-900 font-medium mb-1">
-                      Drop image here or click to upload
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Supports JPG, PNG, WEBP up to 10MB
-                    </p>
-                  </>
-                )}
-              </label>
+              {mode === "edit" && imagePreview && (
+                <label
+                  htmlFor="artwork-upload-change"
+                  className="mt-4 text-sm text-blue-600 hover:text-blue-800 cursor-pointer underline text-center"
+                >
+                  Change Image
+                  <input
+                    id="artwork-upload-change"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
           )}
 
@@ -229,11 +447,11 @@ export const ArtWorkDialogue = ({
                   Post Anonymously (No Artist Profile)
                 </span>
                 <Switch
-                  checked={isAnonymous}
+                  checked={isAnonymous === true}
                   onCheckedChange={(checked) => {
-                    setIsAnonymous(checked);
+                    form.setValue("isAnonymous", checked);
                     if (checked) {
-                      form.setValue("artist", "Anonymous");
+                      form.setValue("artistId", "");
                     }
                   }}
                 />
@@ -242,19 +460,19 @@ export const ArtWorkDialogue = ({
               {!isAnonymous && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assign Artist
+                    Assign Artist *
                   </label>
                   <Select
-                    value={form.watch("artist")}
-                    onValueChange={(value) => form.setValue("artist", value)}
+                    value={form.watch("artistId")}
+                    onValueChange={(value) => form.setValue("artistId", value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select an artist" />
                     </SelectTrigger>
                     <SelectContent>
-                      {allArtists.map((artist) => (
-                        <SelectItem key={artist} value={artist}>
-                          {artist}
+                      {artistsData?.data?.map((artist) => (
+                        <SelectItem key={artist.id} value={artist.name}>
+                          {artist.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -267,11 +485,11 @@ export const ArtWorkDialogue = ({
           {/* Step 3: Details */}
           {currentStep === 3 && (
             <div className="flex gap-6">
-              {uploadedImage && (
+              {imagePreview && (
                 <div className="w-1/4">
                   <div className="relative w-full aspect-square rounded-lg overflow-hidden">
                     <Image
-                      src={uploadedImage}
+                      src={imagePreview}
                       alt="Preview"
                       fill
                       className="object-cover"
@@ -282,7 +500,7 @@ export const ArtWorkDialogue = ({
               <div className="flex-1 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Artwork Title
+                    Artwork Title *
                   </label>
                   <Input
                     placeholder="Enter artwork title"
@@ -294,11 +512,11 @@ export const ArtWorkDialogue = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
+                    Category *
                   </label>
                   <Select
                     value={form.watch("category")}
-                    onValueChange={(value: "Religious" | "Non Religious") =>
+                    onValueChange={(value: "Religious" | "Non_Religious") =>
                       form.setValue("category", value)
                     }
                   >
@@ -307,7 +525,9 @@ export const ArtWorkDialogue = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Religious">Religious</SelectItem>
-                      <SelectItem value="Non Religious">Non Religious</SelectItem>
+                      <SelectItem value="Non_Religious">
+                        Non Religious
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -324,25 +544,12 @@ export const ArtWorkDialogue = ({
                 </label>
                 <Input
                   type="number"
-                  placeholder="0"
+                  placeholder="100"
                   value={form.watch("buyNowPrice") || ""}
                   onChange={(e) =>
-                    form.setValue("buyNowPrice", parseFloat(e.target.value))
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Starting Auction Price ($)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={form.watch("startingAuctionPrice") || ""}
-                  onChange={(e) =>
                     form.setValue(
-                      "startingAuctionPrice",
-                      parseFloat(e.target.value)
+                      "buyNowPrice",
+                      parseFloat(e.target.value) || 0,
                     )
                   }
                 />
@@ -351,19 +558,80 @@ export const ArtWorkDialogue = ({
           )}
         </div>
 
+        {currentStep === 5 && mode === "add" && createdArtworkId && (
+          <AuctionTimingStep
+            ref={auctionStepRef}
+            createdArtworkId={createdArtworkId}
+            onAuctionSuccess={(auction: AuctionResponseDto) => {
+              // ✅ explicit type
+              toast.success(`Auction created for "${auction.artworkTitle}"!`);
+              handleClose();
+              onSuccess?.();
+            }}
+            onSubmitAuction={handleAuctionSubmit}
+            onAuctionSkip={handleAuctionSkip}
+            isPending={isCreatingAuction}
+            error={error}
+          />
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+
         <DialogFooter className="gap-2">
           {currentStep > 1 && (
-            <Button type="button" variant="outline" onClick={handleBack}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBack}
+              // Disable back on step 5 — artwork already persisted
+              disabled={isPending || currentStep === 5}
+            >
               Back
             </Button>
           )}
-          <Button type="button" className="bg-primary text-white" onClick={handleNext}>
-            {currentStep === 4
-              ? mode === "add"
-                ? "Publish Artwork"
-                : "Update Artwork"
-              : "Next Step"}
-          </Button>
+
+          {/* Steps 1–4: standard Next / Publish button */}
+          {currentStep !== 5 && (
+            <Button
+              type="button"
+              className="bg-primary text-white"
+              onClick={handleNext}
+              disabled={isPending}
+            >
+              {isPending
+                ? mode === "add"
+                  ? "Uploading..."
+                  : "Updating..."
+                : currentStep === 4
+                  ? mode === "add"
+                    ? "Publish Artwork"
+                    : "Update Artwork"
+                  : "Next Step"}
+            </Button>
+          )}
+
+          {/* Step 5: triggers AuctionTimingStep's internal validation via ref */}
+          {currentStep === 5 && (
+            <Button
+              type="button"
+              className="bg-primary text-white"
+              onClick={() => auctionStepRef.current?.submit()}
+              disabled={isCreatingAuction}
+            >
+              {isCreatingAuction ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+                  Creating Auction...
+                </span>
+              ) : (
+                "Create Auction"
+              )}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

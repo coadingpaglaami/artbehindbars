@@ -1,57 +1,50 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { generateAuctionArtworkData } from "@/data/admin/auctionData";
-import { AuctionArtwork } from "@/interface/admin";
+import { useState } from "react";
 import { AdminHeading } from "@/webcomponents/reusable";
 import { AuctionTable } from "./AuctionTable";
 import { Pagination } from "@/webcomponents/reusable";
+import { AuctionStatus } from "@/types/auction.type"; // Adjust path
+import { useGetAllAuctions } from "@/api/auction";
 
 type TabType = "all" | "live" | "scheduled" | "completed";
+
+// Map tab → API status param
+const TAB_STATUS_MAP: Record<TabType, AuctionStatus | undefined> = {
+  all: undefined,
+  live: "Ongoing",
+  scheduled: "Upcoming",
+  completed: "Ended",
+};
+
+const ITEMS_PER_PAGE = 10;
+
+const tabs = [
+  { id: "all" as TabType, label: "All Auctions" },
+  { id: "live" as TabType, label: "Live Now" },
+  { id: "scheduled" as TabType, label: "Scheduled" },
+  { id: "completed" as TabType, label: "Completed" },
+];
 
 export const Auctions = () => {
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
-  const auctionData: AuctionArtwork[] = generateAuctionArtworkData(100);
+  const { data, isLoading, isError } = useGetAllAuctions({
 
-  const tabs = [
-    { id: "all" as TabType, label: "All Auctions" },
-    { id: "live" as TabType, label: "Live Now" },
-    { id: "scheduled" as TabType, label: "Scheduled" },
-    { id: "completed" as TabType, label: "Completed" },
-  ];
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+    status: TAB_STATUS_MAP[activeTab],
+  });
 
-  // Filter auctions based on active tab
-  const filteredAuctions = useMemo(() => {
-    switch (activeTab) {
-      case "all":
-        return auctionData;
-      case "live":
-        return auctionData.filter((auction) => auction.status === "Active");
-      case "scheduled":
-        return auctionData.filter((auction) => auction.status === "Not Started");
-      case "completed":
-        return auctionData.filter((auction) => auction.status === "Ended");
-      default:
-        return auctionData;
-    }
-  }, [activeTab, auctionData]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredAuctions.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentAuctions = filteredAuctions.slice(startIndex, endIndex);
+  const auctions = data?.data ?? [];
+  const totalPages = data?.meta
+    ? Math.ceil(data.meta.total / ITEMS_PER_PAGE)
+    : 0;
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
-    setCurrentPage(1);
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    setCurrentPage(1); // Reset to first page on tab change
   };
 
   return (
@@ -74,7 +67,6 @@ export const Auctions = () => {
               }%)`,
             }}
           />
-
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -97,15 +89,49 @@ export const Auctions = () => {
         </div>
       </div>
 
-      {/* Auction Table */}
-      <AuctionTable auctions={currentAuctions} />
+      {/* Loading State */}
+      {isLoading && (
+        <div className="bg-white rounded-lg shadow-md p-12 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent" />
+          <p className="mt-3 text-gray-600">Loading auctions...</p>
+        </div>
+      )}
 
-      {/* Pagination */}
+      {/* Error State */}
+      {isError && (
+        <div className="bg-white rounded-lg shadow-md p-12 text-center">
+          <p className="text-red-600 font-semibold">Failed to load auctions</p>
+          <p className="text-gray-500 text-sm mt-1">Please try again later</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !isError && auctions.length === 0 && (
+        <div className="bg-white rounded-lg shadow-md p-12 text-center">
+          <p className="text-gray-600 font-semibold">No auctions found</p>
+          <p className="text-gray-400 text-sm mt-1">
+            {activeTab === "all"
+              ? "No auctions have been created yet"
+              : `No ${tabs.find((t) => t.id === activeTab)?.label.toLowerCase()} at the moment`}
+          </p>
+        </div>
+      )}
+
+      {/* Auction Table */}
+      {!isLoading && !isError && auctions.length > 0 && (
+        <AuctionTable
+          auctions={auctions}
+          // Pass refetch key so table can invalidate on extend
+          queryParams={{ page: currentPage, limit: ITEMS_PER_PAGE, status: TAB_STATUS_MAP[activeTab] }}
+        />
+      )}
+
+      {/* Pagination — server-driven */}
       {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          onPageChange={handlePageChange}
+          onPageChange={setCurrentPage}
         />
       )}
     </div>

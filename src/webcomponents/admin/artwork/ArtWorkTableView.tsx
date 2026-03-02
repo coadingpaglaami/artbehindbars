@@ -1,53 +1,41 @@
 "use client";
 
-import { Artwork } from "@/interface/admin";
 import { Pencil, Trash2, Eye } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { ArtWorkDialogue } from "./ArtWorkDialogue";
+import { ArtworkResponseDto } from "@/types/gallery.types";
+import { DeleteDialog } from "@/webcomponents/reusable";
 
 interface ArtWorkTableViewProps {
-  artworks: Artwork[];
-  onEdit: (artwork: Artwork) => void;
+  artworks: ArtworkResponseDto[];
   onDelete: (artworkId: string) => void;
+  onEditSuccess: () => void;
+  allArtists: string[];
 }
 
 export const ArtWorkTableView = ({
   artworks,
-  onEdit,
   onDelete,
+  onEditSuccess,
+  allArtists,
 }: ArtWorkTableViewProps) => {
-  const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
+  const [selectedArtwork, setSelectedArtwork] =
+    useState<ArtworkResponseDto | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteArtwork, setDeleteArtwork] = useState<ArtworkResponseDto | null>(
+    null,
+  );
 
-  const handleEdit = (artwork: Artwork) => {
+  const handleEdit = (artwork: ArtworkResponseDto) => {
     setSelectedArtwork(artwork);
     setIsDialogOpen(true);
   };
 
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "Available":
-        return {
-          bg: "#DEF7EC",
-          text: "#03543F",
-        };
-      case "Auction":
-        return {
-          bg: "#E1EFFE",
-          text: "#1E429F",
-        };
-      case "Sold":
-        return {
-          bg: "#F3F4F6",
-          text: "#6B7280",
-        };
-      default:
-        return {
-          bg: "#F3F4F6",
-          text: "#6B7280",
-        };
-    }
+  const handleEditSuccess = () => {
+    onEditSuccess();
+    setIsDialogOpen(false);
+    setSelectedArtwork(null);
   };
 
   return (
@@ -67,10 +55,10 @@ export const ArtWorkTableView = ({
                   Category
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                  Price
+                  Starting Bid
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                  Status
+                  Buy Now
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                   Actions
@@ -80,10 +68,9 @@ export const ArtWorkTableView = ({
 
             <tbody>
               {artworks.map((artwork) => {
-                const statusStyle = getStatusStyle(artwork.status);
                 return (
                   <tr
-                    key={artwork.artworkId}
+                    key={artwork.id}
                     className="border-b hover:bg-gray-50 transition-colors"
                     style={{ borderColor: "#E2E8F0" }}
                   >
@@ -91,36 +78,49 @@ export const ArtWorkTableView = ({
                       <div className="flex items-center gap-3">
                         <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                           <Image
-                            src={artwork.artworkImage}
-                            alt={artwork.artworkTitle}
+                            src={artwork.imageUrl}
+                            alt={artwork.title}
                             fill
                             className="object-cover"
                           />
                         </div>
                         <div className="font-medium text-gray-900">
-                          {artwork.artworkTitle}
+                          {artwork.title}
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 text-gray-700">{artwork.artist}</td>
-
-                    <td className="px-6 py-4 text-gray-500">{artwork.category}</td>
-
-                    <td className="px-6 py-4 font-semibold text-gray-900">
-                      ${artwork.price}
+                    <td className="px-6 py-4 text-gray-700">
+                      {artwork.isAnonymous ? (
+                        <span
+                          className="px-2 py-1 rounded text-sm"
+                          style={{
+                            backgroundColor: "#FED7AA",
+                            color: "#C2410C",
+                          }}
+                        >
+                          Anonymous
+                        </span>
+                      ) : (
+                        artwork.artist?.name || "N/A"
+                      )}
                     </td>
 
-                    <td className="px-6 py-4">
-                      <span
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-                        style={{
-                          backgroundColor: statusStyle.bg,
-                          color: statusStyle.text,
-                        }}
-                      >
-                        {artwork.status}
-                      </span>
+                    <td className="px-6 py-4 text-gray-500">
+                      {artwork.category.replace("_", " ")}
+                    </td>
+
+                    <td className="px-6 py-4 font-semibold text-gray-900">
+                      {artwork.auction?.currentPrice != undefined
+                        ? `$${artwork.auction?.currentPrice}`
+                        : "Auction price is not implemented yet"}
+                    </td>
+
+                    <td className="px-6 py-4 text-gray-700">
+                      {typeof artwork.buyItNowPrice === "number" &&
+                      artwork.buyItNowPrice > 0
+                        ? `$${artwork.buyItNowPrice}`
+                        : "Auction Only"}
                     </td>
 
                     <td className="px-6 py-4">
@@ -131,17 +131,15 @@ export const ArtWorkTableView = ({
                         >
                           <Eye size={18} style={{ color: "#94A3B8" }} />
                         </button>
-                        {artwork.status !== "Sold" && (
-                          <button
-                            onClick={() => handleEdit(artwork)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            title="Edit"
-                          >
-                            <Pencil size={18} style={{ color: "#94A3B8" }} />
-                          </button>
-                        )}
                         <button
-                          onClick={() => onDelete(artwork.artworkId)}
+                          onClick={() => handleEdit(artwork)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={18} style={{ color: "#94A3B8" }} />
+                        </button>
+                        <button
+                          onClick={() => setDeleteArtwork(artwork)}
                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                           title="Delete"
                         >
@@ -157,6 +155,17 @@ export const ArtWorkTableView = ({
         </div>
       </div>
 
+      <DeleteDialog
+        isOpen={!!deleteArtwork}
+        targetName={deleteArtwork?.title || "this artwork"}
+        onClose={() => setDeleteArtwork(null)}
+        onConfirm={async () => {
+          if (!deleteArtwork) return;
+          onDelete(deleteArtwork.id);
+          setDeleteArtwork(null);
+        }}
+      />
+
       <ArtWorkDialogue
         isOpen={isDialogOpen}
         onClose={() => {
@@ -165,6 +174,8 @@ export const ArtWorkTableView = ({
         }}
         artwork={selectedArtwork}
         mode="edit"
+        allArtists={allArtists}
+        onSuccess={handleEditSuccess}
       />
     </>
   );
