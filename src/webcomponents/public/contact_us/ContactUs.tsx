@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { ContactUsDto } from "@/types/account.type"; // Adjust import path
 import { ErrorResponse } from "@/types/error.type";
+import { getErrorMessage } from "@/lib/utils";
 
 export const ContactUs = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,8 +26,9 @@ export const ContactUs = () => {
         setIsSubmitting(false);
       },
       onError: (error: unknown) => {
+        const message = getErrorMessage(error);
         toast.error("Failed to send message", {
-          description: (error as ErrorResponse)?.response?.data?.message || "Please try again later.",
+          description: message || "Please try again later.",
           duration: 5000,
         });
         setIsSubmitting(false);

@@ -4,6 +4,8 @@ import { CategoryResponse, CreateCategoryDto, CreateStateDto, PaginatedResponseD
 import { useState } from 'react';
 import { EntityItem } from './EntityItem';
 import { toast } from 'sonner';
+import { get } from 'http';
+import { getErrorMessage } from '@/lib/utils';
 
 type CreateEntityDto = CreateCategoryDto | CreateStateDto;
 
@@ -57,6 +59,10 @@ export const CategoryOrState = ({ type }: EntityTableProps) => {
             queryKey: [type === 'category' ? 'categories' : 'states'] 
           });
         },
+        onError: (error) => {
+          const message = getErrorMessage(error);
+          toast.error(message || `Failed to create ${type}`);
+        }
       }
     );
   };
@@ -72,6 +78,10 @@ export const CategoryOrState = ({ type }: EntityTableProps) => {
             queryKey: [type === 'category' ? 'categories' : 'states'] 
           });
         },
+        onError: (error) => {
+          const message = getErrorMessage(error);
+          toast.error(message || `Failed to update ${type}`);
+        }
       }
     );
   };
@@ -85,6 +95,10 @@ export const CategoryOrState = ({ type }: EntityTableProps) => {
             queryKey: [type === 'category' ? 'categories' : 'states'] 
           });
         },
+        onError: (error) => {
+          const message = getErrorMessage(error);
+          toast.error(message || `Failed to delete ${type}`);
+        }
       });
     }
   };

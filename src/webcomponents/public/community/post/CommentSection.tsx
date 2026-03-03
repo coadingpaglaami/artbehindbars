@@ -6,7 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { CommentResponse } from "@/types/post.type";
 import { useCreateComment } from "@/api/post";
 import { usePosts } from "@/context/PostContext";
-
+import { getErrorMessage } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface CommentSectionProps {
   comments: CommentResponse[];
@@ -22,8 +23,7 @@ export const CommentSection = ({
   const [newComment, setNewComment] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
-    const { refreshPost,refetchPosts } = usePosts();
-
+  const { refreshPost, refetchPosts } = usePosts();
 
   const { mutate: createCommentMutate, isPending: isCreatingComment } =
     useCreateComment();
@@ -57,7 +57,11 @@ export const CommentSection = ({
           refetchPosts();
           refreshPost(postId);
         },
-      }
+        onError: (error: unknown) => {
+          const errormMessage = getErrorMessage(error);
+          toast.error(errormMessage);
+        },
+      },
     );
   };
 
@@ -75,7 +79,11 @@ export const CommentSection = ({
           setReplyTo(null);
           refetchPosts();
         },
-      }
+        onError: (error: unknown) => {
+          const errormMessage = getErrorMessage(error);
+          toast.error(errormMessage);
+        }
+      },
     );
   };
 
@@ -116,7 +124,9 @@ export const CommentSection = ({
               <div className="shrink-0">
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                   <span className="text-sm font-medium text-gray-600">
-                    {comment.user.firstName?.[0] || comment.user.email?.[0] || "U"}
+                    {comment.user.firstName?.[0] ||
+                      comment.user.email?.[0] ||
+                      "U"}
                   </span>
                 </div>
               </div>

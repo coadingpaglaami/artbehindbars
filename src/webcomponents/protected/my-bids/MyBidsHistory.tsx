@@ -16,6 +16,9 @@ import {
   UserBidStatus,
 } from "@/types/auction.type"; // Adjust path
 import { usePlaceBidMutation } from "@/api/auction";
+import { get } from "http";
+import { getErrorMessage } from "@/lib/utils";
+import { toast } from "sonner";
 
 
 interface MyBidsHistoryProps {
@@ -56,46 +59,6 @@ export const MyBidsHistory = ({ bid, refetch }: MyBidsHistoryProps) => {
     return () => clearInterval(timer);
   }, [bid.secondsRemaining, bid.auctionStatus]);
 
-  // useEffect(() => {
-  //   const socket = getSocket();
-  //   if (!socket || !bid.auctionId) return;
-
-  //   socket.emit("joinAuction", bid.auctionId);
-
-  //   const handleNewBid = (
-  //     data: PlaceBidDto & { firstName?: string; lastName?: string },
-  //   ) => {
-  //     if (data.auctionId !== bid.auctionId) return;
-
-  //     setLiveHighestBid(data.bidPrice);
-  //     // Optionally update artwork details if needed
-  //     // refetchArtwork(); // update artwork details (if needed)
-  //     // refetchBids(); // optional for now
-
-  //     const bidderName =
-  //       data.firstName && data.lastName
-  //         ? `${data.firstName} ${data.lastName}`
-  //         : `User ${data.auctionId || "Unknown"}`;
-  //     toast.success(
-  //       `New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`,
-  //       {
-  //         position: "top-right",
-  //         duration: 5000,
-  //       },
-  //     );
-      
-  //     queryClient.invalidateQueries({
-  //       queryKey: ["auctions", "myHistory", "artwork", bid.artworkId],
-  //     });
-  //     refetch?.(); // Trigger parent list refresh
-  //   };
-  //   socket.on("auction:newBid", handleNewBid);
-
-  //   return () => {
-  //     socket.emit("leaveAuction", bid.auctionId);
-  //     socket.off("auction:newBid", handleNewBid);
-  //   };
-  // }, [bid.auctionId, queryClient]);
 
  
 
@@ -169,7 +132,9 @@ export const MyBidsHistory = ({ bid, refetch }: MyBidsHistoryProps) => {
           });
         },
         onError: (err) => {
-          console.error("Bid failed:", err.message);
+          const message = getErrorMessage(err);
+          console.error("Bid failed:", message);
+          toast.error(message || "Failed to place bid. Please try again.");
         },
       },
     );

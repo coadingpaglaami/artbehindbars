@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AlertCircle, UserX, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 const SUSPENSION_DURATIONS = [
   { value: 1, label: "1 day" },
@@ -102,8 +103,9 @@ export const Members = () => {
           refetch(); // Refresh the user list
         },
         onError: (error) => {
-          toast.error("Failed to suspend user");
-          console.error("Suspend error:", error);
+          const message = getErrorMessage(error);
+          toast.error(`Failed to suspend user: ${message}`);
+          console.error("Suspend error:", message);
         },
       },
     );
@@ -117,8 +119,9 @@ export const Members = () => {
         refetch(); // Refresh the user list
       },
       onError: (error) => {
-        toast.error("Failed to unsuspend user");
-        console.error("Unsuspend error:", error);
+        const message = getErrorMessage(error);
+        toast.error(`Failed to unsuspend user: ${message}`);
+        console.error("Unsuspend error:", message);
       },
     });
   };

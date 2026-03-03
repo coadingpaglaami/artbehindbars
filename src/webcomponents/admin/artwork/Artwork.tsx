@@ -22,6 +22,7 @@ import {
 } from "@/api/gallary";
 import { Category } from "@/types/gallery.types";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 export const Artwork = () => {
   const [search, setSearch] = useState("");
@@ -64,7 +65,8 @@ export const Artwork = () => {
         refetchArtworks();
       },
       onError: (error) => {
-        toast.error(`Failed to delete artwork: ${error.message}`);
+        const message = getErrorMessage(error);
+        toast.error(`Failed to delete artwork: ${message}`);
       },
     });
   };

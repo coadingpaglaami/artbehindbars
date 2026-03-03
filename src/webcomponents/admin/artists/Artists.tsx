@@ -9,6 +9,7 @@ import { ArtistDialogue } from "./ArtistDialogue";
 import { Pagination } from "@/webcomponents/reusable";
 import { useGetArtists, useDeleteArtistMutation } from "@/api/gallary";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 export const Artists = () => {
   const [search, setSearch] = useState("");
@@ -40,7 +41,8 @@ export const Artists = () => {
           refetch();
         },
         onError: (error) => {
-          toast.error(`Failed to delete artist: ${error.message}`);
+          const message = getErrorMessage(error);
+          toast.error(`Failed to delete artist: ${message}`);
         },
       });
     }
@@ -96,7 +98,7 @@ export const Artists = () => {
       {/* Error State */}
       {isError && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-          Error loading artists: {error?.message || "Something went wrong"}
+          Error loading artists: {getErrorMessage(error) || "Something went wrong"}
         </div>
       )}
 

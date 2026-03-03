@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { useCreateAuction } from "@/api/auction";
 import { AuctionTimingStep, AuctionTimingStepRef } from "./AuctionTimingStep";
 import { AuctionResponseDto } from "@/types/auction.type";
+import { getErrorMessage } from "@/lib/utils";
 
 export const artworkSchema = z.object({
   image: z.instanceof(File).optional().nullable(),
@@ -220,7 +221,8 @@ export const ArtWorkDialogue = ({
             setCurrentStep(5);
           },
           onError: (error) => {
-            setError(error.message || "Failed to upload artwork");
+            const message = getErrorMessage(error);
+            setError(message || "Failed to upload artwork");
           },
         },
       );
@@ -261,7 +263,8 @@ export const ArtWorkDialogue = ({
             onSuccess?.();
           },
           onError: (error) => {
-            setError(error.message || "Failed to update artwork");
+            const message = getErrorMessage(error);
+            setError(message || "Failed to update artwork");
           },
         },
       );
@@ -282,7 +285,8 @@ export const ArtWorkDialogue = ({
         onSuccess?.();
       },
       onError: (error) => {
-        setError(error.message || "Failed to create auction");
+        const message = getErrorMessage(error);
+        setError(message || "Failed to create auction");
       },
     });
   };

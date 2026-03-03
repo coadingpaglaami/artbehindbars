@@ -25,9 +25,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { UpdateProfileDto } from "@/types/account.type";
 import { useGetMyProfile, useUpdateProfileMutation } from "@/api/account/query";
+import { toast } from "sonner";
 
 const profileSchema = z.object({
   dateOfBirth: z.date().optional(),
@@ -183,6 +184,10 @@ export const EditProfile = () => {
             setProfileImageFile(null);
           }
         },
+        onError: (error) => {
+          const message = getErrorMessage(error);
+          toast.error(message || "Failed to update profile. Please try again.");
+        }
       }
     );
   };

@@ -21,6 +21,8 @@ import { SquarePaymentsForm } from "./SquarePaymentsForm"; // Adjust path
 import { useRouter } from "next/navigation";
 import { useCheckoutPayment } from "@/api/payment";
 import { ShippingInfoDto } from "@/types/payment.type";
+import { getErrorMessage } from "@/lib/utils";
+import { toast } from "sonner";
 
 const shippingSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -93,6 +95,8 @@ export const BuyOption = ({ product, artworkId }: BuyOptionProps) => {
         router.push(`/order/${data.id}`); // Adjust route as needed
       },
       onError: (error) => {
+        const message = getErrorMessage(error);
+        toast.error(message || "Payment processing failed. Please try again.");
         console.error("Payment processing failed:", error);
       },
     });

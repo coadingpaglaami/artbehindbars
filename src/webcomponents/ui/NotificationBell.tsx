@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import {
   useGetNotificationsQuery,
   useMarkNotificationAsReadMutation,
@@ -16,6 +16,7 @@ import {
 } from "@/api/notification"; // Adjust path as needed
 import { useQueryClient } from "@tanstack/react-query";
 import { NotificationResponseDto } from "@/types/notification.type";
+import { toast } from "sonner";
 
 // Updated enum to match the new types
 enum NotificationType {
@@ -65,7 +66,13 @@ export const NotificationBell = () => {
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
     try {
-      await markAsReadMutation.mutateAsync(notificationId);
+      await markAsReadMutation.mutateAsync(notificationId,{
+        onError: (error) => {
+          const errorMessage = getErrorMessage(error);
+          toast.error(`Failed to mark notification as read: ${errorMessage}`);
+          console.error("Failed to mark notification as read:", errorMessage);
+        }
+      });
       // Invalidate to refresh the list
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     } catch (error) {
@@ -163,7 +170,13 @@ export const NotificationBell = () => {
   const handleDelete = async (e: React.MouseEvent, notificationId: string) => {
     e.stopPropagation(); // Prevent click on notification
     try {
-      await deleteNotificationMutation.mutateAsync(notificationId);
+      await deleteNotificationMutation.mutateAsync(notificationId,{
+        onError: (error) => {
+          const errorMessage = getErrorMessage(error);
+          toast.error(`Failed to delete notification: ${errorMessage}`);
+          console.error("Failed to delete notification:", errorMessage);
+        }
+      });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     } catch (error) {
       console.error("Failed to delete notification:", error);

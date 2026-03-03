@@ -29,7 +29,7 @@ import { useRouter } from "next/navigation";
 import { useResetPasswordMutation } from "@/api/auth";
 import { clearVerificationData, getVerificationEmail } from "@/lib/cookies";
 import { toast } from "sonner";
-import { clear } from "console";
+import { getErrorMessage } from "@/lib/utils";
 
 // ──────────────────────────────────────────────
 // Zod Schema
@@ -56,7 +56,7 @@ type FormValues = z.infer<typeof formSchema>;
 // ──────────────────────────────────────────────
 
 export const ResetPasswordForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
+
   const [serverError, setServerError] = useState<string | null>(null);
   const { mutate: resetPasswordMutate, isPending: isResetting } =
     useResetPasswordMutation();
@@ -118,8 +118,9 @@ export const ResetPasswordForm = () => {
           push("/success");
         },
         onError: (error) => {
+          const message = getErrorMessage(error); 
           setServerError(
-            error.message || "Failed to reset password. Please try again.",
+            message || "Failed to reset password. Please try again.",
           );
         },
       },

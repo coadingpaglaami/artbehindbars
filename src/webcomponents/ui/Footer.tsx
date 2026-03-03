@@ -9,6 +9,9 @@ const supportLinks = [
   { name: "Our Story", href: "/our_story" },
   { name: "FAQ", href: "/faq" },
   { name: "Contact Us", href: "/contact_us" },
+  { name: "Terms & Conditions", href: "/terms_condition" },
+  { name: "Privacy Policy", href: "/privacy_policy" },
+  { name: "Cookie Policy", href: "/cookie_policy" },
 ];
 export const Footer = () => {
   return (

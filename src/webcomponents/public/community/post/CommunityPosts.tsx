@@ -20,6 +20,7 @@ import { PostDetailDialog } from "./PostDetailDialogue";
 import { usePosts } from "@/context/PostContext";
 import { toast } from "sonner";
 import { isClientAuthenticated } from "@/lib/auth-client";
+import { getErrorMessage } from "@/lib/utils";
 
 
 export const CommunityPosts = ({ community }: { community: PostResponse }) => {
@@ -70,6 +71,10 @@ export const CommunityPosts = ({ community }: { community: PostResponse }) => {
         toast.success(community.isLiked ? "Like removed" : "Post liked!");
         // Optimistically update UI or refetch
       },
+      onError:(error) => {
+        const message = getErrorMessage(error);
+        toast.error(message);
+      }
     });
   };
 

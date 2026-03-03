@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { toast } from "sonner";
 
 const artistSchema = z.object({
@@ -205,9 +205,10 @@ export const ArtistDialogue = ({
             onSuccess?.();
           },
           onError: (error) => {
-            setError(error.message || "Failed to create artist");
+            const message = getErrorMessage(error);
+            setError(message || "Failed to create artist");
           },
-        }
+        },
       );
     } else {
       // Edit mode
@@ -243,9 +244,10 @@ export const ArtistDialogue = ({
             onSuccess?.();
           },
           onError: (error) => {
-            setError(error.message || "Failed to update artist");
+            const message = getErrorMessage(error);
+            setError(message || "Failed to update artist");
           },
-        }
+        },
       );
     }
   };
@@ -281,9 +283,7 @@ export const ArtistDialogue = ({
               name="image"
               render={() => (
                 <FormItem className="flex flex-col gap-2">
-                  <FormLabel>
-                    Artist Image {mode === "add" && "*"}
-                  </FormLabel>
+                  <FormLabel>Artist Image {mode === "add" && "*"}</FormLabel>
                   <FormControl>
                     <div className="flex flex-col gap-4">
                       {imagePreview ? (
@@ -431,7 +431,7 @@ export const ArtistDialogue = ({
                             variant="outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value
@@ -455,7 +455,7 @@ export const ArtistDialogue = ({
                             const normalized = new Date(
                               date.getFullYear(),
                               date.getMonth(),
-                              date.getDate()
+                              date.getDate(),
                             );
                             field.onChange(normalized);
                           }}
@@ -480,7 +480,7 @@ export const ArtistDialogue = ({
                             variant="outline"
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value
@@ -504,7 +504,7 @@ export const ArtistDialogue = ({
                             const normalized = new Date(
                               date.getFullYear(),
                               date.getMonth(),
-                              date.getDate()
+                              date.getDate(),
                             );
                             field.onChange(normalized);
                           }}

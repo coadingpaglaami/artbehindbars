@@ -15,6 +15,7 @@ import { MessageCircle, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSendFanMail } from "@/api/gallary";
 import { ErrorResponse } from "@/types/error.type";
+import { getErrorMessage } from "@/lib/utils";
 
 interface ArtistDialogProps {
   isOpen: boolean;
@@ -52,9 +53,10 @@ export const ArtistDialog = ({
           onClose();
         },
         onError: (error: unknown) => {
+          const message = getErrorMessage(error);
           toast.error("Failed to send fan mail", {
             description:
-              (error as ErrorResponse).response?.data?.message ||
+              message ||
               "Please try again later.",
             duration: 5000,
           });

@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { getErrorMessage } from "@/lib/utils";
 
 // Define types for the API responses
 
@@ -231,11 +232,16 @@ export const MyConnection = () => {
               setIsMessageDialogOpen(false);
               push(`/chat/${chat.id}`);
             },
-            onError: () => toast.error("Failed to send message"),
+            onError: (error) => {
+              const message = getErrorMessage(error);
+              toast.error(message || "Failed to send message");
+            },
           },
         );
       },
-      onError: () => toast.error("Failed to open chat"),
+      onError: (error) => {        const message = getErrorMessage(error);
+        toast.error(message || "Failed to start chat");
+      }
     });
   };
 
@@ -248,6 +254,8 @@ export const MyConnection = () => {
       refetchIncoming();
       refetchOutgoing();
     } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to block user");
       console.error("Failed to block user:", error);
     }
   };
@@ -259,6 +267,8 @@ export const MyConnection = () => {
       refetchConn();
       refetchBlocked();
     } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to unblock user");
       console.error("Failed to unblock user:", error);
     }
   };
@@ -270,6 +280,8 @@ export const MyConnection = () => {
       toast.success("Connection has been disconnected");
       refetchConn();
     } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to disconnect"); 
       console.error("Failed to disconnect:", error);
     }
   };
@@ -280,6 +292,8 @@ export const MyConnection = () => {
       refetchIncoming();
       refetchOutgoing();
     } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to accept request");
       console.error("Failed to accept request:", error);
     }
   };
@@ -292,6 +306,8 @@ export const MyConnection = () => {
       refetchIncoming();
       refetchOutgoing();
     } catch (error) {
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to reject/cancel request");
       console.error("Failed to reject/cancel request:", error);
     }
   };

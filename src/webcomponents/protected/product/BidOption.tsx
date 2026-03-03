@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { PlaceBidDto } from "@/types/auction.type";
 import { getSocket } from "@/lib/socket";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 interface BidOptionProps {
   product: ArtworkResponseDto;
@@ -140,7 +141,8 @@ export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
           setCommitmentAccepted(false);
         },
         onError: (error) => {
-          setError(error.message || "Failed to place bid");
+          const message = getErrorMessage(error);
+          setError(message || "Failed to place bid");
         },
       },
     );

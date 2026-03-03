@@ -33,6 +33,7 @@ import { ReportReason } from "@/types/post.type";
 import { useReportPost } from "@/api/post";
 import { usePosts } from "@/context/PostContext";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 
 const reportSchema = z.object({
   reason: z.enum([
@@ -103,7 +104,8 @@ export const ReportDialog = ({
           }, 2000);
         },
         onError: (error) => {
-          setError(error.message || "Failed to report post");
+          const message = getErrorMessage(error);
+          setError(message || "Failed to submit report. Please try again.");
         },
       },
     );

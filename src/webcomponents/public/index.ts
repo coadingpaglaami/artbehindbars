@@ -5,3 +5,6 @@ export * from './community';
 export * from './our_story';
 export * from './faq';
 export * from './contact_us';
+export * from './terms_condition';
+export * from './privacy_policy';
+export * from './cookie_policy';

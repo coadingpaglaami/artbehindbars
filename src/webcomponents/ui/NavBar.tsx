@@ -37,7 +37,7 @@ export const NavBar = () => {
     { label: "Home", link: "/" },
     { label: "Shop Art", link: "/shop_art" },
     { label: "Search Artists", link: "/artists" },
-    { label: "Connect", link: "/community" },
+    { label: "Community", link: "/community" },
     { label: "Our Story", link: "/our_story" },
     { label: "FAQ", link: "/faq" },
     { label: "Contact Us", link: "/contact_us" },

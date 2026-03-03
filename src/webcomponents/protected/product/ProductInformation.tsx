@@ -9,12 +9,13 @@ import { isClientAuthenticated } from "@/lib/auth-client";
 import { useGetArtworkById } from "@/api/gallary";
 import { UnauthenticatedView } from "./UnAuthenticateView";
 import { ArtworkResponseDto } from "@/types/gallery.types";
+import { SoldArtworkView } from "./SoldArtworkView";
+import { AuctionEndedView } from "./AuctionEndedView";
 
 export const ProductInformation = ({ productId }: { productId: string }) => {
   const [mode, setMode] = useState<"bid" | "buy">("bid");
   const isAuthenticated = isClientAuthenticated();
 
-  // Fetch artwork details
   const {
     data: artwork,
     isLoading,
@@ -59,6 +60,11 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
     );
   }
 
+  // If artwork is sold, replace entire UI with sold view
+  if (artwork.isSold) {
+    return <SoldArtworkView product={artwork as ArtworkResponseDto} />;
+  }
+
   // Convert API response to ProductProps format
   const productData = {
     productId: artwork.id,
@@ -70,11 +76,34 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
     auctionPrice: artwork.startingBidPrice,
     prouductPhoto: artwork.imageUrl,
     productCategory: artwork.category,
-    // isSoldOut: artwork.isSoldOut, // Will be uncommented when API supports it
     isSoldOut: false,
-    // remainingTime: new Date(artwork.auctionEndTime), // Will be added when API supports it
     remainingTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    // bitHistory: artwork.bidHistory, // Will be added when API supports it
+  };
+
+  // Auction is considered ended if there's no auction at all, or status is "Ended"
+  const isAuctionEnded =
+    !artwork.auction || artwork.auction.status === "Ended";
+
+  const renderRightPanel = () => {
+    if (!isAuthenticated) {
+      return <UnauthenticatedView mode={mode} />;
+    }
+
+    if (mode === "buy") {
+      return <BuyOption product={productData} artworkId={productId} />;
+    }
+
+    // mode === "bid"
+    if (isAuctionEnded) {
+      return <AuctionEndedView product={artwork as ArtworkResponseDto} />;
+    }
+
+    return (
+      <BidOption
+        product={artwork as ArtworkResponseDto}
+        refetchArtwork={refetch}
+      />
+    );
   };
 
   return (
@@ -92,20 +121,7 @@ export const ProductInformation = ({ productId }: { productId: string }) => {
           </div>
 
           {/* Right Side - Bid, Buy Options, or Login Prompt */}
-          <div className="lg:w-2/3">
-            {isAuthenticated ? (
-              mode === "bid" ? (
-                <BidOption
-                  product={artwork as ArtworkResponseDto}
-                  refetchArtwork={refetch}
-                />
-              ) : (
-                <BuyOption product={productData} artworkId={productId} />
-              )
-            ) : (
-              <UnauthenticatedView mode={mode} />
-            )}
-          </div>
+          <div className="lg:w-2/3">{renderRightPanel()}</div>
         </div>
       </div>
     </div>

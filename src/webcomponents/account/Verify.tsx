@@ -20,7 +20,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import {
   getVerificationEmail,
   getOtpType,
@@ -113,7 +113,8 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
             clearVerificationData();
           },
           onError: (error) => {
-            setError(error.message || "Invalid verification code");
+            const message = getErrorMessage(error);
+            setError(message || "Invalid verification code");
           },
         },
       );
@@ -129,7 +130,8 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
             router.push("/reset-password");
           },
           onError: (error) => {
-            setError(error.message || "Invalid verification code");
+            const message = getErrorMessage(error);
+            setError(message || "Invalid verification code");
           },
         },
       );

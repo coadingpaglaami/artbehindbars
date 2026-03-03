@@ -10,6 +10,7 @@ import {
   useSendMessageMutation,
 } from "@/api/chat";
 import { Message } from "@/types/chat.type";
+import { getErrorMessage } from "@/lib/utils";
 
 interface ChatWindowProps {
   chatId: string;
@@ -26,48 +27,7 @@ export const ChatWindow = ({ chatId }: ChatWindowProps) => {
   const markSeen = useMarkChatSeenMutation();
   const userId = ClientSub(); // Assuming token contains user ID in 'sub' claim
 
-  /* =========================
-     GET CURRENT USER ID
-  ==========================*/
 
-  /* =========================
-     SOCKET LISTENERS
-  ==========================*/
-  // useEffect(() => {
-  //   const socket = getSocket();
-  //   if (!socket) return;
-
-  //   socket.on("new_message", (message) => {
-  //     if (message.chatId !== chatId) return;
-
-  //     queryClient.setQueryData(
-  //       ["getMessages", chatId],
-  //       (old: Message[] = []) => [...old, message],
-  //     );
-
-  //     // mark as seen automatically
-
-  //     markSeen.mutate(chatId);
-  //   });
-
-  //   socket.on("message_seen", ({ messageId, seenAt }) => {
-  //     queryClient.setQueryData(["getMessages", chatId], (old: Message[] = []) =>
-  //       old.map((msg) =>
-  //         msg.id === messageId
-  //           ? {
-  //               ...msg,
-  //               statuses: [{ seenAt }],
-  //             }
-  //           : msg,
-  //       ),
-  //     );
-  //   });
-
-  //   return () => {
-  //     socket.off("new_message");
-  //     socket.off("message_seen");
-  //   };
-  // }, [chatId, queryClient, markSeen]);
   useEffect(() => {
     if (!chatId) return;
 
@@ -112,6 +72,10 @@ export const ChatWindow = ({ chatId }: ChatWindowProps) => {
           onSuccess: () => {
             refetch();
           },
+          onError: (error: unknown) => {
+            const message = getErrorMessage(error);
+            console.error("Failed to send message:", message);
+          }
         },
       );
     } catch (err) {

@@ -10,6 +10,7 @@ import { Key, Loader2 } from "lucide-react";
 import { useChangePasswordMutation } from "@/api/account";
 import { toast } from "sonner";
 import { useState } from "react";
+import { getErrorMessage } from "@/lib/utils";
 
 const changePasswordSchema = z
   .object({
@@ -53,10 +54,8 @@ export const ChangePassword = () => {
           setShowForm(false);
         },
         onError: (error: unknown) => {
-          const err = error as { response?: { data?: { message?: string } } };
-          toast.error(
-            err.response?.data?.message || "Failed to change password",
-          );
+          const message = getErrorMessage(error);
+          toast.error(`Failed to change password: ${message}`);
         },
       },
     );

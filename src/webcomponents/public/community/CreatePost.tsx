@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { useCreatePost } from "@/api/post";
 import { isClientAuthenticated } from "@/lib/auth-client";
 import { usePosts } from "@/context/PostContext";
+import { getErrorMessage } from "@/lib/utils";
 
 interface CreatePostProps {
   categories: UseInfiniteQueryResult<
@@ -201,6 +202,10 @@ export const CreatePost = (props: CreatePostProps) => {
           setVideo(null);
           setVideoPreview(null);
         },
+        onError: (err) => {
+          const message = getErrorMessage(err);
+          toast.error(message || "Failed to create post. Please try again.");
+        }
       },
     );
   };

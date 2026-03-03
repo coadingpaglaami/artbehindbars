@@ -36,6 +36,7 @@ import {
   useVerifyNewEmailMutation,
 } from "@/api/account"; // Adjust import path
 import { ErrorResponse } from "@/types/error.type";
+import { getErrorMessage } from "@/lib/utils";
 
 const emailSchema = z.object({
   currentEmail: z.email("Invalid email address"),
@@ -115,6 +116,12 @@ export const Security = () => {
       // Request email change (this will trigger OTP to be sent to old email)
       await requestEmailChangeMutation.mutateAsync({
         newEmail: values.newEmail,
+        
+      },{
+        onError: (error: unknown) => {
+          const errorMessage = getErrorMessage(error);
+          toast.error(errorMessage);
+        }
       });
 
       // Open OTP dialog for verification
@@ -139,6 +146,13 @@ export const Security = () => {
       try {
         await verifyOldEmailMutation.mutateAsync({
           otp: otpValue,
+        },{
+          onError: (error: unknown) => {
+            const errorMessage = getErrorMessage(error);
+            setOtpError(errorMessage);
+            setIsVerifyingOldEmail(false);
+            toast.error(errorMessage);
+          }
         });
 
         // Clear OTP for next step
@@ -162,6 +176,13 @@ export const Security = () => {
       try {
         await verifyNewEmailMutation.mutateAsync({
           otp: otpValue,
+        },{
+          onError: (error: unknown) => {
+            const errorMessage = getErrorMessage(error);
+            setOtpError(errorMessage);
+            setIsVerifyingNewEmail(false);
+            toast.error(errorMessage);
+          }
         });
 
         // Success - email changed
@@ -212,6 +233,11 @@ export const Security = () => {
       await changePasswordMutation.mutateAsync({
         oldPassword: values.currentPassword,
         newPassword: values.newPassword,
+      },{
+        onError: (error: unknown) => {
+          const errorMessage = getErrorMessage(error);
+          toast.error(errorMessage);
+        }
       });
 
       toast.success("Password changed successfully!");

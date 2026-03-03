@@ -35,6 +35,8 @@ import Image from "next/image";
 import { useGetOrderById, useCheckoutPayment } from "@/api/payment";
 import { useGetArtworkById } from "@/api/gallary";
 import { SquarePaymentsForm } from "../product/SquarePaymentsForm";
+import { getErrorMessage } from "@/lib/utils";
+import { toast } from "sonner";
 
 // Form validation schema
 const shippingFormSchema = z.object({
@@ -174,7 +176,9 @@ export const OrderDetail = ({ params }: { params: string }) => {
         refetchOrder(); // Refresh order details to get updated status
       },
       onError: (error) => {
+        const message = getErrorMessage(error);
         console.error("Payment failed:", error);
+        toast.error(message || "Payment failed. Please try again.");
         setShowPaymentForm(false);
       },
     });

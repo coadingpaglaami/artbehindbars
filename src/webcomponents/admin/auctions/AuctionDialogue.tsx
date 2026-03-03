@@ -18,13 +18,11 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  useExtendAuction,
-  useGetAuctionBids,
-} from "@/api/auction"; // Adjust path
+import { useExtendAuction, useGetAuctionBids } from "@/api/auction"; // Adjust path
 import { AuctionResponseDto, GetAuctionsQueryDto } from "@/types/auction.type";
+import { toast } from "sonner";
 
 interface AuctionDialogueProps {
   isOpen: boolean;
@@ -44,13 +42,19 @@ export const AuctionDialogue = ({
   // New end date/time state — default 2 days from now
   // eslint-disable-next-line react-hooks/purity
   const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
-  const [newEndDate, setNewEndDate] = useState<Date | undefined>(twoDaysFromNow);
+  const [newEndDate, setNewEndDate] = useState<Date | undefined>(
+    twoDaysFromNow,
+  );
   const [newEndTime, setNewEndTime] = useState<string>(
     format(twoDaysFromNow, "HH:mm"),
   );
 
-  const { mutate: extendAuction, isPending: isExtending, error: extendError, isSuccess: isExtendSuccess } =
-    useExtendAuction();
+  const {
+    mutate: extendAuction,
+    isPending: isExtending,
+    error: extendError,
+    isSuccess: isExtendSuccess,
+  } = useExtendAuction();
 
   // Only fetch bids when dialog is open and auction is Ongoing
   const { data: bidsData, isLoading: bidsLoading } = useGetAuctionBids(
@@ -89,6 +93,11 @@ export const AuctionDialogue = ({
           // Invalidate auction list so table refreshes
           queryClient.invalidateQueries({ queryKey: ["auctions"] });
         },
+        onError: (error) => {
+          const message = getErrorMessage(error);
+          toast.error(message || "Failed to extend auction");
+        },
+        // Error state is handled by extendError, which shows an error message in the UI
       },
     );
   };
@@ -104,9 +113,12 @@ export const AuctionDialogue = ({
 
   const getStatusLabel = () => {
     switch (auction.status) {
-      case "Ongoing":  return { label: "Active",      color: "#03543F", bg: "#F0FDF4" };
-      case "Upcoming": return { label: "Not Started", color: "#C2410C", bg: "#FFF7ED" };
-      case "Ended":    return { label: "Ended",       color: "#6B7280", bg: "#F9FAFB" };
+      case "Ongoing":
+        return { label: "Active", color: "#03543F", bg: "#F0FDF4" };
+      case "Upcoming":
+        return { label: "Not Started", color: "#C2410C", bg: "#FFF7ED" };
+      case "Ended":
+        return { label: "Ended", color: "#6B7280", bg: "#F9FAFB" };
     }
   };
 
@@ -122,7 +134,10 @@ export const AuctionDialogue = ({
             </DialogTitle>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold mr-6"
-              style={{ color: statusInfo.color, backgroundColor: statusInfo.bg }}
+              style={{
+                color: statusInfo.color,
+                backgroundColor: statusInfo.bg,
+              }}
             >
               {statusInfo.label}
             </span>
@@ -199,7 +214,10 @@ export const AuctionDialogue = ({
                 <div className="bg-white rounded-lg border overflow-y-auto max-h-72">
                   <table className="w-full">
                     <thead style={{ backgroundColor: "#F8FAFC" }}>
-                      <tr className="border-b" style={{ borderColor: "#E2E8F0" }}>
+                      <tr
+                        className="border-b"
+                        style={{ borderColor: "#E2E8F0" }}
+                      >
                         <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                           Bidder
                         </th>
@@ -214,13 +232,19 @@ export const AuctionDialogue = ({
                     <tbody>
                       {bidsLoading ? (
                         <tr>
-                          <td colSpan={3} className="px-4 py-6 text-center text-gray-400 text-sm">
+                          <td
+                            colSpan={3}
+                            className="px-4 py-6 text-center text-gray-400 text-sm"
+                          >
                             <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent" />
                           </td>
                         </tr>
                       ) : bids.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="px-4 py-6 text-center text-gray-400 text-sm">
+                          <td
+                            colSpan={3}
+                            className="px-4 py-6 text-center text-gray-400 text-sm"
+                          >
                             No bids yet
                           </td>
                         </tr>
@@ -334,9 +358,15 @@ export const AuctionDialogue = ({
                 {extendError && (
                   <div
                     className="p-3 rounded-lg border flex items-start gap-2"
-                    style={{ backgroundColor: "#FEF2F2", borderColor: "#FECACA" }}
+                    style={{
+                      backgroundColor: "#FEF2F2",
+                      borderColor: "#FECACA",
+                    }}
                   >
-                    <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                    <AlertCircle
+                      size={16}
+                      className="text-red-500 shrink-0 mt-0.5"
+                    />
                     <p className="text-sm text-red-800">
                       {extendError.message || "Failed to extend auction"}
                     </p>
@@ -347,9 +377,15 @@ export const AuctionDialogue = ({
                 {isExtendSuccess && (
                   <div
                     className="p-3 rounded-lg border flex items-start gap-2"
-                    style={{ backgroundColor: "#F0FDF4", borderColor: "#BBF7D0" }}
+                    style={{
+                      backgroundColor: "#F0FDF4",
+                      borderColor: "#BBF7D0",
+                    }}
                   >
-                    <CheckCircle size={16} className="text-green-500 shrink-0 mt-0.5" />
+                    <CheckCircle
+                      size={16}
+                      className="text-green-500 shrink-0 mt-0.5"
+                    />
                     <p className="text-sm text-green-800">
                       Auction extended successfully!
                     </p>

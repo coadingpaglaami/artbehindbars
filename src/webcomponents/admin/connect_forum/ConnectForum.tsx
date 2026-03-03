@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle, Flag, User, MessageSquare, UserX } from "lucide-react";
 import { toast } from "sonner";
 import { ReportedPost } from "@/types/post.type";
+import { getErrorMessage } from "@/lib/utils";
 
 export const ConnectForum = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -78,7 +79,8 @@ export const ConnectForum = () => {
         toast.success("Post deleted successfully");
       },
       onError: (error) => {
-        toast.error("Failed to delete post");
+        const message = getErrorMessage(error);
+        toast.error(message || "Failed to delete post");
         console.error("Delete error:", error);
       },
     });
@@ -120,7 +122,8 @@ export const ConnectForum = () => {
             resetActionDialogs();
           },
           onError: (error) => {
-            toast.error("Failed to send warning");
+            const message = getErrorMessage(error);
+            toast.error(message || "Failed to send warning");
             console.error("Warning error:", error);
           },
         },
@@ -134,7 +137,8 @@ export const ConnectForum = () => {
             resetActionDialogs();
           },
           onError: (error) => {
-            toast.error("Failed to suspend user");
+            const message = getErrorMessage(error);
+            toast.error(message || "Failed to suspend user");
             console.error("Suspend error:", error);
           },
         },

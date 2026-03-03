@@ -13,8 +13,7 @@ import { useState } from "react";
 import { PasswordInput } from "../reusable";
 import { setTokens, setVerificationEmail, setOtpType } from "@/lib/cookies";
 import { useForgetPasswordMutation, useSigninMutation } from "@/api/auth";
-import { useGoogleLogin } from "@/api/account";
-
+import { formatSuspensionMessage, getErrorMessage } from "@/lib/utils";
 const loginSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
   password: z.string().min(1, { message: "Password is required" }),
@@ -69,7 +68,12 @@ export const Login = () => {
           router.push("/");
         },
         onError: (error) => {
-          setError(error.message || "Invalid email or password");
+          const message = getErrorMessage(error);
+          if (message.includes("Account suspended until")) {
+            setError(formatSuspensionMessage(message));
+          } else {
+            setError(message || "Invalid email or password");
+          }
         },
       },
     );
@@ -93,7 +97,8 @@ export const Login = () => {
           router.push("/verify");
         },
         onError: (error) => {
-          setError(error.message || "Failed to send reset code");
+          const message = getErrorMessage(error);
+          setError(message || "Failed to send reset code");
         },
       },
     );

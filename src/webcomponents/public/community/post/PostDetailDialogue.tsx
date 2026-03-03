@@ -11,6 +11,8 @@ import { CommentSection } from "./CommentSection";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PostResponse } from "@/types/post.type";
 import { useGetComments, useToggleLike } from "@/api/post";
+import { getErrorMessage } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface PostDetailDialogProps {
   isOpen: boolean;
@@ -50,7 +52,12 @@ export const PostDetailDialog = ({
   };
 
   const handleLike = () => {
-    toggleLikeMutate(post.id);
+    toggleLikeMutate(post.id,{
+      onError: (error) => {
+        const message = getErrorMessage(error);
+        toast.error(message);
+      }
+    });
   };
 
   return (

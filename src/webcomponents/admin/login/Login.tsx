@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { setTokens } from "@/lib/cookies";
 import { useSigninMutation } from "@/api/auth";
+import { getErrorMessage } from "@/lib/utils";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -78,9 +79,10 @@ export const Login = () => {
           router.push("/admin/overview");
         },
         onError: (error) => {
-          setError(error.message || "Invalid email or password");
+          const message = getErrorMessage(error);
+          setError(message || "Invalid email or password");
         },
-      }
+      },
     );
   }
 

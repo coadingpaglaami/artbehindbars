@@ -191,7 +191,7 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
                   style={{ backgroundColor: "#00A63E" }}
                   onClick={() => {
                     // Buy Now logic will be implemented
-                    console.log("Buy Now clicked for:", product.id);
+                   router.push(`/product/${product.id}`);
                   }}
                 >
                   {buttonText[1] || "Buy Now"}
@@ -201,7 +201,13 @@ export const Product = ({ product, buttonText }: ProductCardProps) => {
               <button
                 className="w-full py-2.5 px-4 rounded-md font-semibold text-gray-700 transition-colors hover:opacity-90"
                 style={{ backgroundColor: "#D4D4D4" }}
-                onClick={() => router.push("/login")}
+                 
+                onClick={() => {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                  isAuthenticated
+                    ? router.push(`/product/${product.id}`)
+                    : router.push("/login");
+                }}
               >
                 {buttonText[0] || "Login to Bid"}
               </button>

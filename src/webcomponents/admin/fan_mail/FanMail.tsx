@@ -15,6 +15,7 @@ import {
   FanMailQueryDto,
   FormattedFanMail,
 } from "@/types/fanmail.type";
+import { getErrorMessage } from "@/lib/utils";
 
 export const FanMail = () => {
   const [activeTab, setActiveTab] = useState("Inbox");
@@ -99,6 +100,10 @@ export const FanMail = () => {
         refetch();
         setSheetOpen(false);
       },
+      onError: (error) => {
+        const message = getErrorMessage(error);
+        console.error("Archive error:", message);
+      }
     });
   };
 
@@ -110,7 +115,11 @@ export const FanMail = () => {
           refetch();
           setSheetOpen(false);
         },
-      },
+        onError: (error) => {
+          const message = getErrorMessage(error);
+          console.error("Reply error:", message);
+        }
+      }
     );
   };
 

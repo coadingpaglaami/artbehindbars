@@ -28,6 +28,7 @@ import { useGetInfiniteUserPosts } from "@/api/post";
 import { useGetOrCreateChatMutation, useSendMessageMutation } from "@/api/chat";
 import { CommunityPosts } from "@/webcomponents/public";
 import { PostsProvider } from "@/context/PostContext";
+import { getErrorMessage } from "@/lib/utils";
 
 interface UserProfileProps {
   profileId: string;
@@ -129,11 +130,8 @@ export const UserProfile = ({ profileId }: UserProfileProps) => {
       toast.success("Connection request sent!");
       refetchConnectionStatus();
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to send connection request",
-      );
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to send connection request");
     }
   };
 
@@ -144,9 +142,8 @@ export const UserProfile = ({ profileId }: UserProfileProps) => {
       toast.success("Connection accepted!");
       refetchConnectionStatus();
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to accept connection",
-      );
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to accept connection");
     }
   };
 
@@ -158,9 +155,8 @@ export const UserProfile = ({ profileId }: UserProfileProps) => {
         refetchConnectionStatus();
       }
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to disconnect",
-      );
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to disconnect");
     }
   };
 
@@ -184,9 +180,8 @@ export const UserProfile = ({ profileId }: UserProfileProps) => {
       // Redirect to chat
       router.push(`/chat/${chat.id}`);
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to send message",
-      );
+      const message = getErrorMessage(error);
+      toast.error(message || "Failed to send message");
     }
   };
 
