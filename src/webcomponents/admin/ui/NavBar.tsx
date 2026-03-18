@@ -17,10 +17,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { clearTokens } from "@/lib/cookies";
 import { useGetNotificationsQuery } from "@/api/notification";
 import { useGetMyProfile } from "@/api/account";
 import { NotificationResponseDto } from "@/types/notification.type";
+import { useLogout } from "@/api/auth";
 
 export const Navbar = () => {
   const { data: notificationsData, isLoading: notificationsLoading } =
@@ -32,9 +32,12 @@ export const Navbar = () => {
   const notifications: NotificationResponseDto[] = notificationsData ?? [];
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const displayNotifications = notifications.slice(0, 10);
+  // const { mutate: logoutMutate } = useLogout();
 
-  const handleLogout = () => {
-    clearTokens();
+  const handleLogout =async () => {
+    // logoutMutate
+    
+    // clearTokens();
     push("/admin/login");
   };
 

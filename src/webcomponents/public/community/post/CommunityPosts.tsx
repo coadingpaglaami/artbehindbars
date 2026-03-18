@@ -19,15 +19,15 @@ import { ReportDialog } from "./ReportDialogue";
 import { PostDetailDialog } from "./PostDetailDialogue";
 import { usePosts } from "@/context/PostContext";
 import { toast } from "sonner";
-import { isClientAuthenticated } from "@/lib/auth-client";
 import { getErrorMessage } from "@/lib/utils";
+import { useAuth } from "@/api/auth";
 
 
 export const CommunityPosts = ({ community }: { community: PostResponse }) => {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [isPostDetailOpen, setIsPostDetailOpen] = useState(false);
   const { refreshPost } = usePosts();
-  const isAuthenticated = isClientAuthenticated();
+  const { isAuthenticated } = useAuth();
 
   // Mutations and Queries
   const { mutate: toggleLikeMutate, isPending: isTogglingLike } =

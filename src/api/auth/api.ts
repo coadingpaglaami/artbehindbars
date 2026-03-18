@@ -19,22 +19,22 @@ const AUTH = "auth";
 /* -------- Signup -------- */
 
 export const signup = async (
-  payload: SignUpDtoRequestDto
+  payload: SignUpDtoRequestDto,
 ): Promise<SignUpResponseDto> => {
   const { data } = await axios.post<SignUpResponseDto>(
     `/${AUTH}/signup`,
-    payload
+    payload,
   );
 
   return data;
 };
 
 export const signupEmailVerify = async (
-  payload: OTPRequestDto
+  payload: OTPRequestDto,
 ): Promise<OTPResponseDto> => {
   const { data } = await axios.post<OTPResponseDto>(
     `/${AUTH}/signup/email_verify`,
-    payload
+    payload,
   );
 
   return data;
@@ -43,11 +43,11 @@ export const signupEmailVerify = async (
 /* -------- Signin -------- */
 
 export const signin = async (
-  payload: LoginRequestDto
+  payload: LoginRequestDto,
 ): Promise<LoginResponseDto> => {
   const { data } = await axios.post<LoginResponseDto>(
     `/${AUTH}/signin`,
-    payload
+    payload,
   );
 
   return data;
@@ -56,22 +56,22 @@ export const signin = async (
 /* -------- Forget Password -------- */
 
 export const forgetPassword = async (
-  payload: ForgetPasswordRequestDto
+  payload: ForgetPasswordRequestDto,
 ): Promise<ForgetPasswordResponseDto> => {
   const { data } = await axios.post<ForgetPasswordResponseDto>(
     `/${AUTH}/forget-passsword`,
-    payload
+    payload,
   );
 
   return data;
 };
 
 export const forgetEmailVerify = async (
-  payload: OTPRequestDto
+  payload: OTPRequestDto,
 ): Promise<OTPResponseDto> => {
   const { data } = await axios.post<OTPResponseDto>(
     `/${AUTH}/forget/email_verify`,
-    payload
+    payload,
   );
 
   return data;
@@ -80,11 +80,11 @@ export const forgetEmailVerify = async (
 /* -------- Reset Password -------- */
 
 export const resetPassword = async (
-  payload: ResetPasswordRequestDto
+  payload: ResetPasswordRequestDto,
 ): Promise<ResetPasswordResponseDto> => {
   const { data } = await axios.post<ResetPasswordResponseDto>(
     `/${AUTH}/reset-password`,
-    payload
+    payload,
   );
 
   return data;
@@ -93,14 +93,31 @@ export const resetPassword = async (
 /* -------- Refresh Token -------- */
 
 export const refreshToken = async (
-  payload: RefreshTokenRequestDto
+  payload: RefreshTokenRequestDto,
 ): Promise<RefreshTokenResponseDto> => {
   const { data } = await axios.post<RefreshTokenResponseDto>(
     `/${AUTH}/refresh_token`,
-    payload
+    payload,
   );
 
   return data;
+};
+
+export const getMe = async () => {
+  try {
+    const res = await axios.get("/auth/me");
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+
+export const logout = async () => {
+  try {
+    await axios.post("/auth/logout");
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
 };
 
 /* -------- Google OAuth -------- */

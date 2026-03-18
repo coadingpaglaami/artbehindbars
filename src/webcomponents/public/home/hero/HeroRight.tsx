@@ -5,7 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useGetArtworks } from "@/api/gallary";
-import { isClientAuthenticated } from "@/lib/auth-client";
+import { useAuth } from "@/api/auth";
 
 export const HeroRight = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -15,7 +15,7 @@ export const HeroRight = () => {
     page: 1,
     limit: 4,
   });
-  const isAuthenticated = isClientAuthenticated();
+  const { isAuthenticated } = useAuth();
 
   const artworks = data?.data || [];
 

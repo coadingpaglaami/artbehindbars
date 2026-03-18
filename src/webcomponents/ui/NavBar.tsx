@@ -19,19 +19,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { usePathname, useRouter } from "next/navigation";
-import { ClientRole, isClientAuthenticated } from "@/lib/auth-client"; // Add getClientUserId
+// Add getClientUserId
 import { NotificationBell } from "./NotificationBell";
 import { clearTokens } from "@/lib/cookies";
+import { useAuth } from "@/api/auth";
 
 export const NavBar = () => {
   const activeLink = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [open, setOpen] = useState(false);
-  const isAuthenticated = isClientAuthenticated();
+  const { isAuthenticated,isAdmin } = useAuth();
   console.log(isAuthenticated);
-  const userRole = ClientRole();
-  console.log(userRole);
+      console.log(isAdmin);
 
   const navLinks: { label: string; link: string }[] = [
     { label: "Home", link: "/" },
@@ -65,7 +65,7 @@ export const NavBar = () => {
       icon: Settings,
       link: "/edit_profile",
     },
-    ...(userRole === "ADMIN" ? [{
+    ...(isAdmin ? [{
       name: "Admin Panel",
       icon: UserCogIcon,
       link: "/admin/overview",

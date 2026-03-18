@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/purity */
 "use client";
 
+import { useAuth } from "@/api/auth";
 import { useGetArtworks } from "@/api/gallary";
 import { Label } from "@/components/ui/label";
 import {
@@ -10,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { isClientAuthenticated } from "@/lib/auth-client";
 import { Category } from "@/types/gallery.types";
 import { Product, SearchBar } from "@/webcomponents/reusable";
 import { useMemo, useState } from "react";
@@ -22,7 +22,7 @@ export const ShopArt = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
   const [selectedAvailability, setSelectedAvailability] = useState<string>("all");
   
-  const isAuthenticated = isClientAuthenticated();
+  const { isAuthenticated } = useAuth();
   const itemsPerPage = 12;
 
   // Fetch artworks using TanStack Query

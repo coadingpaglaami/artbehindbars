@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   signup,
   signupEmailVerify,
@@ -7,6 +7,8 @@ import {
   forgetEmailVerify,
   resetPassword,
   refreshToken,
+  getMe,
+  logout,
 } from "./api";
 
 import {
@@ -23,6 +25,8 @@ import {
   ResetPasswordResponseDto,
   RefreshTokenResponseDto,
 } from "@/types/auth.type";
+import { use } from "react";
+import { log } from "console";
 
 /* -------- Signup -------- */
 
@@ -75,3 +79,28 @@ export const useRefreshTokenMutation = () =>
     mutationKey: ["refreshToken"],
     mutationFn: refreshToken,
   });
+
+// eslint-disable-next-line react-hooks/rules-of-hooks
+export const useAuth = () => {
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["me"],
+    queryFn: getMe,
+    retry: false,
+    staleTime: 5 * 60 * 1000, // cache 5 min
+  });
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    role: user?.role ?? null,
+    isAdmin: user?.role === "ADMIN",
+  };
+};
+
+export const useLogout = () => {
+  useMutation({
+    mutationKey: ["logout"],
+    mutationFn: logout,
+  });
+};

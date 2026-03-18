@@ -33,7 +33,6 @@ import {
 } from "@/types/post.type";
 import { toast } from "sonner";
 import { useCreatePost } from "@/api/post";
-import { isClientAuthenticated } from "@/lib/auth-client";
 import { usePosts } from "@/context/PostContext";
 import { getErrorMessage } from "@/lib/utils";
 

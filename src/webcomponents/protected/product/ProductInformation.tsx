@@ -5,16 +5,17 @@ import { ProductLeft } from "./ProductLeft";
 import { BidOption } from "./BidOption";
 import { BuyOption } from "./BuyOption";
 import { useState } from "react";
-import { isClientAuthenticated } from "@/lib/auth-client";
+
 import { useGetArtworkById } from "@/api/gallary";
 import { UnauthenticatedView } from "./UnAuthenticateView";
 import { ArtworkResponseDto } from "@/types/gallery.types";
 import { SoldArtworkView } from "./SoldArtworkView";
 import { AuctionEndedView } from "./AuctionEndedView";
+import { useAuth } from "@/api/auth";
 
 export const ProductInformation = ({ productId }: { productId: string }) => {
   const [mode, setMode] = useState<"bid" | "buy">("bid");
-  const isAuthenticated = isClientAuthenticated();
+  const { isAuthenticated } = useAuth();
 
   const {
     data: artwork,

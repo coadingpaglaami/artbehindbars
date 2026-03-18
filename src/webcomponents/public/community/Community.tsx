@@ -13,7 +13,6 @@ import { useMemo, useState } from "react";
 import { CreatePost } from "./CreatePost";
 import { CommunityDiscussion } from "./CommunityDiscussion";
 import { CommunityGuideLine } from "./GuideLine";
-import { isClientAuthenticated } from "@/lib/auth-client";
 import { PopularTagsInfinite } from "./PopulerTags";
 import {
   useGetAllInfinitePosts,
@@ -22,6 +21,7 @@ import {
 } from "@/api/post";
 import { CommunityPosts } from "./post/CommunityPosts";
 import { PostsProvider } from "@/context/PostContext";
+import { useAuth } from "@/api/auth";
 
 export const Community = () => {
   const [search, setSearch] = useState("");
@@ -29,7 +29,7 @@ export const Community = () => {
   const [selectedTopic, setSelectedTopic] = useState<string>("");
   const [sortBy, setSortBy] = useState<"recent" | "popular">("recent");
 
-  const isAuthenticated = isClientAuthenticated();
+  const { isAuthenticated } = useAuth();
   const limit = 10;
 
   // Fetch states

@@ -25,7 +25,6 @@ import {
   getVerificationEmail,
   getOtpType,
   clearVerificationData,
-  setTokens,
 } from "@/lib/cookies";
 import {
   useForgetEmailVerifyMutation,
@@ -104,12 +103,12 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
           otpType,
         },
         {
-          onSuccess: (response) => {
-            setTokens(
-              response.accessToken as string,
-              response.refreshToken as string,
-            );
-            router.push("/success");
+          onSuccess: () => {
+            // setTokens(
+            //   response.accessToken as string,
+            //   response.refreshToken as string,
+            // );
+            router.push("/");
             clearVerificationData();
           },
           onError: (error) => {

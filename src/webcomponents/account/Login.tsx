@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PasswordInput } from "../reusable";
-import { setTokens, setVerificationEmail, setOtpType } from "@/lib/cookies";
+import {  setVerificationEmail, setOtpType } from "@/lib/cookies";
 import { useForgetPasswordMutation, useSigninMutation } from "@/api/auth";
 import { formatSuspensionMessage, getErrorMessage } from "@/lib/utils";
 const loginSchema = z.object({
@@ -52,11 +52,11 @@ export const Login = () => {
         password: data.password,
       },
       {
-        onSuccess: (response) => {
-          const { accessToken, refreshToken } = response;
+        onSuccess: () => {
+         
 
           // Store tokens in cookies
-          setTokens(accessToken, refreshToken);
+         
 
           // Handle remember me by setting longer expiry
           if (data.remember) {

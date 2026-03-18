@@ -3,9 +3,9 @@
 import Image from "next/image";
 import { Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { isClientAuthenticated } from "@/lib/auth-client";
 import { ArtworkResponseDto } from "@/types/gallery.types";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/api/auth";
 
 export interface ProductCardProps {
   product: ArtworkResponseDto;
@@ -13,7 +13,7 @@ export interface ProductCardProps {
 }
 
 export const Product = ({ product, buttonText }: ProductCardProps) => {
-  const isAuthenticated = isClientAuthenticated();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
 
   const [timeLeft, setTimeLeft] = useState<string>("");

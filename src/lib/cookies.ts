@@ -3,16 +3,16 @@ import { OtpType } from "@/types/auth.type";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "./constant";
 
 // Token management
-export const getAccessToken = (): string | undefined =>
-  getCookie(ACCESS_TOKEN_COOKIE);
+// export const getAccessToken = (): string | undefined =>
+//   getCookie(ACCESS_TOKEN_COOKIE);
 
-export const getRefreshToken = (): string | undefined =>
-  getCookie(REFRESH_TOKEN_COOKIE);
+// export const getRefreshToken = (): string | undefined =>
+//   getCookie(REFRESH_TOKEN_COOKIE);
 
-export const setTokens = (access: string, refresh: string): void => {
-  setCookie(ACCESS_TOKEN_COOKIE, access, { secure: false, path: "/" });
-  setCookie(REFRESH_TOKEN_COOKIE, refresh, { secure: false, path: "/" });
-};
+// export const setTokens = (access: string, refresh: string): void => {
+//   setCookie(ACCESS_TOKEN_COOKIE, access, { secure: false, path: "/" });
+//   setCookie(REFRESH_TOKEN_COOKIE, refresh, { secure: false, path: "/" });
+// };
 
 export const clearTokens = (): void => {
   removeCookie(ACCESS_TOKEN_COOKIE, { path: "/" });
