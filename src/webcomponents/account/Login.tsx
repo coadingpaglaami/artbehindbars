@@ -57,7 +57,7 @@ export const Login = () => {
         onSuccess: async () => {
           // Store tokens in cookies
           await queryClient.invalidateQueries({ queryKey: ["me"] });
-          router.replace("/"); // redirect after user state is updated
+          window.location.href = "/"; // Redirect to homepage/dashboard
 
           // Handle remember me by setting longer expiry
           if (data.remember) {

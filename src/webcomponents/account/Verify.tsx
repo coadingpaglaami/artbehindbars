@@ -107,7 +107,7 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
         {
           onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["me"] });
-            router.replace("/"); // redirect after user state is updated
+           window.location.href = "/"; // Redirect to homepage/dashboard
 
             // setTokens(
             //   response.accessToken as string,

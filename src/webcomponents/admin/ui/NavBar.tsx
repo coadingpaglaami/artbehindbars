@@ -41,8 +41,7 @@ export const Navbar = () => {
 
     // clearTokens();
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isSuccess &&
-    push("/admin/login");
+    
   };
 
   const handleViewAll = () => {
