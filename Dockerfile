@@ -38,3 +38,6 @@ COPY --from=builder /app/next.config.ts ./next.config.ts
 EXPOSE 3000
 
 CMD ["pnpm", "run", "start"]
+
+# To build the Docker image, run:
+# docker build -t artbehindbars-frontend .
