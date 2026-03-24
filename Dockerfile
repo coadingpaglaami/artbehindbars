@@ -39,5 +39,3 @@ EXPOSE 3000
 
 CMD ["pnpm", "run", "start"]
 
-# To build the Docker image, run:
-# docker build -t artbehindbars-frontend .
