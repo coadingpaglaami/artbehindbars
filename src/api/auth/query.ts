@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   signup,
   signupEmailVerify,
@@ -8,7 +8,6 @@ import {
   resetPassword,
   refreshToken,
   getMe,
-  logout,
 } from "./api";
 
 import {
@@ -26,7 +25,6 @@ import {
   RefreshTokenResponseDto,
 } from "@/types/auth.type";
 
-
 /* -------- Signup -------- */
 
 export const useSignupMutation = () =>
@@ -43,11 +41,16 @@ export const useSignupEmailVerifyMutation = () =>
 
 /* -------- Signin -------- */
 
-export const useSigninMutation = () =>
-  useMutation<LoginResponseDto, Error, LoginRequestDto>({
+export const useSigninMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation<LoginResponseDto, Error, LoginRequestDto>({
     mutationKey: ["signin"],
     mutationFn: signin,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
   });
+};
 
 /* -------- Forget Password -------- */
 
@@ -85,7 +88,7 @@ export const useAuth = () => {
     queryKey: ["me"],
     queryFn: getMe,
     retry: false,
-    staleTime: Infinity,      // user session rarely changes
+    staleTime: Infinity, // user session rarely changes
     gcTime: Infinity,
   });
 
@@ -97,11 +100,4 @@ export const useAuth = () => {
     isAuthenticated: !!user,
     isLoading,
   };
-};
-
-export const useLogout = () => {
-  useMutation({
-    mutationKey: ["logout"],
-    mutationFn: logout,
-  });
 };

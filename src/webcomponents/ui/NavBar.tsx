@@ -21,17 +21,17 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 // Add getClientUserId
 import { NotificationBell } from "./NotificationBell";
-import { clearTokens } from "@/lib/cookies";
-import { useAuth } from "@/api/auth";
+import { useAuth, useLogout } from "@/api/auth";
 
 export const NavBar = () => {
   const activeLink = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [open, setOpen] = useState(false);
-  const { isAuthenticated,isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
+  const { mutate: logoutMutate } = useLogout();
   console.log(isAuthenticated);
-      console.log(isAdmin);
+  console.log(isAdmin);
 
   const navLinks: { label: string; link: string }[] = [
     { label: "Home", link: "/" },
@@ -65,19 +65,20 @@ export const NavBar = () => {
       icon: Settings,
       link: "/edit_profile",
     },
-    ...(isAdmin ? [{
-      name: "Admin Panel",
-      icon: UserCogIcon,
-      link: "/admin/overview",
-    }] : []),
+    ...(isAdmin
+      ? [
+          {
+            name: "Admin Panel",
+            icon: UserCogIcon,
+            link: "/admin/overview",
+          },
+        ]
+      : []),
     {
       name: "Logout",
       icon: LogOut,
       link: "/login",
-      action: () => {
-        clearTokens();
-        router.push("/login");
-      },
+      action: () => logoutMutate(),
     },
   ].filter(Boolean);
 
