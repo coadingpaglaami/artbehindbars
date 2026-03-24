@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   signup,
   signupEmailVerify,
@@ -42,13 +42,9 @@ export const useSignupEmailVerifyMutation = () =>
 /* -------- Signin -------- */
 
 export const useSigninMutation = () => {
-  const queryClient = useQueryClient();
   return useMutation<LoginResponseDto, Error, LoginRequestDto>({
     mutationKey: ["signin"],
     mutationFn: signin,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["me"] });
-    },
   });
 };
 

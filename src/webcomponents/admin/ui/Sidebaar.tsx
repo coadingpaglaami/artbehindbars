@@ -10,10 +10,10 @@ import {
   Mail,
   UserCircle,
   MessageSquare,
-  ShieldCheck,
   Settings,
 } from "lucide-react";
 import Image from "next/image";
+import { useGetMyProfile } from "@/api/account";
 
 // 1. Define the Navigation Structure
 const NAVIGATION_GROUPS = [
@@ -55,7 +55,17 @@ const NAVIGATION_GROUPS = [
 ];
 
 export const Sidebar = () => {
+  const { data: myProfileData } = useGetMyProfile();
   const pathname = usePathname();
+  const getInitials = () => {
+    if (myProfileData?.firstName && myProfileData?.lastName) {
+      return `${myProfileData.firstName.charAt(0)}${myProfileData.lastName.charAt(0)}`.toUpperCase();
+    }
+    if (myProfileData?.firstName) {
+      return myProfileData.firstName.charAt(0).toUpperCase();
+    }
+    return "A";
+  };
 
   return (
     <nav className="flex flex-col w-full bg-[#F8FAFC] border-r border-slate-200 h-full overflow-y-auto ">
@@ -118,18 +128,29 @@ export const Sidebar = () => {
         <div className="flex items-center gap-3">
           {/* FIXED: Parent container needs w-11 h-11 for 'fill' to work */}
           <div className="relative w-11 h-11">
-            <Image
-              src="/artist/artist1.jpg" // Use a real image path or avatar
-              alt="Profile"
-              className="rounded-full object-cover border border-slate-200"
-              fill
-            />
+            {myProfileData?.profilePictureUrl ? (
+              <Image
+                src={myProfileData.profilePictureUrl}
+                alt="Profile"
+                className="rounded-full object-cover border border-slate-200"
+                fill
+              />
+            ) : (
+              <div className="w-full h-full rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center border border-slate-200">
+                <span className="text-white text-sm font-medium">
+                  {getInitials()}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold text-slate-800 leading-tight">
-              Alex Morgan
+              {myProfileData?.firstName}{" "}
+              {myProfileData?.lastName || "Admin User"}
             </span>
-            <span className="text-xs text-slate-500">alex@nexus.com</span>
+            <span className="text-xs text-slate-500">
+              {myProfileData?.email}
+            </span>
           </div>
         </div>
       </div>

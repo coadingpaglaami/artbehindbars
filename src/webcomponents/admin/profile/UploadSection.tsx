@@ -23,6 +23,7 @@ export const UploadSection = ({
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [originalAvatar, setOriginalAvatar] = useState<string | null>(null);
   const [pendingRemove, setPendingRemove] = useState(false);
+  console.log(originalAvatar)
 
   // Set initial image from profile data
   useEffect(() => {

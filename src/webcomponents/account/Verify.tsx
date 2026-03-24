@@ -30,6 +30,7 @@ import {
   useForgetEmailVerifyMutation,
   useSignupEmailVerifyMutation,
 } from "@/api/auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   otp: z.string().length(6, { message: "Please enter a 6-digit code" }),
@@ -56,6 +57,7 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
     useSignupEmailVerifyMutation();
   const { mutate: forgetVerifyMutate, isPending: isForgetVerifying } =
     useForgetEmailVerifyMutation();
+  const queryClient = useQueryClient();
 
   // Load email and otpType from cookies
   useEffect(() => {
@@ -103,12 +105,15 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
           otpType,
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["me"] });
+            router.replace("/"); // redirect after user state is updated
+
             // setTokens(
             //   response.accessToken as string,
             //   response.refreshToken as string,
             // );
-            router.push("/");
+            // router.push("/");
             clearVerificationData();
           },
           onError: (error) => {
@@ -125,7 +130,7 @@ export const Verify = ({ initialCountdown = 60 }: OtpVerificationProps) => {
           otpType,
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
             router.push("/reset-password");
           },
           onError: (error) => {

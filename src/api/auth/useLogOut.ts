@@ -10,9 +10,9 @@ export const useLogout = () => {
 
   return useMutation({
     mutationFn: logout,
-    onSuccess: () => {
-      queryClient.removeQueries({ queryKey: ["me"] });
-      router.push("/login");
+    onSuccess: async () => {
+      queryClient.setQueryData(["me"], null); // 🔥 immediately mark user logged out
+      router.replace("/login"); // replace avoids history issues
     },
   });
 };

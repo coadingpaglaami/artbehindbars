@@ -11,9 +11,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PasswordInput } from "../reusable";
-import {  setVerificationEmail, setOtpType } from "@/lib/cookies";
+import { setVerificationEmail, setOtpType } from "@/lib/cookies";
 import { useForgetPasswordMutation, useSigninMutation } from "@/api/auth";
 import { formatSuspensionMessage, getErrorMessage } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 const loginSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
   password: z.string().min(1, { message: "Password is required" }),
@@ -29,6 +30,7 @@ export const Login = () => {
   const { mutate: signinMutate, isPending: isSigningIn } = useSigninMutation();
   const { mutate: forgotPasswordMutate, isPending: isForgotPasswordPending } =
     useForgetPasswordMutation();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -52,11 +54,10 @@ export const Login = () => {
         password: data.password,
       },
       {
-        onSuccess: () => {
-         
-
+        onSuccess: async () => {
           // Store tokens in cookies
-         
+          await queryClient.invalidateQueries({ queryKey: ["me"] });
+          router.replace("/"); // redirect after user state is updated
 
           // Handle remember me by setting longer expiry
           if (data.remember) {
@@ -65,7 +66,7 @@ export const Login = () => {
           }
 
           // Navigate to dashboard/home
-          router.push("/");
+          // router.push("/");
         },
         onError: (error) => {
           const message = getErrorMessage(error);

@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useGetNotificationsQuery } from "@/api/notification";
 import { useGetMyProfile } from "@/api/account";
 import { NotificationResponseDto } from "@/types/notification.type";
+import { useLogout } from "@/api/auth";
 // import { useLogout } from "@/api/auth";
 
 export const Navbar = () => {
@@ -27,6 +28,7 @@ export const Navbar = () => {
     useGetNotificationsQuery();
   const { data: myProfileData } = useGetMyProfile();
   const { push } = useRouter();
+  const { mutate: logoutMutate, isSuccess } = useLogout();
 
   // Use real API data; fall back to empty array while loading
   const notifications: NotificationResponseDto[] = notificationsData ?? [];
@@ -34,10 +36,12 @@ export const Navbar = () => {
   const displayNotifications = notifications.slice(0, 10);
   // const { mutate: logoutMutate } = useLogout();
 
-  const handleLogout =async () => {
-    // logoutMutate
-    
+  const handleLogout = async () => {
+    logoutMutate();
+
     // clearTokens();
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    isSuccess &&
     push("/admin/login");
   };
 
@@ -90,7 +94,9 @@ export const Navbar = () => {
             <div className="flex flex-col px-4 py-3 border-b">
               <h3 className="font-semibold text-slate-900">Notifications</h3>
               {unreadCount > 0 && (
-                <span className="text-sm text-gray-400">{unreadCount} Unread</span>
+                <span className="text-sm text-gray-400">
+                  {unreadCount} Unread
+                </span>
               )}
             </div>
 
@@ -174,7 +180,7 @@ export const Navbar = () => {
                   asChild
                 >
                   <Link
-                    href={(item).href || "#"}
+                    href={item.href || "#"}
                     className="flex items-center gap-2 w-full"
                   >
                     {Icon && <Icon className="h-4 w-4" />}
