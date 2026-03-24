@@ -95,45 +95,70 @@
 // };
 
 // src/proxy.ts
+// src/proxy.ts
 import { NextRequest, NextResponse } from "next/server";
+import {
+  AUTH_ONLY_ROUTES,
+  GUEST_ONLY_ROUTES,
+  PUBLIC_ROUTES,
+  ADMIN_ROOT,
+  ADMIN_LOGIN,
+} from "@/lib/authroute";
 import { ACCESS_TOKEN_COOKIE } from "@/lib/constant";
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const token = req.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
-  const isAuth = !!token;
-
-  // allow static files
+  /* ---------------- STATIC / INTERNAL ---------------- */
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
+    pathname.startsWith("/media") ||
     pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|css|js)$/)
   ) {
     return NextResponse.next();
   }
 
-  // guest only (login/register)
-  if (pathname.startsWith("/login")) {
+  const token = req.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+  const isAuth = !!token;
+
+  /* ---------------- PUBLIC ROUTES ---------------- */
+  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
+
+  /* ---------------- ADMIN LOGIN ---------------- */
+  if (pathname === ADMIN_LOGIN) {
+    if (isAuth) {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  /* ---------------- ADMIN AREA ---------------- */
+  if (pathname.startsWith(ADMIN_ROOT)) {
+    if (!isAuth) {
+      return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
+
+    // Role check must happen in backend API
+    return NextResponse.next();
+  }
+
+  /* ---------------- GUEST ONLY ---------------- */
+  if (GUEST_ONLY_ROUTES.some((route) => pathname.startsWith(route))) {
     if (isAuth) {
       return NextResponse.redirect(new URL("/", req.url));
     }
     return NextResponse.next();
   }
 
-  // admin routes
-  if (pathname.startsWith("/admin")) {
+  /* ---------------- AUTH ONLY ---------------- */
+  if (AUTH_ONLY_ROUTES.some((route) => pathname.startsWith(route))) {
     if (!isAuth) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
     return NextResponse.next();
-  }
-
-  // authenticated routes
-  if (pathname.startsWith("/dashboard")) {
-    if (!isAuth) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
   }
 
   return NextResponse.next();
