@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSocket } from "@/lib/socket";
-import { ClientSub } from "@/lib/auth-client";
+// import { ClientSub } from "@/lib/auth-client";
 import {
   useGetMessagesQuery,
   useMarkChatSeenMutation,
@@ -11,6 +11,7 @@ import {
 } from "@/api/chat";
 import { Message } from "@/types/chat.type";
 import { getErrorMessage } from "@/lib/utils";
+import { useAuth } from "@/api/auth";
 
 interface ChatWindowProps {
   chatId: string;
@@ -25,8 +26,8 @@ export const ChatWindow = ({ chatId }: ChatWindowProps) => {
   const { data: messages = [], refetch } = useGetMessagesQuery(chatId);
   const sendMessage = useSendMessageMutation();
   const markSeen = useMarkChatSeenMutation();
-  const userId = ClientSub(); // Assuming token contains user ID in 'sub' claim
-
+  // const userId = ClientSub(); // Assuming token contains user ID in 'sub' claim
+  const { userId } = useAuth();
 
   useEffect(() => {
     if (!chatId) return;
@@ -75,7 +76,7 @@ export const ChatWindow = ({ chatId }: ChatWindowProps) => {
           onError: (error: unknown) => {
             const message = getErrorMessage(error);
             console.error("Failed to send message:", message);
-          }
+          },
         },
       );
     } catch (err) {

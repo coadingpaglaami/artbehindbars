@@ -25,8 +25,7 @@ import {
   ResetPasswordResponseDto,
   RefreshTokenResponseDto,
 } from "@/types/auth.type";
-import { use } from "react";
-import { log } from "console";
+
 
 /* -------- Signup -------- */
 
@@ -86,15 +85,17 @@ export const useAuth = () => {
     queryKey: ["me"],
     queryFn: getMe,
     retry: false,
-    staleTime: 5 * 60 * 1000, // cache 5 min
+    staleTime: Infinity,      // user session rarely changes
+    gcTime: Infinity,
   });
 
   return {
     user,
-    isLoading,
-    isAuthenticated: !!user,
+    userId: user?.sub ?? null,
     role: user?.role ?? null,
     isAdmin: user?.role === "ADMIN",
+    isAuthenticated: !!user,
+    isLoading,
   };
 };
 

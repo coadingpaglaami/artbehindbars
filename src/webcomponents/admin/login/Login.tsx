@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { setTokens } from "@/lib/cookies";
+// import { setTokens } from "@/lib/cookies";
 import { useSigninMutation } from "@/api/auth";
 import { getErrorMessage } from "@/lib/utils";
 
@@ -31,7 +31,6 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export const Login = () => {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
   const { mutate: signinMutate, isPending } = useSigninMutation();
@@ -57,27 +56,6 @@ export const Login = () => {
         password: values.password,
       },
       {
-        onSuccess: (response) => {
-          const { accessToken, refreshToken, user } = response;
-
-          // Check if user is admin
-          if (user.role !== "ADMIN") {
-            setError("Access denied. Admin privileges required.");
-            return;
-          }
-
-          // Store tokens in cookies
-          setTokens(accessToken, refreshToken);
-
-          // Handle remember me (tokens are already set, extend expiry if needed)
-          if (values.rememberMe) {
-            // You can implement extended token expiry here if needed
-            // Or handle on backend
-          }
-
-          // Navigate to admin dashboard
-          router.push("/admin/overview");
-        },
         onError: (error) => {
           const message = getErrorMessage(error);
           setError(message || "Invalid email or password");

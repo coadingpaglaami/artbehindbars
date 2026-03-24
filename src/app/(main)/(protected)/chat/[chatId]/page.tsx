@@ -1,6 +1,5 @@
 
 import { ChatWindow, ThreadList } from "@/webcomponents/protected";
-import { notFound } from "next/navigation";
 
 interface ChatDetailPageProps {
   params: Promise<{

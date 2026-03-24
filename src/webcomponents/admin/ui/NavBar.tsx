@@ -20,7 +20,7 @@ import Link from "next/link";
 import { useGetNotificationsQuery } from "@/api/notification";
 import { useGetMyProfile } from "@/api/account";
 import { NotificationResponseDto } from "@/types/notification.type";
-import { useLogout } from "@/api/auth";
+// import { useLogout } from "@/api/auth";
 
 export const Navbar = () => {
   const { data: notificationsData, isLoading: notificationsLoading } =
