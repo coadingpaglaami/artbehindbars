@@ -20,6 +20,50 @@ export const metadata: Metadata = {
   icons: {
     icon: "/navbar/logo.svg",
   },
+  keywords: [
+    "The Art of Reform",
+    "Reform",
+    "Art",
+    "Drawing",
+    "Painting",
+    "Sculpture",
+    "Photography",
+    "Mixed Media",
+    "Contemporary Art",
+    "Abstract Art",
+    "Realism",
+    "Impressionism ",
+    "Expressionism",
+    "Surrealism",
+    "Minimalism",
+    "Conceptual Art",
+    "Street Art",
+    "Digital Art",
+    "Prison Art",
+    "Inmate Art",
+    "Art Behind Bars",
+    "Art for Social Change",
+  ],
+  openGraph: {
+    title: "The Art of Reform",
+    description: "Welcome To The Art of Reform",
+    images: [
+      {
+        url: "https://theartofreform.com/navbar/logo.png",
+        height: 731,
+        width: 800,
+        alt: "The Art of Reform",
+      },
+    ],
+    type: "website",
+    siteName: "The Art of Reform",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Art of Reform",
+    description: "Welcome To The Art of Reform",
+    images: ["https://theartofreform.com/navbar/logo.png"],
+  },
 };
 
 export default function RootLayout({
