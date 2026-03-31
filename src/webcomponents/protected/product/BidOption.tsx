@@ -8,9 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useGetAuctionBids, usePlaceBidMutation } from "@/api/auction";
 import { ArtworkResponseDto } from "@/types/gallery.types";
 import { useEffect } from "react";
-import { PlaceBidDto } from "@/types/auction.type";
 import { getSocket } from "@/lib/socket";
-import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
 
 interface BidOptionProps {
@@ -18,7 +16,7 @@ interface BidOptionProps {
   refetchArtwork: () => void;
 }
 
-export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
+export const BidOption = ({ product }: BidOptionProps) => {
   const [bidAmount, setBidAmount] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [commitmentAccepted, setCommitmentAccepted] = useState(false);
@@ -50,31 +48,6 @@ export const BidOption = ({ product, refetchArtwork }: BidOptionProps) => {
       socket.emit("leaveAuction", product.auction?.id);
     };
   }, [product.auction?.id]);
-
-  // useEffect(() => {
-  //   const socket = getSocket();
-  //   if (!socket) return;
-
-  //   const handleNewBid = (data: PlaceBidDto & { firstName?: string; lastName?: string }) => {
-  //     if (data.auctionId !== product.auction?.id) return;
-
-  //     setCurrentPrice(data.bidPrice);
-  //     refetchArtwork(); // update artwork details (if needed)
-  //     refetchBids(); // optional for now
-
-  //     const bidderName = data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : `User ${data.auctionId || 'Unknown'}`;
-  //     toast.success(`New bid of $${data.bidPrice.toFixed(2)} by ${bidderName}!`, {
-  //       position: "top-right",
-  //       duration: 5000,
-  //     });
-  //   };
-
-  //   socket.on("auction:newBid", handleNewBid);
-
-  //   return () => {
-  //     socket.off("auction:newBid", handleNewBid);
-  //   };
-  // }, [product.auction?.id]);
 
   const currentBid = currentPrice;
   if (currentBid == null) {

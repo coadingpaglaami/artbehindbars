@@ -30,18 +30,14 @@ import { useResetPasswordMutation } from "@/api/auth";
 import { clearVerificationData, getVerificationEmail } from "@/lib/cookies";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/utils";
+import { passwordSchema } from "@/schema/passwordSchema";
 
 // ──────────────────────────────────────────────
 // Zod Schema
 // ──────────────────────────────────────────────
 const formSchema = z
   .object({
-    newPassword: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters" })
-      .regex(/[A-Z]/, "Must contain at least one uppercase letter")
-      .regex(/[0-9]/, "Must contain at least one number")
-      .regex(/[^A-Za-z0-9]/, "Must contain at least one special character"),
+    newPassword: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -56,7 +52,6 @@ type FormValues = z.infer<typeof formSchema>;
 // ──────────────────────────────────────────────
 
 export const ResetPasswordForm = () => {
-
   const [serverError, setServerError] = useState<string | null>(null);
   const { mutate: resetPasswordMutate, isPending: isResetting } =
     useResetPasswordMutation();
@@ -81,28 +76,6 @@ export const ResetPasswordForm = () => {
   const isFormValid = form.formState.isValid && !isResetting;
 
   async function handleSubmit(values: FormValues) {
-    // setServerError(null);
-    // setIsLoading(true);
-    // try {
-    //   const result = await onSubmit({
-    //     newPassword: values.newPassword,
-    //     // token, // pass to API if needed
-    //   });
-    //   if (!result.success) {
-    //     setServerError(
-    //       result.error || "Failed to reset password. Please try again.",
-    //     );
-    //   } else {
-    //     // Success → redirect or show success message
-    //     // e.g. router.push("/login?reset=success")
-    //     // toast.success("Password reset successfully!")
-    //   }
-    // } catch (err) {
-    //   setServerError("An unexpected error occurred. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
-
     resetPasswordMutate(
       {
         password: values.newPassword,
@@ -118,7 +91,7 @@ export const ResetPasswordForm = () => {
           push("/success");
         },
         onError: (error) => {
-          const message = getErrorMessage(error); 
+          const message = getErrorMessage(error);
           setServerError(
             message || "Failed to reset password. Please try again.",
           );
@@ -199,7 +172,9 @@ export const ResetPasswordForm = () => {
                 className="w-full"
                 disabled={!isFormValid || isResetting}
               >
-                {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isResetting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {isResetting ? "Updating..." : "Confirm password"}
               </Button>
             </form>

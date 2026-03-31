@@ -6,3 +6,4 @@ export * from './AdminHeading';
 export * from './PasswordInput';
 export * from './DeleteDialogue';
 export * from './PolicyPage';
+export * from './CheckOutForm';

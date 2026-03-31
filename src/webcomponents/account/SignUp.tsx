@@ -13,6 +13,7 @@ import { setVerificationEmail, setOtpType } from "@/lib/cookies";
 import { useSignupMutation } from "@/api/auth/query";
 import Link from "next/link";
 import { getErrorMessage } from "@/lib/utils";
+import { passwordSchema } from "@/schema/passwordSchema";
 
 // Helper function to calculate age
 const calculateAge = (birthDate: string): number | null => {
@@ -35,10 +36,8 @@ const calculateAge = (birthDate: string): number | null => {
 const signupSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
+  email: z.email({ message: "Invalid email address" }),
+  password: passwordSchema,
   dateOfBirth: z
     .string()
     .min(1, { message: "Date of birth is required" })

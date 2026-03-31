@@ -55,21 +55,20 @@ export const Login = () => {
       },
       {
         onSuccess: async () => {
-          // Store tokens in cookies
           await queryClient.invalidateQueries({ queryKey: ["me"] });
-          window.location.href = "/"; // Redirect to homepage/dashboard
-
-          // Handle remember me by setting longer expiry
-          if (data.remember) {
-            // Tokens are already set, you can extend expiry if needed
-            // Or handle remember me logic on backend
-          }
-
-          // Navigate to dashboard/home
-          // router.push("/");
+          window.location.href = "/";
         },
         onError: (error) => {
           const message = getErrorMessage(error);
+
+          // ⭐ Handle unverified email
+          if (message.includes("Email not verified")) {
+            setVerificationEmail(data.email);
+            setOtpType("signup");
+            router.push("/verify");
+            return;
+          }
+
           if (message.includes("Account suspended until")) {
             setError(formatSuspensionMessage(message));
           } else {

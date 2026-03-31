@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -37,6 +38,7 @@ import {
 } from "@/api/account"; // Adjust import path
 import { ErrorResponse } from "@/types/error.type";
 import { getErrorMessage } from "@/lib/utils";
+import { passwordSchema as schemaPassword } from "@/schema/passwordSchema";
 
 const emailSchema = z.object({
   currentEmail: z.email("Invalid email address"),
@@ -48,7 +50,7 @@ const passwordSchema = z
     currentPassword: z
       .string()
       .min(6, "Password must be at least 6 characters"),
-    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    newPassword: schemaPassword,
     confirmPassword: z
       .string()
       .min(6, "Password must be at least 6 characters"),
@@ -57,8 +59,6 @@ const passwordSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
-
-
 
 export const Security = () => {
   const [isOtpDialogOpen, setIsOtpDialogOpen] = useState(false);
@@ -114,15 +114,17 @@ export const Security = () => {
       setEmailChangeData(values);
 
       // Request email change (this will trigger OTP to be sent to old email)
-      await requestEmailChangeMutation.mutateAsync({
-        newEmail: values.newEmail,
-        
-      },{
-        onError: (error: unknown) => {
-          const errorMessage = getErrorMessage(error);
-          toast.error(errorMessage);
-        }
-      });
+      await requestEmailChangeMutation.mutateAsync(
+        {
+          newEmail: values.newEmail,
+        },
+        {
+          onError: (error: unknown) => {
+            const errorMessage = getErrorMessage(error);
+            toast.error(errorMessage);
+          },
+        },
+      );
 
       // Open OTP dialog for verification
       setIsOtpDialogOpen(true);
@@ -144,16 +146,19 @@ export const Security = () => {
       setOtpError(null);
 
       try {
-        await verifyOldEmailMutation.mutateAsync({
-          otp: otpValue,
-        },{
-          onError: (error: unknown) => {
-            const errorMessage = getErrorMessage(error);
-            setOtpError(errorMessage);
-            setIsVerifyingOldEmail(false);
-            toast.error(errorMessage);
-          }
-        });
+        await verifyOldEmailMutation.mutateAsync(
+          {
+            otp: otpValue,
+          },
+          {
+            onError: (error: unknown) => {
+              const errorMessage = getErrorMessage(error);
+              setOtpError(errorMessage);
+              setIsVerifyingOldEmail(false);
+              toast.error(errorMessage);
+            },
+          },
+        );
 
         // Clear OTP for next step
         setOtpValue("");
@@ -174,16 +179,19 @@ export const Security = () => {
     } else if (isVerifyingNewEmail) {
       // Second step: Verify OTP for new email
       try {
-        await verifyNewEmailMutation.mutateAsync({
-          otp: otpValue,
-        },{
-          onError: (error: unknown) => {
-            const errorMessage = getErrorMessage(error);
-            setOtpError(errorMessage);
-            setIsVerifyingNewEmail(false);
-            toast.error(errorMessage);
-          }
-        });
+        await verifyNewEmailMutation.mutateAsync(
+          {
+            otp: otpValue,
+          },
+          {
+            onError: (error: unknown) => {
+              const errorMessage = getErrorMessage(error);
+              setOtpError(errorMessage);
+              setIsVerifyingNewEmail(false);
+              toast.error(errorMessage);
+            },
+          },
+        );
 
         // Success - email changed
         toast.success("Email changed successfully!");
@@ -230,15 +238,18 @@ export const Security = () => {
   </Button>;
   const onPasswordSubmit = async (values: z.infer<typeof passwordSchema>) => {
     try {
-      await changePasswordMutation.mutateAsync({
-        oldPassword: values.currentPassword,
-        newPassword: values.newPassword,
-      },{
-        onError: (error: unknown) => {
-          const errorMessage = getErrorMessage(error);
-          toast.error(errorMessage);
-        }
-      });
+      await changePasswordMutation.mutateAsync(
+        {
+          oldPassword: values.currentPassword,
+          newPassword: values.newPassword,
+        },
+        {
+          onError: (error: unknown) => {
+            const errorMessage = getErrorMessage(error);
+            toast.error(errorMessage);
+          },
+        },
+      );
 
       toast.success("Password changed successfully!");
 
@@ -445,6 +456,10 @@ export const Security = () => {
                         />
                       </div>
                     </FormControl>
+                    <FormDescription className="text-xs">
+                      Min 8 characters • 1 uppercase • 1 number • 1 special char
+                    </FormDescription>
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -511,15 +526,15 @@ export const Security = () => {
             <div className="flex justify-center">
               <InputOTP
                 maxLength={6}
-                  value={otpValue}
-  onChange={(value) => {
-    setOtpValue(value.replace(/\D/g, ""));
-    setOtpError(null);
-  }}
-  disabled={
-    verifyOldEmailMutation.isPending || 
-    verifyNewEmailMutation.isPending
-  }
+                value={otpValue}
+                onChange={(value) => {
+                  setOtpValue(value.replace(/\D/g, ""));
+                  setOtpError(null);
+                }}
+                disabled={
+                  verifyOldEmailMutation.isPending ||
+                  verifyNewEmailMutation.isPending
+                }
               >
                 <InputOTPGroup className="space-x-2.5 [&>div]:rounded-lg [&>div]:border-2 [&>div]:border-black/30">
                   {[0, 1, 2, 3, 4, 5].map((i) => (
