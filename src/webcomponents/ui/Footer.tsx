@@ -9,8 +9,6 @@ const supportLinks = [
   { name: "Our Story", href: "/our_story" },
   { name: "FAQ", href: "/faq" },
   { name: "Contact Us", href: "/contact_us" },
-  { name: "Terms & Conditions", href: "/terms_condition" },
-  { name: "Privacy Policy", href: "/privacy_policy" },
   { name: "Cookie Policy", href: "/cookie_policy" },
 ];
 export const Footer = () => {
@@ -64,7 +62,7 @@ export const Footer = () => {
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-white">Contact Us</h3>
           <div className="text-gray-400 space-y-2">
-            <p>info@artbehindbars.com</p>
+            <p>theartofreform@gmail.com</p>
             <p>(555) 123-4567</p>
             <p>123 Reform Street</p>
             <p>New York, NY 10001</p>
@@ -75,21 +73,21 @@ export const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
         <p className="text-gray-400 text-sm">
-          © 2026 ArtBehindBars. All rights reserved.
+          © 2026 MMILO LLC. All rights reserved.
         </p>
         <div className="flex gap-4 mt-4 md:mt-0">
           <a
-            href="#privacy"
+            href="/privacy_policy"
             className="text-gray-400 hover:text-[#FFA66A] text-sm transition-colors"
           >
             Privacy Policy
           </a>
           <span className="text-gray-600">|</span>
           <a
-            href="#terms"
+            href="/terms_condition"
             className="text-gray-400 hover:text-[#FFA66A] text-sm transition-colors"
           >
-            Terms of Service
+            Terms & Conditions
           </a>
         </div>
       </div>

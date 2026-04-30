@@ -38,7 +38,7 @@ export const Login = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "admin@artbehindbar.com",
+      email: "",
       password: "",
       rememberMe: false,
     },
